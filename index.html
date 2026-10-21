@@ -26,6 +26,72 @@ dialog{background:#fff;border:1px solid #e2e2e2;border-radius:12px;padding:26px;
 @media(max-width:700px){header>div{padding:17px 18px}.brand{font-size:23px}.brand small{display:none}header .primary{font-size:12px;padding:9px 13px}main{padding:0 16px 20px}.toolbar{gap:8px;padding:15px 0;margin:0 0 22px;row-gap:13px}.toolbar #view-select{font-size:12px;padding:8px 10px 8px 0;max-width:104px}.toolbar .tabs{gap:0}.toolbar .tabs button{font-size:11px;padding:8px 6px}.tag-picker summary{font-size:11px;padding:8px 0}.toolbar #filter{width:100%;margin:0;padding:10px 12px}.demo-bar{font-size:10px;margin:-5px 0 16px;gap:12px}.demo-bar span{max-width:76%}.demo-bar button{font-size:10px;white-space:nowrap}.timeline{border-radius:8px}.post{padding:20px 14px;gap:10px}.avatar{width:29px;height:29px;font-size:14px}.post-note{font-size:13px;line-height:1.9}.post-meta strong{font-size:12px}.post-meta .muted{font-size:10px}.grid.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.card-art{height:175px;padding:20px}.card-art .cover{width:85px;height:127px}.cards .info{padding:13px}.cards .info h3{font-size:13px}.cards .info .muted{font-size:10px}.cards .excerpt{font-size:11px;min-height:39px}.tag-chips{font-size:10px;gap:5px}.shelf{padding:5px 12px}.shelf-row{gap:20px;padding:25px 7px 0;border-bottom-width:8px}.shelf-book .cover{height:132px;max-width:92px}footer{margin:0 18px;padding:17px 0;gap:8px}footer .muted{font-size:10px;line-height:1.7}dialog{padding:22px}.primary{padding:10px 14px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
 
+
+/* Familiar Japanese typography with a softer finish */
+:root{font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans","Meiryo","Yu Gothic",sans-serif;color:#343434;background:#fbfaf8;font-size:15px;letter-spacing:normal}
+body{background:#fbfaf8}
+button,input,select,textarea{font-family:inherit;letter-spacing:normal}
+.brand{font-family:inherit;font-size:25px;font-weight:700;letter-spacing:normal;color:#4c6257}
+.brand small{font-size:12px;font-weight:400;letter-spacing:normal;color:#8b928d}
+header{border-color:#e9e8e3}
+.primary{background:#647b6d;border-color:#647b6d;border-radius:10px;font-size:14px;font-weight:600}
+.primary:hover{background:#53695c;border-color:#53695c}
+.toolbar #view-select{font-size:14px;font-weight:600;color:#4a514c}
+.toolbar .tabs button{font-size:13px;color:#7d837e;padding:9px 12px;border-radius:9px}
+.toolbar .tabs button.active{background:#e9eee8;color:#4c6250}
+.toolbar .tabs button:hover{background:#edf0eb}
+.tag-picker summary{font-size:13px;color:#727b73}
+.toolbar #filter{font-size:13px;background:#efefeb;border-radius:9px}
+.timeline{border-radius:14px;border-color:#e7e8e2}
+.avatar{background:#eaf0e8;color:#6b806e;border-radius:50%;font-family:inherit;font-size:15px;font-weight:600}
+.post-meta strong{font-size:14px;font-weight:600}
+.post-meta .muted{font-size:12px}
+.post-note{font-size:14px;line-height:1.9;color:#3e433f;letter-spacing:normal}
+.post-book{border-radius:10px;border-color:#e7e8e2;background:#fdfdfb}
+.post-book h3{font-size:14px;line-height:1.7;font-weight:600}
+.muted{font-size:13px;color:#858b85}
+.post-status{font-size:12px;color:#858d85}
+.cards .card{border-radius:14px;border-color:#e6e8e0}
+.card-art{background:#f0f1eb}
+.cards .info h3{font-size:15px;line-height:1.7;font-weight:600;letter-spacing:normal}
+.cards .excerpt{font-size:13px;line-height:1.85;color:#747b74}
+.cards .info>p.muted{font-size:12px}
+.badge{font-size:11px;background:#edf1e9;color:#70806b;border-radius:6px;padding:4px 7px}
+.tag-chips{font-size:12px;color:#7d8a76}
+.cover.fallback{filter:saturate(.7)}
+.cover.fallback strong{font-family:inherit;font-size:12px;font-weight:600;line-height:1.7}
+.cover.fallback small{font-family:inherit;letter-spacing:normal}
+.shelf{border-radius:14px}
+.shelf-book .book-title{font-size:11px}
+h2{letter-spacing:normal;font-size:19px;font-weight:600}
+label{font-size:13px;color:#6c756c}
+dialog{border-radius:16px}
+input,select,textarea{border-radius:9px}
+.tag-option{font-size:13px}
+.tag-option input{accent-color:#647b6d}
+footer .muted{font-size:12px}
+footer button{font-size:12px}
+@media(max-width:700px){
+.brand{font-size:23px}
+header .primary{font-size:13px}
+.toolbar #view-select{font-size:13px;max-width:110px}
+.toolbar .tabs button{font-size:12px;padding:9px 6px}
+.tag-picker summary{font-size:12px}
+.toolbar #filter{font-size:13px}
+.post{padding:21px 14px}
+.post-meta strong{font-size:13px}
+.post-meta .muted{font-size:11px}
+.post-note{font-size:14px}
+.post-book h3{font-size:13px}
+.post-book .muted{font-size:12px}
+.cards .info h3{font-size:14px}
+.cards .info .muted{font-size:12px}
+.cards .info>p.muted{font-size:11px}
+.cards .excerpt{font-size:12px;line-height:1.8}
+.tag-chips{font-size:11px}
+footer .muted{font-size:11px}
+}
+
 </style></head>
 <body><header><div><div class="brand">Recotte! <small>レコッテ！</small></div><button class="primary" id="add">＋ 本を登録</button></div></header>
 <main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">カード</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" type="search" placeholder="記録した本を検索" aria-label="記録した本を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
