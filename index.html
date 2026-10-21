@@ -147,6 +147,15 @@ button,input,select,textarea{font-family:inherit}
 .shelf-book{gap:10px}.shelf-book .cover{height:auto;max-width:100px}.shelf-book .book-title{font-size:11px}
 }
 
+
+/* Shelves retain only the cover and title for each book. */
+.shelf{display:block;background:#f0eee7;border:1px solid #e6e2d9;border-radius:12px;padding:8px 24px 0;overflow:hidden}
+.shelf-row{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;gap:26px;padding:30px 12px 0;border-bottom:10px solid #d4c6ae;margin-bottom:47px;box-shadow:0 5px 6px -4px #67594433}
+.shelf-book{position:relative;gap:0;justify-content:flex-end}
+.shelf-book .cover{max-width:110px;box-shadow:2px 2px 5px #0002}
+.shelf-book .book-title{position:absolute;top:calc(100% + 16px);bottom:auto;width:100%;max-width:140px;line-height:1.5;font-size:11px;color:#817767}
+@media(max-width:900px){.shelf-row{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:600px){.shelf{padding:5px 12px 0}.shelf-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:25px 7px 0;margin-bottom:45px}.shelf-book .cover{max-width:100px}.shelf-book .book-title{font-size:10px}}
 </style></head>
 <body><header><div><div class="brand">Recotte! <small>レコッテ！</small></div><button class="primary" id="add">＋ 本を登録</button></div></header>
 <main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">タイル</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" type="search" placeholder="記録した本を検索" aria-label="記録した本を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
@@ -183,12 +192,12 @@ function render(){const demo=!books.length&&showDemo,source=demo?demoBooks:books
 for(const [i,b] of visible.entries()){
 if(view==='timeline'){const post=textNode('article','','post'),content=textNode('div','','post-content'),meta=textNode('div','','post-meta');meta.append(textNode('strong','わたし'),textNode('span',b.date||'読書メモ','muted'));content.append(meta,textNode('p',b.note||'「'+b.title+'」を'+names[b.status]+'に追加しました。','post-note'));const book=textNode('button','','post-book'),info=textNode('div','','info');book.type='button';info.append(textNode('h3',b.title),textNode('div',b.author||'著者未登録','muted'));book.append(bookCover(b),info);book.onclick=()=>selectBook(b);content.append(book,tagChips(b),textNode('div',names[b.status],'post-status'));post.append(textNode('div','R','avatar'),content);container.append(post)}
 else if(view==='cards'){const card=textNode('button','','card'),art=textNode('div','','card-art'),info=textNode('div','','info');card.type='button';card.setAttribute('aria-label',b.title+'の記録');art.append(bookCover(b));info.append(textNode('span',names[b.status],'badge'),textNode('h3',b.title),textNode('div',b.author||'著者未登録','muted'));if(b.date)info.append(textNode('p',b.date,'muted'));info.append(textNode('p',b.note||'まだ感想はありません。','excerpt'));info.append(tagChips(b));card.append(art,info);card.onclick=()=>selectBook(b);container.append(card)}
-else{const book=textNode('button','','shelf-book');book.type='button';book.title=b.title+' / '+b.author+' / '+names[b.status];book.setAttribute('aria-label',book.title);book.append(bookCover(b),textNode('span',b.title,'book-title'));book.onclick=()=>selectBook(b);container.append(book)}}}
+else{const columns=window.matchMedia('(max-width:600px)').matches?3:window.matchMedia('(max-width:900px)').matches?4:6;if(i%columns===0){shelfRow=textNode('div','','shelf-row');container.append(shelfRow)}const book=textNode('button','','shelf-book');book.type='button';book.title=b.title+' / '+b.author+' / '+names[b.status];book.setAttribute('aria-label',book.title);book.append(bookCover(b),textNode('span',b.title,'book-title'));book.onclick=()=>selectBook(b);shelfRow.append(book)}}}
 function setView(next){view=next;render()}
 $('view-select').onchange=e=>setView(e.target.value);
 document.addEventListener('click',e=>{if(!$('tag-picker').contains(e.target))$('tag-picker').open=false});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('tag-picker').open=false});
-$('demo-toggle').onclick=()=>{showDemo=!showDemo;render()};window.matchMedia('(max-width:600px)').addEventListener('change',()=>{if(view==='shelf')render()});
+$('demo-toggle').onclick=()=>{showDemo=!showDemo;render()};for(const query of ['(max-width:600px)','(max-width:900px)'])window.matchMedia(query).addEventListener('change',()=>{if(view==='shelf')render()});
 function openEditor(b=null){editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};for(const k of ['title','author','status','date','note'])$(k).value=editing[k];$('tags').value=tagsOf(editing).map(t=>'#'+t).join(' ');$('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));$('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';$('searchdialog').close();$('editdialog').showModal()}
 $('add').onclick=()=>$('searchdialog').showModal();document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>openEditor();$('filter').oninput=render;
 $('tabs').onclick=e=>{const b=e.target.closest('[data-status]');if(!b)return;filter=b.dataset.status;document.querySelectorAll('[data-status]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b))});render()};
