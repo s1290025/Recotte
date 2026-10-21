@@ -156,6 +156,18 @@ button,input,select,textarea{font-family:inherit}
 .shelf-book .book-title{position:absolute;top:calc(100% + 16px);bottom:auto;width:100%;max-width:140px;line-height:1.5;font-size:11px;color:#817767}
 @media(max-width:900px){.shelf-row{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:600px){.shelf{padding:5px 12px 0}.shelf-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:25px 7px 0;margin-bottom:45px}.shelf-book .cover{max-width:100px}.shelf-book .book-title{font-size:10px}}
+
+/* Keep mobile filters in stable columns when the tag count changes. */
+@media(max-width:700px){
+.toolbar{display:grid;grid-template-columns:minmax(0,26fr) minmax(0,43fr) minmax(0,31fr);column-gap:0;row-gap:12px;align-items:center}
+.toolbar #view-select{width:calc(100% - 6px);max-width:none;min-width:0;margin:0;padding:9px 3px;font-size:11px}
+.toolbar .tabs{width:100%;min-width:0;display:flex;flex-wrap:nowrap;gap:0;order:initial;justify-content:space-between}
+.toolbar .tabs button{min-width:0;flex:1;white-space:nowrap;padding:9px 2px;font-size:11px}
+.toolbar .tag-picker{width:100%;min-width:0;padding-left:5px}
+.toolbar .tag-picker summary{width:100%;box-sizing:border-box;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px;padding:9px 4px}
+.toolbar #filter{grid-column:1/-1;order:initial;width:100%;margin:0}
+#tag-options{left:auto;right:0}
+}
 </style></head>
 <body><header><div><div class="brand">Recotte! <small>レコッテ！</small></div><button class="primary" id="add">＋ 本を登録</button></div></header>
 <main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">タイル</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" type="search" placeholder="記録した本を検索" aria-label="記録した本を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
