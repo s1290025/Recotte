@@ -98,9 +98,58 @@ footer .muted{font-size:11px}
 button,input,select,textarea{font-family:inherit}
 .brand{font-family:inherit}
 .cover.fallback strong,.cover.fallback small{font-family:inherit}
+
+/* Distinct layouts for writing, browsing tiles, and browsing books. */
+.timeline{max-width:640px;background:#fff;border:1px solid #e5e7e4;border-radius:0;overflow:hidden}
+.post{padding:23px 22px;border-bottom:1px solid #e8ebe6;gap:12px}
+.post:last-child{border-bottom:0}
+.avatar{width:38px;height:38px;border-radius:50%;background:#edf1e9;color:#61745f;font-family:inherit;font-size:16px;font-weight:500}
+.post-meta{gap:9px}.post-meta strong{font-size:14px;font-weight:600}.post-meta .muted{font-size:12px}
+.post-note{font-size:14px;line-height:1.85;margin:7px 0 15px}
+.post-book{background:#fff;border:1px solid #e0e4de;border-radius:12px;padding:12px;gap:13px}
+.post-book .cover{width:52px;height:76px}
+.post-book h3{font-size:14px;line-height:1.6;margin:2px 0 6px}
+.post-status{color:#92998e;font-size:11px;margin-top:12px}
+.post .tag-chips{margin-top:10px}
+.grid.cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:26px 18px;align-items:start}
+.cards .card{display:block;border:0;border-radius:0;padding:0;background:transparent;box-shadow:none;text-align:left;min-height:0;overflow:visible;transition:none}
+.cards .card:hover{background:transparent;transform:none;box-shadow:none}
+.card-art{aspect-ratio:1;height:auto;padding:32px;background:#efefea;border:1px solid #00000004;border-radius:3px;display:flex;justify-content:center;align-items:center}
+.cards .card:nth-child(4n+2) .card-art{background:#eee8e1}
+.cards .card:nth-child(4n+3) .card-art{background:#e6ecec}
+.cards .card:nth-child(4n) .card-art{background:#ece7eb}
+.card-art .cover{height:auto;width:53%;aspect-ratio:2/3;box-shadow:3px 5px 10px #27312818}
+.cards .info{padding:11px 2px 0}
+.cards .info>.badge{display:none}
+.cards .info h3{font-size:14px;line-height:1.6;font-weight:600;margin:0 0 4px}
+.cards .info>.muted{font-size:12px}
+.cards .info>p.muted{display:none}
+.cards .excerpt{font-size:12px;line-height:1.8;min-height:0;margin:7px 0 0;-webkit-line-clamp:2;color:#788172}
+.cards .tag-chips{margin-top:7px;font-size:11px}
+.shelf{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:start;gap:30px 26px;background:transparent;border:0;border-radius:0;padding:6px 0 20px;overflow:visible}
+.shelf-book{position:static;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:11px;min-width:0;padding:0;background:transparent;border:0;border-radius:0}
+.shelf-book:hover{background:transparent}
+.shelf-book .cover{width:100%;max-width:120px;height:auto;aspect-ratio:2/3;object-fit:contain;border-radius:1px;box-shadow:1px 3px 6px #00000012;transition:none}
+.shelf-book:hover .cover{transform:none}
+.shelf-book .book-title{position:static;font-size:12px;line-height:1.6;color:#4e574c;max-width:140px;white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow-wrap:anywhere}
+.shelf .empty{grid-column:1/-1;width:100%}
+@media(max-width:900px){.shelf{grid-template-columns:repeat(4,minmax(0,1fr));gap:26px 24px}}
+@media(max-width:600px){
+.timeline{margin:0 -18px;border-left:0;border-right:0}
+.post{padding:20px 18px;gap:10px}.avatar{width:33px;height:33px;font-size:14px}
+.post-meta strong{font-size:13px}.post-meta .muted{font-size:11px}
+.post-note{font-size:14px}.post-book h3{font-size:13px}
+.grid.cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:23px 12px}
+.card-art{height:auto;padding:20px;border-radius:2px}
+.card-art .cover{width:60%;height:auto}
+.cards .info{padding:9px 1px 0}.cards .info h3{font-size:13px}.cards .info>.muted{font-size:11px}.cards .excerpt{font-size:11px}.cards .tag-chips{font-size:10px}
+.shelf{grid-template-columns:repeat(3,minmax(0,1fr));gap:25px 20px;padding:3px 2px 20px}
+.shelf-book{gap:10px}.shelf-book .cover{height:auto;max-width:100px}.shelf-book .book-title{font-size:11px}
+}
+
 </style></head>
 <body><header><div><div class="brand">Recotte! <small>レコッテ！</small></div><button class="primary" id="add">＋ 本を登録</button></div></header>
-<main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">カード</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" type="search" placeholder="記録した本を検索" aria-label="記録した本を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
+<main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">タイル</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" type="search" placeholder="記録した本を検索" aria-label="記録した本を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer>
 <dialog id="searchdialog"><div class="dialoghead"><h2>本を登録</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">タイトル・著者名・ISBNで検索</label><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="本のタイトルなど"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">Google Booksから本の情報を探します。</p><div id="results" class="results"></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
 <dialog id="editdialog"><div class="dialoghead"><h2 id="edittitle">本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="editform"><label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300"><label for="author">著者</label><input class="field" id="author" maxlength="300"><div class="row"><div><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読了</option></select></div><div><label for="date">読了日</label><input class="field" id="date" type="date"></div></div><label for="tags">ハッシュタグ</label><input class="field" id="tags" placeholder="#小説 #お気に入り" maxlength="500"><label for="note">感想・メモ</label><textarea id="note" placeholder="心に残ったことを、自由に。" maxlength="20000"></textarea><div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div></form></dialog><div class="message" id="message" role="status"></div>
@@ -134,7 +183,7 @@ function render(){const demo=!books.length&&showDemo,source=demo?demoBooks:books
 for(const [i,b] of visible.entries()){
 if(view==='timeline'){const post=textNode('article','','post'),content=textNode('div','','post-content'),meta=textNode('div','','post-meta');meta.append(textNode('strong','わたし'),textNode('span',b.date||'読書メモ','muted'));content.append(meta,textNode('p',b.note||'「'+b.title+'」を'+names[b.status]+'に追加しました。','post-note'));const book=textNode('button','','post-book'),info=textNode('div','','info');book.type='button';info.append(textNode('h3',b.title),textNode('div',b.author||'著者未登録','muted'));book.append(bookCover(b),info);book.onclick=()=>selectBook(b);content.append(book,tagChips(b),textNode('div',names[b.status],'post-status'));post.append(textNode('div','R','avatar'),content);container.append(post)}
 else if(view==='cards'){const card=textNode('button','','card'),art=textNode('div','','card-art'),info=textNode('div','','info');card.type='button';card.setAttribute('aria-label',b.title+'の記録');art.append(bookCover(b));info.append(textNode('span',names[b.status],'badge'),textNode('h3',b.title),textNode('div',b.author||'著者未登録','muted'));if(b.date)info.append(textNode('p',b.date,'muted'));info.append(textNode('p',b.note||'まだ感想はありません。','excerpt'));info.append(tagChips(b));card.append(art,info);card.onclick=()=>selectBook(b);container.append(card)}
-else{const columns=window.matchMedia('(max-width:600px)').matches?3:6;if(i%columns===0){shelfRow=textNode('div','','shelf-row');container.append(shelfRow)}const book=textNode('button','','shelf-book');book.type='button';book.title=b.title+' / '+b.author+' / '+names[b.status];book.setAttribute('aria-label',book.title);book.append(bookCover(b),textNode('span',b.title,'book-title'));book.onclick=()=>selectBook(b);shelfRow.append(book)}}}
+else{const book=textNode('button','','shelf-book');book.type='button';book.title=b.title+' / '+b.author+' / '+names[b.status];book.setAttribute('aria-label',book.title);book.append(bookCover(b),textNode('span',b.title,'book-title'));book.onclick=()=>selectBook(b);container.append(book)}}}
 function setView(next){view=next;render()}
 $('view-select').onchange=e=>setView(e.target.value);
 document.addEventListener('click',e=>{if(!$('tag-picker').contains(e.target))$('tag-picker').open=false});
