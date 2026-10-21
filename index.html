@@ -156,57 +156,6 @@ button,input,select,textarea{font-family:inherit}
 .shelf-book .book-title{position:absolute;top:calc(100% + 16px);bottom:auto;width:100%;max-width:140px;line-height:1.5;font-size:11px;color:#817767}
 @media(max-width:900px){.shelf-row{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:600px){.shelf{padding:5px 12px 0}.shelf-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px;padding:25px 7px 0;margin-bottom:45px}.shelf-book .cover{max-width:100px}.shelf-book .book-title{font-size:10px}}
-/* Restore the previous timeline appearance only. */
-.timeline{display:block;max-width:720px;margin:auto;background:white;border:1px solid #e0e5db;border-radius:14px;overflow:hidden}
-.post{display:flex;gap:13px;padding:24px;border-bottom:1px solid #e7eae3}
-.post:last-child{border-bottom:0}
-.avatar{height:38px;width:38px;flex-shrink:0;border-radius:50%;background:#dfe7d8;color:#526b50;display:grid;place-items:center;font-family:serif;font-size:20px}
-.post-content{min-width:0;flex:1}
-.post-meta{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:13px}
-.post-meta strong{font-size:14px}
-.post-note{font-size:14px;line-height:1.9;white-space:pre-wrap;overflow-wrap:anywhere;margin:12px 0 16px}
-.post-book{display:flex;gap:14px;border:1px solid #e0e5da;border-radius:10px;padding:13px;text-align:left;width:100%;background:#fafbf8}
-.post-book .cover{width:50px;height:74px}
-.post-book h3{font-size:14px;margin:3px 0 7px}
-.post-status{font-size:12px;color:#71806a;margin-top:12px}
-.timeline .empty{border:0}
-@media(max-width:600px){.post{padding:18px 14px;gap:10px}
-.avatar{width:30px;height:30px;font-size:16px}
-}
-.timeline{max-width:650px;border:1px solid #e7e7e7;border-radius:10px;background:#fff}
-.post{padding:25px 26px;gap:13px;border-bottom:1px solid #ededed}
-.avatar{background:#f0f0ee;color:#777;width:34px;height:34px;font-size:17px;font-family:inherit;font-weight:500}
-.post-meta{gap:10px}
-.post-meta strong{font-size:13px;font-weight:600}
-.post-meta .muted{font-size:11px}
-.post-note{font-size:14px;line-height:1.95;margin:10px 0 16px;color:#393939}
-.post-book{background:#fff;border-color:#e8e8e8;border-radius:8px;gap:13px;padding:12px}
-.post-book:hover{background:#fafafa}
-.post-book .cover{width:48px;height:70px}
-.post-book h3{font-size:13px;font-weight:600;margin:4px 0 7px}
-.post-status{font-size:11px;color:#999;margin-top:13px}
-@media(max-width:700px){.timeline{border-radius:8px}
-.post{padding:20px 14px;gap:10px}
-.avatar{width:29px;height:29px;font-size:14px}
-.post-note{font-size:13px;line-height:1.9}
-.post-meta strong{font-size:12px}
-.post-meta .muted{font-size:10px}
-}
-.timeline{border-radius:14px;border-color:#e7e8e2}
-.avatar{background:#eaf0e8;color:#6b806e;border-radius:50%;font-family:inherit;font-size:15px;font-weight:600}
-.post-meta strong{font-size:14px;font-weight:600}
-.post-meta .muted{font-size:12px}
-.post-note{font-size:14px;line-height:1.9;color:#3e433f;letter-spacing:normal}
-.post-book{border-radius:10px;border-color:#e7e8e2;background:#fdfdfb}
-.post-book h3{font-size:14px;line-height:1.7;font-weight:600}
-.post-status{font-size:12px;color:#858d85}
-@media(max-width:700px){.post{padding:21px 14px}
-.post-meta strong{font-size:13px}
-.post-meta .muted{font-size:11px}
-.post-note{font-size:14px}
-.post-book h3{font-size:13px}
-.post-book .muted{font-size:12px}
-}
 </style></head>
 <body><header><div><div class="brand">Recotte! <small>レコッテ！</small></div><button class="primary" id="add">＋ 本を登録</button></div></header>
 <main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">タイル</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" type="search" placeholder="記録した本を検索" aria-label="記録した本を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
