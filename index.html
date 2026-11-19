@@ -183,16 +183,16 @@ button,input,select,textarea{font-family:inherit}
 .empty .empty-add-icon{display:grid;place-items:center;flex-shrink:0;width:36px;height:36px;padding:0;border:0;border-radius:11px;font-size:26px;font-weight:400;line-height:1}
 
 #book-search-type{margin-top:8px;padding:9px 12px;font-size:13px}
-#rakuten-settings{margin:16px 0;color:#6c756c;font-size:12px}
-#rakuten-settings>summary{cursor:pointer}
-#rakuten-settings-form{margin-top:12px;padding:16px;background:#f6f7f3;border-radius:9px}
-.rakuten-credit{font-size:11px;margin:14px 0;color:#889084}.rakuten-credit a{color:inherit}
+#google-settings{margin:16px 0;color:#6c756c;font-size:12px}
+#google-settings>summary{cursor:pointer}
+#google-settings-form{margin-top:12px;padding:16px;background:#f6f7f3;border-radius:9px}
+.book-source-credit{font-size:11px;margin:14px 0;color:#889084}.book-source-credit a{color:inherit}
 </style></head>
 <body><header><div><div class="brand">Recotte! <small>レコッテ！</small></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header>
 <main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">タイル</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer>
-<dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">楽天ブックスで検索</label><select id="book-search-type" aria-label="検索項目"><option value="title">タイトル</option><option value="author">著者名</option><option value="isbn">ISBN</option></select><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="rakuten-settings"><summary>楽天API設定</summary><form id="rakuten-settings-form"><label for="rakuten-app-id">アプリID</label><input id="rakuten-app-id" class="field" autocomplete="off" spellcheck="false" required><label for="rakuten-access-key">アクセスキー</label><input id="rakuten-access-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">開発者用の設定です。このブラウザに保存します。</p><div class="actions"><button type="button" id="rakuten-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="rakuten-settings-status" role="status"></p></form></details><div id="results" class="results"></div><div class="rakuten-credit"><!-- Rakuten Web Services Attribution Snippet FROM HERE --><a href="https://developers.rakuten.com/" target="_blank">Supported by Rakuten Developers</a><!-- Rakuten Web Services Attribution Snippet TO HERE --></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
-<dialog id="editdialog"><div class="dialoghead"><h2 id="edittitle">本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="editform"><label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300"><label for="author">著者</label><input class="field" id="author" maxlength="300"><div class="row"><div><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読了</option></select></div><div><label for="date">読了日</label><input class="field" id="date" type="date"></div></div><label for="tags">ハッシュタグ</label><input class="field" id="tags" placeholder="#小説 #お気に入り" maxlength="500"><label for="note">感想・メモ</label><textarea id="note" placeholder="心に残ったことを、自由に。" maxlength="20000"></textarea><div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div></form></dialog><div class="message" id="message" role="status"></div>
+<dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><select id="book-search-type" aria-label="検索項目"><option value="title">タイトル</option><option value="author">著者名</option><option value="isbn">ISBN</option></select><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><div id="results" class="results"></div><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
+<dialog id="editdialog"><div class="dialoghead"><h2 id="edittitle">本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="editform"><a id="source-book" class="muted" target="_blank" rel="noopener noreferrer" hidden>書籍情報を見る</a><label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300"><label for="author">著者</label><input class="field" id="author" maxlength="300"><div class="row"><div><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読了</option></select></div><div><label for="date">読了日</label><input class="field" id="date" type="date"></div></div><label for="tags">ハッシュタグ</label><input class="field" id="tags" placeholder="#小説 #お気に入り" maxlength="500"><label for="note">感想・メモ</label><textarea id="note" placeholder="心に残ったことを、自由に。" maxlength="20000"></textarea><div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div></form></dialog><div class="message" id="message" role="status"></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読了'};
@@ -220,9 +220,10 @@ function coverNode(url){
  e.onerror=next;e.onload=()=>{if(e.naturalWidth<=1||e.naturalHeight<=1)next()};next();return e;
 }
 function coverURLs(b){return [...new Set([b.cover,...(Array.isArray(b.coverCandidates)?b.coverCandidates:[])].filter(u=>typeof u==='string'&&u.startsWith('https://')))]}
-function normalizeRakutenBook(entry){
- const v=entry.Item||entry.item||entry,candidates=[v.largeImageUrl,v.mediumImageUrl,v.smallImageUrl].filter(u=>typeof u==='string'&&u.startsWith('https://'));
- return {title:v.title||'タイトル不明',author:v.author||'',publisher:v.publisherName||'',published:v.salesDate||'',isbn:v.isbn||'',cover:candidates[0]||'',coverCandidates:[...new Set(candidates)],itemUrl:typeof v.itemUrl==='string'&&v.itemUrl.startsWith('https://')?v.itemUrl:'',source:'楽天ブックス'};
+function normalizeGoogleBook(entry){
+ const v=entry.volumeInfo||{},images=v.imageLinks||{},isbn=(v.industryIdentifiers||[]).find(i=>i.type==='ISBN_13')?.identifier||(v.industryIdentifiers||[]).find(i=>i.type==='ISBN_10')?.identifier||'';
+ const candidates=[images.thumbnail,images.smallThumbnail,images.medium,images.small,images.large,images.extraLarge].filter(u=>typeof u==='string').map(u=>u.replace(/^http:/,'https:')).filter(u=>u.startsWith('https://'));
+ return {title:v.title||'タイトル不明',author:(v.authors||[]).join('、'),publisher:v.publisher||'',published:v.publishedDate||'',isbn,cover:candidates[0]||'',coverCandidates:[...new Set(candidates)],itemUrl:entry.id?'https://books.google.com/books?id='+encodeURIComponent(entry.id):'',source:'Google Books',volumeId:entry.id||''};
 }
 function textNode(tag,text,cls){const e=document.createElement(tag);e.textContent=text;if(cls)e.className=cls;return e}
 function tagsOf(b){return [...new Set([...(Array.isArray(b.tags)?b.tags.filter(t=>typeof t==='string'):[]),...(b.note.match(/#[^\s#]+/g)||[]).map(t=>t.slice(1))])]}
@@ -240,7 +241,7 @@ $('view-select').onchange=e=>setView(e.target.value);
 document.addEventListener('click',e=>{if(!$('tag-picker').contains(e.target))$('tag-picker').open=false});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('tag-picker').open=false});
 $('demo-toggle').onclick=()=>{showDemo=!showDemo;render()};for(const query of ['(max-width:600px)','(max-width:900px)'])window.matchMedia(query).addEventListener('change',()=>{if(view==='shelf')render()});
-function openEditor(b=null){editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};for(const k of ['title','author','status','date','note'])$(k).value=editing[k];$('tags').value=tagsOf(editing).map(t=>'#'+t).join(' ');$('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));$('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';$('searchdialog').close();$('editdialog').showModal()}
+function openEditor(b=null){editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};$('source-book').hidden=!(typeof editing.itemUrl==='string'&&editing.itemUrl.startsWith('https://'));if(!$('source-book').hidden){$('source-book').href=editing.itemUrl;$('source-book').textContent=editing.source==='Google Books'?'Google Booksで見る':'書籍情報を見る'}for(const k of ['title','author','status','date','note'])$(k).value=editing[k];$('tags').value=tagsOf(editing).map(t=>'#'+t).join(' ');$('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));$('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';$('searchdialog').close();$('editdialog').showModal()}
 $('add').onclick=()=>{$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>openEditor();$('filter').oninput=render;
 $('toggle-search').onclick=()=>{const input=$('filter'),open=input.hidden;input.hidden=!open;$('toggle-search').setAttribute('aria-expanded',String(open));if(open)input.focus();else{input.value='';render()}};
 $('filter').addEventListener('keydown',e=>{if(e.key==='Escape'){$('toggle-search').click();$('toggle-search').focus()}});
@@ -249,48 +250,52 @@ $('editform').onsubmit=e=>{e.preventDefault();const title=$('title').value.trim(
 $('delete').onclick=()=>{if(confirm(`「${editing.title}」の記録を削除しますか？`)&&persist(books.filter(b=>b.id!==editing.id))){$('editdialog').close();notify('記録を削除しました。')}};
 
 
-/* Shared deployment credentials can be supplied by the developer here. */
-const RAKUTEN_CONFIG={applicationId:'',accessKey:''};
-const RAKUTEN_SETTINGS_KEY='recotte.rakuten.v1',bookSearchCache=new Map();
+
+const GOOGLE_SETTINGS_KEY='recotte.googlebooks.v1',bookSearchCache=new Map();
 let lastBookSearchAt=0;
-function getRakutenSettings(){
- let local={};try{local=JSON.parse(localStorage.getItem(RAKUTEN_SETTINGS_KEY)||'{}')||{}}catch{}
- return {applicationId:String(local.applicationId||RAKUTEN_CONFIG.applicationId||'').trim(),accessKey:String(local.accessKey||RAKUTEN_CONFIG.accessKey||'').trim()};
+function getGoogleAPIKey(){try{return String(JSON.parse(localStorage.getItem(GOOGLE_SETTINGS_KEY)||'{}')?.apiKey||'').trim()}catch{return ''}}
+function refreshGoogleSettings(){
+ const apiKey=getGoogleAPIKey();$('google-api-key').value=apiKey;$('google-settings').open=!apiKey;$('searchmessage').textContent=apiKey?'Google Booksで本を検索できます。':'検索設定でGoogle Books APIキーを設定してください。';
 }
-function refreshRakutenSettings(){
- const config=getRakutenSettings();$('rakuten-app-id').value=config.applicationId;$('rakuten-access-key').value=config.accessKey;
- const ready=!!(config.applicationId&&config.accessKey);$('rakuten-settings').open=!ready;$('searchmessage').textContent=ready?'楽天ブックスで本を検索できます。':'楽天API設定でアプリIDとアクセスキーを設定してください。';
-}
-$('rakuten-settings-form').onsubmit=e=>{
- e.preventDefault();const config={applicationId:$('rakuten-app-id').value.trim(),accessKey:$('rakuten-access-key').value.trim()};if(!config.applicationId||!config.accessKey)return;
- try{localStorage.setItem(RAKUTEN_SETTINGS_KEY,JSON.stringify(config));bookSearchCache.clear();refreshRakutenSettings();$('rakuten-settings-status').textContent='保存しました。';$('query').focus()}catch{$('rakuten-settings-status').textContent='設定を保存できませんでした。'}
+$('google-settings-form').onsubmit=e=>{
+ e.preventDefault();const apiKey=$('google-api-key').value.trim();if(!apiKey)return;
+ try{localStorage.setItem(GOOGLE_SETTINGS_KEY,JSON.stringify({apiKey}));bookSearchCache.clear();refreshGoogleSettings();$('google-settings-status').textContent='保存しました。';$('query').focus()}catch{$('google-settings-status').textContent='設定を保存できませんでした。'}
 };
-$('rakuten-settings-clear').onclick=()=>{try{localStorage.removeItem(RAKUTEN_SETTINGS_KEY);bookSearchCache.clear();refreshRakutenSettings();$('rakuten-settings-status').textContent='このブラウザの設定を削除しました。'}catch{$('rakuten-settings-status').textContent='設定を削除できませんでした。'}};
-async function requestBookJSON(url,parentSignal){
+$('google-settings-clear').onclick=()=>{try{localStorage.removeItem(GOOGLE_SETTINGS_KEY);bookSearchCache.clear();refreshGoogleSettings();$('google-settings-status').textContent='このブラウザの設定を削除しました。'}catch{$('google-settings-status').textContent='設定を削除できませんでした。'}};
+async function requestBookJSON(url,parentSignal,apiKey){
  const controller=new AbortController(),abort=()=>controller.abort();parentSignal.addEventListener('abort',abort,{once:true});if(parentSignal.aborted)controller.abort();const timeout=setTimeout(abort,12000);
  try{
- const response=await fetch(url,{signal:controller.signal});
- if(!response.ok){const error=new Error(response.status===429?'検索回数の上限に達しました。少し時間をおいてお試しください。':response.status===401||response.status===403?'楽天APIのアプリID・アクセスキーと、許可するウェブサイトの設定を確認してください。':response.status===400?'検索条件または楽天APIの設定を確認してください。':'楽天ブックスから情報を取得できませんでした。');error.status=response.status;throw error}
- const data=await response.json();if(data.error)throw new Error('楽天ブックスの検索設定または検索条件を確認してください。');return data;
- }catch(error){if(parentSignal.aborted)throw error;if(controller.signal.aborted)throw new Error('検索に時間がかかっています。もう一度お試しください。');if(error instanceof TypeError)throw new Error('楽天ブックスに接続できません。通信状況と、楽天APIの許可サイト設定を確認してください。');throw error}
+ const response=await fetch(url,{signal:controller.signal,headers:{'X-Goog-Api-Key':apiKey}});
+ let data;try{data=await response.json()}catch{if(response.ok)throw new Error('検索結果を読み込めませんでした。')}
+ if(!response.ok||data?.error){
+  const reasons=(data?.error?.errors||[]).map(x=>x.reason),details=JSON.stringify(data?.error?.details||[]);
+  if(response.status===429||reasons.some(x=>/quota|limit/i.test(x))||/QUOTA_EXCEEDED|RATE_LIMIT_EXCEEDED/.test(details))throw new Error('Google Booksの利用上限に達しました。Google Cloudの割り当てを確認し、時間をおいてお試しください。');
+  if(reasons.includes('accessNotConfigured')||details.includes('SERVICE_DISABLED'))throw new Error('Google CloudでBooks APIを有効にしてください。');
+  if(response.status===401||response.status===403||details.includes('API_KEY_INVALID')||reasons.includes('keyInvalid'))throw new Error('APIキーと、Google CloudのBooks API・許可するウェブサイトの設定を確認してください。');
+  if(response.status===400)throw new Error('APIキーまたは検索条件を確認してください。');
+  throw new Error('Google Booksから情報を取得できませんでした。もう一度お試しください。');
+ }
+ return data;
+ }catch(error){if(parentSignal.aborted)throw error;if(controller.signal.aborted)throw new Error('検索に時間がかかっています。もう一度お試しください。');if(error instanceof TypeError)throw new Error('Google Booksに接続できません。通信状況を確認してください。');throw error}
  finally{clearTimeout(timeout);parentSignal.removeEventListener('abort',abort)}
 }
-function rakutenSearchURL(q,type,config){
+function googleSearchURL(q,type){
  const value=q.normalize('NFKC').trim(),digits=value.replace(/[-\s]/g,''),isISBN=/^(?:\d{9}[\dXx]|\d{13})$/.test(digits),field=isISBN?'isbn':type;
  if(!['title','author','isbn'].includes(field))throw new Error('検索項目を選択してください。');
  if(field==='isbn'&&!isISBN)throw new Error('ISBNは10桁または13桁で入力してください。');
- const params={applicationId:config.applicationId,accessKey:config.accessKey,format:'json',formatVersion:'2',hits:'20',outOfStockFlag:'1',sort:'standard',[field]:field==='isbn'?digits:value};
- return 'https://openapi.rakuten.co.jp/services/api/BooksBook/Search/20170404?'+Object.entries(params).map(([key,value])=>encodeURIComponent(key)+'='+encodeURIComponent(value)).join('&');
+ const query=field==='isbn'?'isbn:'+digits:(field==='author'?'inauthor:':'intitle:')+value;
+ return 'https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(query)+'&maxResults=20&printType=books&orderBy=relevance';
 }
 async function searchBookCatalog(q,signal){
- const config=getRakutenSettings();if(!config.applicationId||!config.accessKey){$('rakuten-settings').open=true;throw new Error('楽天API設定でアプリIDとアクセスキーを設定してください。')}
+ const apiKey=getGoogleAPIKey();if(!apiKey){$('google-settings').open=true;throw new Error('検索設定でGoogle Books APIキーを設定してください。')}
  const type=$('book-search-type').value,key=type+':'+q.normalize('NFKC').trim(),cached=bookSearchCache.get(key);
  if(cached&&Date.now()-cached.time<600000)return cached.result;
- const data=await requestBookJSON(rakutenSearchURL(q,type,config),signal),raw=data.Items??data.items;
- if(!Array.isArray(raw))throw new Error('楽天ブックスの検索結果を読み込めませんでした。');
- const items=raw.map(normalizeRakutenBook),result={items,source:'楽天ブックス'};bookSearchCache.set(key,{time:Date.now(),result});return result;
+ const data=await requestBookJSON(googleSearchURL(q,type),signal,apiKey);
+ if(data.items!==undefined&&!Array.isArray(data.items))throw new Error('Google Booksの検索結果を読み込めませんでした。');
+ const items=(data.items||[]).map(normalizeGoogleBook),result={items,source:'Google Books'};
+ bookSearchCache.set(key,{time:Date.now(),result});return result;
 }
-refreshRakutenSettings();
+refreshGoogleSettings();
 $('searchform').onsubmit=async e=>{
  e.preventDefault();const q=$('query').value.trim();if(!q||$('searchbutton').disabled)return;
  if(Date.now()-lastBookSearchAt<1100){$('searchmessage').textContent='少し間をあけて検索してください。';return}
@@ -299,7 +304,7 @@ $('searchform').onsubmit=async e=>{
  try{
   const {items,source}=await searchBookCatalog(q,controller.signal);if(controller.signal.aborted)return;
   $('searchmessage').textContent=items.length?(source+' · 本を選ぶと登録できます。'):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
-  for(const v of items){const b={id:crypto.randomUUID(),title:v.title,author:v.author,status:'wish',date:'',note:'',cover:v.cover,coverCandidates:v.coverCandidates,isbn:v.isbn,itemUrl:v.itemUrl,source:v.source};
+  for(const v of items){const b={id:crypto.randomUUID(),title:v.title,author:v.author,status:'wish',date:'',note:'',cover:v.cover,coverCandidates:v.coverCandidates,isbn:v.isbn,itemUrl:v.itemUrl,source:v.source,volumeId:v.volumeId};
    const button=textNode('button','','result');button.type='button';const info=textNode('span','');info.append(textNode('strong',b.title),textNode('div',[b.author,v.publisher,v.published].filter(Boolean).join(' / '),'muted'));
    button.append(coverNode(coverURLs(b)),info);button.onclick=()=>openEditor(b);$('results').append(button)
   }
