@@ -187,6 +187,18 @@ button,input,select,textarea{font-family:inherit}
 #google-settings>summary{cursor:pointer}
 #google-settings-form{margin-top:12px;padding:16px;background:#f6f7f3;border-radius:9px}
 .book-source-credit{font-size:11px;margin:14px 0;color:#889084}.book-source-credit a{color:inherit}
+
+/* Smaller, full-cover tiles. */
+.grid.cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:24px 16px}
+.cards .card-art{aspect-ratio:2/3;padding:0;height:auto;overflow:hidden;border:0;border-radius:5px;background:transparent}
+.cards .card .card-art{background:transparent}
+.cards .card-art .cover{display:block;width:100%;height:100%;max-width:none;aspect-ratio:auto;object-fit:cover;border-radius:0;box-shadow:none}
+.cards .card-art .cover.fallback{display:flex;padding:16px 10px}
+.cards .info{padding:9px 1px 0}
+.cards .info h3{font-size:13px}
+.cards .excerpt{font-size:12px}
+@media(max-width:900px) and (min-width:601px){.grid.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:600px){.grid.cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:20px 10px}.cards .card-art{padding:0;aspect-ratio:2/3}.cards .card-art .cover{width:100%;height:100%}.cards .info h3{font-size:12px}.cards .info>.muted,.cards .excerpt{font-size:11px}.cards .tag-chips{font-size:10px}.cards .card-art .cover.fallback{padding:10px 6px}}
 </style></head>
 <body><header><div><div class="brand">Recotte! <small>レコッテ！</small></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header>
 <main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">タイル</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
