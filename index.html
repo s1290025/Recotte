@@ -398,14 +398,28 @@ main{padding-top:0}
 #home-page .home-actions{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:12px;width:48px;margin:0 0 0 auto;padding:12px 0 0}
 #home-page .home-actions button{flex:0 0 40px;width:40px;height:40px}
 @media(max-width:700px){#home-page .home-actions{width:44px;gap:9px;padding:10px 8px 0 0}#home-page .home-actions button{flex-basis:38px;width:38px;height:38px}}
+
+/* Independent right-hand rail, alongside the entire library rather than above it. */
+#home-page{display:grid;grid-template-columns:minmax(0,1fr) 56px;column-gap:16px;align-items:start}
+#home-page .home-content{grid-column:1;grid-row:1;min-width:0}
+#home-page .home-actions{grid-column:2;grid-row:1;position:sticky;top:14px;display:flex;flex-direction:column;align-items:center;gap:14px;width:56px;margin:0;padding:18px 0;align-self:start}
+#home-page .home-actions button{flex:0 0 42px;width:42px;height:42px}
+@media(max-width:700px){
+ #home-page{grid-template-columns:minmax(0,1fr) 48px;column-gap:0}
+ #home-page .home-actions{top:8px;width:48px;padding:13px 0;gap:10px}
+ #home-page .home-actions button{flex-basis:40px;width:40px;height:40px}
+ #home-page .book-index{padding-right:4px}
+}
 </style></head>
 <body><div class="notebook"><main>
 <section id="home-page" aria-label="本の一覧">
-  <div class="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
+  <div class="home-content">
   <nav class="book-index" id="tabs" aria-label="本の分類"><button type="button" data-status="all" class="active" aria-pressed="true">すべて</button><button type="button" data-status="wish" aria-pressed="false">未読・読みたい</button><button type="button" data-status="reading" aria-pressed="false">読書中</button><button type="button" data-status="done" aria-pressed="false">読了</button><span id="tag-index" class="tag-index"></span></nav>
   <input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索">
   <div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div>
   <div id="books" class="grid cards" aria-label="本の表紙一覧"></div>
+  </div>
+  <div class="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
 </section>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
  <div class="detail-page-top"><button type="button" id="detail-back" aria-label="本の一覧に戻る">〈 本の一覧へ</button><span class="detail-eyebrow">READING RECORD</span></div>
