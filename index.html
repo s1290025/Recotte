@@ -485,6 +485,37 @@ main{padding-top:0}
  #detaildialog .detail-rail-left,#detaildialog .detail-rail-right{width:40px}
  #detaildialog #detail-back,#detaildialog #detail-edit{width:38px;height:40px}
 }
+
+/* Viewport-based layout: content centered, controls anchored to the actual screen edges. */
+.notebook{max-width:none;width:100%;margin:0}
+main{padding-left:0;padding-right:0}
+#home-page{max-width:1050px;margin-left:auto;margin-right:auto}
+#detaildialog.book-page{
+ width:100%;max-width:none;
+ grid-template-columns:minmax(56px,1fr) minmax(0,940px) minmax(56px,1fr);
+ column-gap:0;
+ padding-top:64px
+}
+#detaildialog .detail-main{grid-column:2;grid-row:1;width:100%;min-width:0;padding:0 22px}
+#detaildialog .detail-rail{width:100%;min-width:0;box-sizing:border-box;top:14px;padding:0 20px}
+#detaildialog .detail-rail-left{grid-column:1;align-items:flex-start}
+#detaildialog .detail-rail-right{grid-column:3;align-items:flex-end}
+#detaildialog #detail-back,#detaildialog #detail-edit{width:42px;height:42px;flex-shrink:0}
+footer{max-width:1000px;margin-left:auto;margin-right:auto}
+@media(max-width:700px){
+ #detaildialog.book-page{grid-template-columns:46px minmax(0,1fr) 46px;column-gap:0;padding-top:58px}
+ #detaildialog .detail-main{padding:0 5px}
+ #detaildialog .detail-rail{width:100%;padding:0 3px;top:8px}
+ #detaildialog .detail-rail-left{align-items:flex-start}
+ #detaildialog .detail-rail-right{align-items:flex-end}
+ #detaildialog #detail-back,#detaildialog #detail-edit{width:40px;height:42px}
+ footer{margin-left:16px;margin-right:16px}
+}
+@media(max-width:360px){
+ #detaildialog.book-page{grid-template-columns:42px minmax(0,1fr) 42px}
+ #detaildialog .detail-rail{padding:0 2px}
+ #detaildialog #detail-back,#detaildialog #detail-edit{width:38px;height:40px}
+}
 </style></head>
 <body><div class="notebook"><main>
 <section id="home-page" aria-label="本の一覧">
