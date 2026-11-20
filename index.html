@@ -516,8 +516,43 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #detaildialog .detail-rail{padding:0 2px}
  #detaildialog #detail-back,#detaildialog #detail-edit{width:38px;height:40px}
 }
+
+/* Shared header: back only on detail; menu only on narrow screens. */
+.app-header{display:flex!important;position:relative;z-index:7;align-items:center;justify-content:space-between;height:64px;min-height:64px;border:0;background:#fff;padding:0 22px}
+.app-header .header-back{display:grid;place-items:center;background:transparent;border:0;width:44px;height:44px;padding:0;font-size:32px;color:#171717;border-radius:7px;line-height:1}
+.app-header .header-back[hidden]{display:none!important}
+.app-header .header-back:hover{background:#f5f5f5;text-decoration:none}
+.app-header .mobile-menu-toggle{display:none}
+#home-page{padding-top:0}
+#home-page .home-actions{top:14px}
+#detaildialog.book-page{grid-template-columns:minmax(0,940px) 56px;justify-content:center;column-gap:16px;padding-top:0}
+#detaildialog .detail-main{grid-column:1;grid-row:1;padding:0 22px}
+#detaildialog .detail-rail-right{grid-column:2;grid-row:1;width:56px;align-items:flex-end;padding:0}
+#detaildialog .detail-rail-left{display:none}
+@media(min-width:701px){
+ #home-page .home-actions,#detaildialog .detail-rail-right{position:sticky}
+}
+@media(max-width:700px){
+ .app-header{height:58px;min-height:58px;padding:0 12px;position:relative}
+ .app-header .mobile-menu-toggle{display:grid;place-items:center;margin-left:auto;background:transparent;border:0;width:42px;height:42px;border-radius:7px;color:#171717}
+ .app-header .mobile-menu-toggle:hover{background:#f5f5f5}
+ #home-page{display:block;padding-top:0}
+ #home-page .home-content{width:100%;min-width:0}
+ #home-page .home-actions,#detaildialog .detail-rail-right{display:none;position:absolute;z-index:9;top:52px;right:12px;left:auto;width:54px;min-width:54px;padding:8px 5px;flex-direction:column;align-items:center;gap:8px;border:1px solid #e6e6e6;border-radius:9px;background:#fff;box-shadow:0 8px 24px #00000018}
+ body.mobile-menu-open #home-page:not([hidden]) .home-actions{display:flex}
+ body.mobile-menu-open #detaildialog:not([hidden]) .detail-rail-right{display:flex}
+ #detaildialog.book-page{display:block;padding:0 12px 24px}
+ #detaildialog .detail-main{padding:0}
+ #detaildialog .detail-book{grid-template-columns:minmax(100px,35%) minmax(0,1fr);gap:14px}
+ #detaildialog .detail-note-section{padding-left:13px}
+}
 </style></head>
-<body><div class="notebook"><main>
+<body><div class="notebook">
+<header class="app-header">
+ <button type="button" id="detail-back" class="header-back" aria-label="本の一覧に戻る" title="戻る" hidden>〈</button>
+ <button type="button" id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="操作メニューを開く" aria-controls="home-actions detail-actions-rail" aria-expanded="false" title="メニュー"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+</header>
+<main>
 <section id="home-page" aria-label="本の一覧">
   <div class="home-content">
   <nav class="book-index" id="tabs" aria-label="本の分類"><button type="button" data-status="all" class="active" aria-pressed="true">すべて</button><button type="button" data-status="wish" aria-pressed="false">未読・読みたい</button><button type="button" data-status="reading" aria-pressed="false">読書中</button><button type="button" data-status="done" aria-pressed="false">読了</button><span id="tag-index" class="tag-index"></span></nav>
@@ -525,15 +560,14 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
   <div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div>
   <div id="books" class="grid cards" aria-label="本の表紙一覧"></div>
   </div>
-  <div class="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
+  <div class="home-actions" id="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
 </section>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
  <div class="detail-main">
  <div class="detail-book"><div class="detail-book-info"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-status" class="detail-status"></p><p id="detail-date" class="muted"></p><div id="detail-tags" class="detail-tags"></div></div></div><section class="detail-note-section"><h3>感想・メモ</h3><p id="detail-note" class="detail-note"></p></section></div>
  <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a></div>
  </div>
- <aside class="detail-rail detail-rail-left" aria-label="戻る"><button type="button" id="detail-back" aria-label="本の一覧に戻る" title="戻る">〈</button></aside>
- <aside class="detail-rail detail-rail-right" aria-label="編集"><button type="button" id="detail-edit" aria-label="本の記録を編集" title="編集"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg></button></aside>
+ <aside class="detail-rail detail-rail-right" id="detail-actions-rail" aria-label="編集"><button type="button" id="detail-edit" aria-label="本の記録を編集" title="編集"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg></button></aside>
 </section>
 </main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
@@ -603,7 +637,11 @@ function refreshIndex(){
 function tagChips(b){const wrap=textNode('div','','tag-chips');for(const t of tagsOf(b))wrap.append(textNode('span','#'+t));return wrap}
 function bookCover(b){const urls=coverURLs(b),e=coverNode(urls);if(!urls.length){e.classList.add('fallback');e.style.setProperty('--book-color',b.color||['#687d8b','#9e7960','#637d69','#8e86a0'][b.title.length%4]);e.replaceChildren(textNode('small','RECOTTE LIBRARY'),textNode('strong',b.title),textNode('small',b.author))}return e}
 let detailBook=null;
-$('detail-back').onclick=()=>{$('detaildialog').hidden=true;$('home-page').hidden=false;detailBook=null;window.scrollTo({top:0,behavior:'instant'});};
+function closeMobileMenu(){document.body.classList.remove('mobile-menu-open');$('mobile-menu-toggle').setAttribute('aria-expanded','false');$('mobile-menu-toggle').setAttribute('aria-label','操作メニューを開く')}
+$('mobile-menu-toggle').onclick=()=>{const open=document.body.classList.toggle('mobile-menu-open');$('mobile-menu-toggle').setAttribute('aria-expanded',String(open));$('mobile-menu-toggle').setAttribute('aria-label',open?'操作メニューを閉じる':'操作メニューを開く')};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
+document.addEventListener('click',e=>{if(document.body.classList.contains('mobile-menu-open')&&!e.target.closest('#mobile-menu-toggle,#home-actions,#detail-actions-rail'))closeMobileMenu()});
+$('detail-back').onclick=()=>{$('detaildialog').hidden=true;$('home-page').hidden=false;$('detail-back').hidden=true;detailBook=null;closeMobileMenu();window.scrollTo({top:0,behavior:'instant'});};
 function selectBook(b){
  detailBook=b;
  $('detail-cover').replaceChildren(bookCover(b));
@@ -622,6 +660,8 @@ function selectBook(b){
  $('detail-edit').hidden=!!b.demo;
  $('home-page').hidden=true;
  $('detaildialog').hidden=false;
+ $('detail-back').hidden=false;
+ closeMobileMenu();
  window.scrollTo({top:0,behavior:'instant'});
 }
 $('detail-edit').onclick=()=>{
@@ -629,6 +669,8 @@ $('detail-edit').onclick=()=>{
  const b=detailBook;
  $('detaildialog').hidden=true;
  $('home-page').hidden=false;
+ $('detail-back').hidden=true;
+ closeMobileMenu();
  openEditor(b);
 };
 function render(){
@@ -658,8 +700,8 @@ $('tabs').onclick=e=>{
 };
 $('demo-toggle').onclick=()=>{showDemo=!showDemo;render()};
 function openEditor(b=null){editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};$('source-book').hidden=!(typeof editing.itemUrl==='string'&&editing.itemUrl.startsWith('https://'));if(!$('source-book').hidden){$('source-book').href=editing.itemUrl;$('source-book').textContent=editing.source==='Google Books'?'Google Booksで見る':'書籍情報を見る'}for(const k of ['title','author','status','date','note'])$(k).value=editing[k];$('tags').value=tagsOf(editing).map(t=>'#'+t).join(' ');$('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));$('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';$('searchdialog').close();$('editdialog').showModal()}
-$('add').onclick=()=>{$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>openEditor();$('filter').oninput=render;
-$('toggle-search').onclick=()=>{const input=$('filter'),open=input.hidden;input.hidden=!open;$('toggle-search').setAttribute('aria-expanded',String(open));if(open)input.focus();else{input.value='';render()}};
+$('add').onclick=()=>{closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>openEditor();$('filter').oninput=render;
+$('toggle-search').onclick=()=>{closeMobileMenu();const input=$('filter'),open=input.hidden;input.hidden=!open;$('toggle-search').setAttribute('aria-expanded',String(open));if(open)input.focus();else{input.value='';render()}};
 $('filter').addEventListener('keydown',e=>{if(e.key==='Escape'){$('toggle-search').click();$('toggle-search').focus()}});
 
 $('editform').onsubmit=e=>{e.preventDefault();const title=$('title').value.trim();if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}const b={...editing,title,author:$('author').value.trim(),status:$('status').value,date:$('date').value,note:$('note').value.trim(),tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};if(persist([...books.filter(x=>x.id!==b.id),b])){$('editdialog').close();notify('記録を保存しました。')}};$('title').oninput=()=>$('title').setCustomValidity('');
