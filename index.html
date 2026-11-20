@@ -246,9 +246,34 @@ main{padding:18px 34px 38px}
 @media(max-width:440px){.grid.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(prefers-reduced-motion:reduce){#books.view-enter{animation:none}.shelf-book:hover{transform:none}}
 
+
+/* A book opens its own reading page; editing is a separate action. */
+#detaildialog{width:min(680px,calc(100% - 24px));padding:28px 32px;background:#faf7ef;border:1px solid #d0c8bb;border-radius:3px;color:#403d38}
+#detaildialog .dialoghead{margin-bottom:28px;padding-bottom:14px;border-bottom:1px solid #d4cabb}
+.detail-eyebrow{font-family:Georgia,serif;font-size:12px;letter-spacing:.15em;color:#817c70}
+.detail-book{display:grid;grid-template-columns:125px minmax(0,1fr);gap:25px;align-items:start}
+.detail-cover .cover{width:125px;height:185px;object-fit:contain;box-shadow:2px 4px 10px #403a3026}
+.detail-heading{min-width:0}.detail-heading h2{font-family:serif;font-size:clamp(21px,3vw,28px);line-height:1.5;font-weight:500;overflow-wrap:anywhere;margin:8px 0}
+.detail-status{margin:0;font-size:13px;color:#617b75}
+.detail-heading .muted{margin:7px 0;font-size:13px}
+.detail-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:17px}
+.detail-tags span{padding:4px 8px;background:#e6e9df;font-size:12px}
+.detail-note-section{margin-top:34px;border-top:1px solid #d4cabb;padding-top:23px}
+.detail-note-section h3{font-size:14px;font-weight:500;margin:0 0 18px;letter-spacing:.08em}
+.detail-note{white-space:pre-wrap;overflow-wrap:anywhere;line-height:2;min-height:105px;margin:0;font-size:15px}
+.detail-note.is-empty{color:#938e85}
+.detail-actions{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:25px;padding-top:18px;border-top:1px solid #d4cabb}
+.detail-actions #detail-edit{margin-left:auto}
+@media(max-width:500px){#detaildialog{padding:19px}.detail-book{grid-template-columns:90px minmax(0,1fr);gap:16px}.detail-cover .cover{width:90px;height:135px}.detail-note-section{margin-top:25px}.detail-note{font-size:14px}}
 </style></head>
 <body><div class="notebook"><header><div><div class="brand"><img class="brand-logo" src="assets/recotte-logo.png" alt="Recotte!（レコッテ）" decoding="async"></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header><main><nav class="view-switch" role="tablist" aria-label="表示形式"><button id="view-timeline" type="button" role="tab" data-view="timeline" aria-controls="books" aria-selected="true" tabindex="0">タイムライン</button><button id="view-cards" type="button" role="tab" data-view="cards" aria-controls="books" aria-selected="false" tabindex="-1">タイル</button><button id="view-shelf" type="button" role="tab" data-view="shelf" aria-controls="books" aria-selected="false" tabindex="-1">本棚</button></nav><div class="toolbar"><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-labelledby="view-timeline"></div></main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
+<dialog id="detaildialog" aria-labelledby="detail-title">
+ <div class="dialoghead"><span class="detail-eyebrow">READING RECORD</span><button type="button" data-close aria-label="閉じる">×</button></div>
+ <div class="detail-book"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><p id="detail-status" class="detail-status"></p><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-date" class="muted"></p><div id="detail-tags" class="detail-tags"></div></div></div>
+ <section class="detail-note-section"><h3>感想・メモ</h3><p id="detail-note" class="detail-note"></p></section>
+ <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a><button id="detail-edit" type="button" class="primary">編集する</button></div>
+</dialog>
 <dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><select id="book-search-type" aria-label="検索項目"><option value="title">タイトル</option><option value="author">著者名</option><option value="isbn">ISBN</option></select><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><div id="results" class="results"></div><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
 <dialog id="editdialog"><div class="dialoghead"><h2 id="edittitle">本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="editform"><a id="source-book" class="muted" target="_blank" rel="noopener noreferrer" hidden>書籍情報を見る</a><label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300"><label for="author">著者</label><input class="field" id="author" maxlength="300"><div class="row"><div><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読了</option></select></div><div><label for="date">読了日</label><input class="field" id="date" type="date"></div></div><label for="tags">ハッシュタグ</label><input class="field" id="tags" placeholder="#小説 #お気に入り" maxlength="500"><label for="note">感想・メモ</label><textarea id="note" placeholder="心に残ったことを、自由に。" maxlength="20000"></textarea><div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div></form></dialog><div class="message" id="message" role="status"></div>
 <script>
@@ -288,7 +313,31 @@ function tagsOf(b){return [...new Set([...(Array.isArray(b.tags)?b.tags.filter(t
 function renderTags(source){const tags=[...new Set(source.flatMap(tagsOf))].sort((a,b)=>a.localeCompare(b,'ja'));selectedTags=new Set([...selectedTags].filter(t=>tags.includes(t)));$('tag-summary').textContent=selectedTags.size?'ハッシュタグ ('+selectedTags.size+')':'ハッシュタグ';$('tag-options').replaceChildren();if(!tags.length)$('tag-options').append(textNode('p','タグはまだありません。','muted'));for(const tag of tags){const label=textNode('label','','tag-option'),input=document.createElement('input');input.type='checkbox';input.checked=selectedTags.has(tag);input.onchange=()=>{input.checked?selectedTags.add(tag):selectedTags.delete(tag);render()};label.append(input,textNode('span','#'+tag));$('tag-options').append(label)}if(selectedTags.size){const clear=textNode('button','選択をクリア');clear.type='button';clear.onclick=()=>{selectedTags.clear();render()};$('tag-options').append(clear)}}
 function tagChips(b){const wrap=textNode('div','','tag-chips');for(const t of tagsOf(b))wrap.append(textNode('span','#'+t));return wrap}
 function bookCover(b){const urls=coverURLs(b),e=coverNode(urls);if(!urls.length){e.classList.add('fallback');e.style.setProperty('--book-color',b.color||['#687d8b','#9e7960','#637d69','#8e86a0'][b.title.length%4]);e.replaceChildren(textNode('small','RECOTTE LIBRARY'),textNode('strong',b.title),textNode('small',b.author))}return e}
-function selectBook(b){if(b.demo){notify('表示見本の本です。「本を登録」から自分の記録を追加できます。');return}openEditor(b)}
+let detailBook=null;
+function selectBook(b){
+ detailBook=b;
+ $('detail-cover').replaceChildren(bookCover(b));
+ $('detail-title').textContent=b.title;
+ $('detail-author').textContent=b.author||'著者未登録';
+ $('detail-status').textContent=names[b.status]||'';
+ $('detail-date').textContent=b.date?'読了日　'+b.date:'';
+ $('detail-note').textContent=b.note||'まだ感想・メモはありません。';
+ $('detail-note').classList.toggle('is-empty',!b.note);
+ const tags=$('detail-tags');tags.replaceChildren();
+ for(const t of tagsOf(b))tags.append(textNode('span','#'+t));
+ const source=$('detail-source');
+ const hasSource=typeof b.itemUrl==='string'&&b.itemUrl.startsWith('https://');
+ source.hidden=!hasSource;
+ if(hasSource)source.href=b.itemUrl;else source.removeAttribute('href');
+ $('detail-edit').hidden=!!b.demo;
+ $('detaildialog').showModal();
+}
+$('detail-edit').onclick=()=>{
+ if(!detailBook||detailBook.demo)return;
+ const b=detailBook;
+ $('detaildialog').close();
+ openEditor(b);
+};
 function render(){const demo=!books.length&&showDemo,source=demo?demoBooks:books,counts={wish:0,reading:0,done:0};source.forEach(b=>counts[b.status]++);$('demo-bar').hidden=!!books.length;$('demo-label').textContent=demo?'表示見本 · 本のタイトル・著者・感想は架空です。':'まだ読書記録はありません。';$('demo-toggle').textContent=demo?'見本を非表示':'見本を表示';const container=$('books');container.className=view==='cards'?'grid cards':view;renderTags(source);container.replaceChildren();const q=$('filter').value.trim().toLocaleLowerCase();const visible=source.filter(b=>(filter==='all'||b.status===filter)&&[...selectedTags].every(t=>tagsOf(b).includes(t))&&`${b.title} ${b.author} ${b.note}`.toLocaleLowerCase().includes(q)).sort((a,b)=>(b.updatedAt||'').localeCompare(a.updatedAt||''));if(!visible.length){const e=textNode('div','','empty');if(source.length){e.append(textNode('h2','該当する記録がありません'),textNode('p','検索条件や読書状況を変えてみてください。','muted'))}else{const hint=textNode('p','','empty-add-hint'),icon=textNode('button','＋','primary empty-add-icon');icon.type='button';icon.setAttribute('aria-label','本を登録');icon.onclick=()=>$('add').click();hint.append(icon,document.createTextNode('を押して本を記録'));e.append(hint)}container.append(e);return}let shelfRow;
 for(const [i,b] of visible.entries()){
 if(view==='timeline'){const post=textNode('article','','post'),content=textNode('div','','post-content'),meta=textNode('div','','post-meta');meta.append(textNode('span',b.status==='done'?(b.date||names[b.status]):names[b.status],'muted'));content.append(meta,textNode('p',b.note||'「'+b.title+'」を'+names[b.status]+'に追加しました。','post-note'));const book=textNode('button','','post-book'),info=textNode('div','','info');book.type='button';info.append(textNode('h3',b.title),textNode('div',b.author||'著者未登録','muted'));book.append(bookCover(b),info);book.onclick=()=>selectBook(b);content.append(book,tagChips(b));post.append(content);container.append(post)}
