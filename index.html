@@ -449,6 +449,25 @@ main{padding-top:0}
  #detaildialog .detail-rail{width:48px;top:8px}
  #detaildialog #detail-back{width:40px;height:40px}
 }
+
+/* Detail controls: back on the left rail, edit on the right rail. */
+#detaildialog.book-page{grid-template-columns:56px minmax(0,1fr) 56px;column-gap:12px}
+#detaildialog .detail-main{grid-column:2;grid-row:1;padding:0;min-width:0}
+#detaildialog .detail-rail{grid-row:1;position:sticky;top:14px;display:flex;flex-direction:column;align-items:center;width:56px;padding:0;margin:0}
+#detaildialog .detail-rail-left{grid-column:1}
+#detaildialog .detail-rail-right{grid-column:3}
+#detaildialog #detail-back,#detaildialog #detail-edit{width:42px;height:42px;padding:0;border:0;border-radius:7px;background:transparent;color:#171717;display:grid;place-items:center}
+#detaildialog #detail-edit:hover,#detaildialog #detail-back:hover{background:#f5f5f5}
+#detaildialog #detail-edit svg{display:block}
+#detaildialog #detail-edit[hidden]{display:none!important}
+#detaildialog .detail-actions:has(#detail-source[hidden]){display:none}
+@media(max-width:700px){
+ #detaildialog.book-page{grid-template-columns:42px minmax(0,1fr) 42px;column-gap:2px}
+ #detaildialog .detail-rail{width:42px;top:8px}
+ #detaildialog #detail-back,#detaildialog #detail-edit{width:38px;height:40px}
+ #detaildialog .detail-book{grid-template-columns:minmax(85px,35%) minmax(0,1fr);gap:10px}
+ #detaildialog .detail-note-section{padding-left:10px}
+}
 </style></head>
 <body><div class="notebook"><main>
 <section id="home-page" aria-label="本の一覧">
@@ -463,9 +482,10 @@ main{padding-top:0}
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
  <div class="detail-main">
  <div class="detail-book"><div class="detail-book-info"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-status" class="detail-status"></p><p id="detail-date" class="muted"></p><div id="detail-tags" class="detail-tags"></div></div></div><section class="detail-note-section"><h3>感想・メモ</h3><p id="detail-note" class="detail-note"></p></section></div>
- <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a><button id="detail-edit" type="button" class="primary">編集する</button></div>
+ <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a></div>
  </div>
- <aside class="detail-rail" aria-label="ページ操作"><button type="button" id="detail-back" aria-label="本の一覧に戻る" title="戻る">〈</button></aside>
+ <aside class="detail-rail detail-rail-left" aria-label="戻る"><button type="button" id="detail-back" aria-label="本の一覧に戻る" title="戻る">〈</button></aside>
+ <aside class="detail-rail detail-rail-right" aria-label="編集"><button type="button" id="detail-edit" aria-label="本の記録を編集" title="編集"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg></button></aside>
 </section>
 </main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
