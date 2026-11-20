@@ -436,6 +436,19 @@ main{padding-top:0}
  #detaildialog .detail-note-section h3{font-size:12px}
  #detaildialog .detail-note{font-size:13px;line-height:1.85}
 }
+
+/* Detail page uses the same dedicated right-hand action rail as the home page. */
+#detaildialog.book-page{display:grid;grid-template-columns:minmax(0,1fr) 56px;column-gap:16px;align-items:start;padding:64px 0 18px}
+#detaildialog .detail-main{min-width:0;padding:0 0 0 10px}
+#detaildialog .detail-rail{grid-column:2;grid-row:1;position:sticky;top:14px;display:flex;flex-direction:column;align-items:center;width:56px;padding:0;margin:0}
+#detaildialog #detail-back{width:42px;height:42px;padding:0;border:0;background:transparent;color:#171717;border-radius:7px;display:grid;place-items:center;font-family:Arial,sans-serif;font-size:32px;line-height:1;text-decoration:none}
+#detaildialog #detail-back:hover{background:#f5f5f5;text-decoration:none}
+@media(max-width:700px){
+ #detaildialog.book-page{grid-template-columns:minmax(0,1fr) 48px;column-gap:0;padding:58px 0 24px}
+ #detaildialog .detail-main{padding:0 0 0 12px}
+ #detaildialog .detail-rail{width:48px;top:8px}
+ #detaildialog #detail-back{width:40px;height:40px}
+}
 </style></head>
 <body><div class="notebook"><main>
 <section id="home-page" aria-label="本の一覧">
@@ -448,9 +461,11 @@ main{padding-top:0}
   <div class="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
 </section>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
- <div class="detail-page-top"><button type="button" id="detail-back" aria-label="本の一覧に戻る">〈 本の一覧へ</button><span class="detail-eyebrow">READING RECORD</span></div>
+ <div class="detail-main">
  <div class="detail-book"><div class="detail-book-info"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-status" class="detail-status"></p><p id="detail-date" class="muted"></p><div id="detail-tags" class="detail-tags"></div></div></div><section class="detail-note-section"><h3>感想・メモ</h3><p id="detail-note" class="detail-note"></p></section></div>
  <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a><button id="detail-edit" type="button" class="primary">編集する</button></div>
+ </div>
+ <aside class="detail-rail" aria-label="ページ操作"><button type="button" id="detail-back" aria-label="本の一覧に戻る" title="戻る">〈</button></aside>
 </section>
 </main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
