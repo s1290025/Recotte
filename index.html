@@ -444,7 +444,7 @@ function openEditor(b=null){editing=b?{...b}:{id:crypto.randomUUID(),title:'',au
 $('add').onclick=()=>{$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>openEditor();$('filter').oninput=render;
 $('toggle-search').onclick=()=>{const input=$('filter'),open=input.hidden;input.hidden=!open;$('toggle-search').setAttribute('aria-expanded',String(open));if(open)input.focus();else{input.value='';render()}};
 $('filter').addEventListener('keydown',e=>{if(e.key==='Escape'){$('toggle-search').click();$('toggle-search').focus()}});
-$('tabs').onclick=e=>{const b=e.target.closest('[data-status]');if(!b)return;filter=b.dataset.status;document.querySelectorAll('[data-status]').forEach(x=>{x.classList.toggle('active',x===b);x.setAttribute('aria-pressed',String(x===b))});render()};
+
 $('editform').onsubmit=e=>{e.preventDefault();const title=$('title').value.trim();if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}const b={...editing,title,author:$('author').value.trim(),status:$('status').value,date:$('date').value,note:$('note').value.trim(),tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};if(persist([...books.filter(x=>x.id!==b.id),b])){$('editdialog').close();notify('記録を保存しました。')}};$('title').oninput=()=>$('title').setCustomValidity('');
 $('delete').onclick=()=>{if(confirm(`「${editing.title}」の記録を削除しますか？`)&&persist(books.filter(b=>b.id!==editing.id))){$('editdialog').close();notify('記録を削除しました。')}};
 
