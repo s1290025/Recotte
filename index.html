@@ -371,9 +371,32 @@ a{color:#262626}
  #detaildialog.book-page{padding:0 16px 24px}
  footer{margin:0 16px}
 }
+
+/* No global header. Subtle paper-index tabs float above a pure white library. */
+header{display:none!important}
+main{padding-top:0}
+#home-page{position:relative}
+.home-actions{display:flex;justify-content:flex-end;align-items:center;gap:13px;padding:14px 0 0}
+.home-actions button{display:grid;place-items:center;width:38px;height:38px;padding:0;border:0;background:transparent;color:#171717;border-radius:7px}
+.home-actions button:hover{background:#f5f5f5}
+.home-actions #add{font-size:28px;font-weight:400}
+.home-actions .icon-button svg{display:block}
+.book-index{position:relative;display:flex;align-items:end;gap:5px;padding:6px 0 0;margin:0 0 15px;border-bottom:1px solid #e8e8e8;overflow-x:auto}
+.book-index button,.book-index .tag-index button{border:1px solid #e4e4e4;border-bottom:0;border-radius:7px 7px 0 0;margin:0;padding:12px 14px 11px;background:#f6f6f6;color:#646464;font-size:13px;line-height:1.3;box-shadow:none;position:relative;white-space:nowrap}
+.book-index button:hover,.book-index .tag-index button:hover{background:#f0f0f0;color:#222}
+.book-index button.active,.book-index button[aria-pressed="true"],.book-index .tag-index button.active{background:#fff;border:1px solid #d6d6d6;border-bottom:1px solid #fff;color:#161616;font-weight:650;box-shadow:none;margin-bottom:-1px;z-index:1}
+.book-index .tag-index button{background:#f5f7f5;border-color:#e1e7e0}
+.book-index .tag-index button.active{background:#fff;border-color:#d6d6d6}
+@media(max-width:700px){
+ .home-actions{padding:11px 14px 0}
+ .home-actions button{width:35px;height:35px}
+ .book-index{padding:5px 12px 0;margin-bottom:12px;gap:4px}
+ .book-index button,.book-index .tag-index button{padding:10px 11px;font-size:12px}
+}
 </style></head>
-<body><div class="notebook"><header><div><div class="brand"><span class="site-name">Recotte!</span></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header><main>
+<body><div class="notebook"><main>
 <section id="home-page" aria-label="本の一覧">
+  <div class="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
   <nav class="book-index" id="tabs" aria-label="本の分類"><button type="button" data-status="all" class="active" aria-pressed="true">すべて</button><button type="button" data-status="wish" aria-pressed="false">未読・読みたい</button><button type="button" data-status="reading" aria-pressed="false">読書中</button><button type="button" data-status="done" aria-pressed="false">読了</button><span id="tag-index" class="tag-index"></span></nav>
   <input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索">
   <div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div>
