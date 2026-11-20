@@ -304,8 +304,75 @@ main{padding:0 28px 35px;min-height:65vh}
 @media(max-width:900px){#home-page #books.grid.cards{grid-template-columns:repeat(5,minmax(0,1fr))}}
 @media(max-width:700px){main{padding:0 12px 25px}.book-index{padding-top:12px;margin-bottom:13px}.book-index button{font-size:12px;padding:10px 12px}.detail-page-top{padding:15px 0 21px}#detaildialog.book-page{padding:0 3px 18px}#detaildialog .detail-book{grid-template-columns:110px minmax(0,1fr);gap:16px;min-height:0}#detaildialog .detail-heading h2{font-size:21px;margin-bottom:7px}#detaildialog .detail-heading .muted{font-size:12px}#detaildialog .detail-status{margin:13px 0 5px}#detaildialog .detail-note-section{margin-top:25px}#detaildialog .detail-note{font-size:14px}#home-page #books.grid.cards{grid-template-columns:repeat(4,minmax(0,1fr))}}
 @media(max-width:440px){#home-page #books.grid.cards{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* Minimal white interface: typography and book covers carry the design. */
+:root{--ink:#171717;--paper:#fff;--blue:#262626;--line:#e5e5e5;font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Noto Sans JP","Yu Gothic",sans-serif;color:#171717}
+html{background:#fff}
+body{margin:0;padding:0;background:#fff;color:#171717}
+.notebook{max-width:1060px;min-height:100dvh;margin:0 auto;padding:0;background:#fff;background-image:none;border:0;border-radius:0;box-shadow:none}
+.notebook:before,.notebook:after{content:none}
+header{background:#fff;border-bottom:1px solid #ededed}
+header>div{padding:17px 24px;min-height:66px}
+.brand{align-items:center}
+.site-name{font-size:21px;line-height:1.2;font-weight:650;letter-spacing:-.045em;color:#171717}
+.header-tools{gap:9px}
+.header-tools .icon-button,.header-tools #add{color:#171717;background:none;border:0}
+.header-tools button:hover{background:#f5f5f5}
+.header-tools #add{font-size:29px}
+main{padding:0 24px 45px}
+.book-index{margin:0 0 16px;padding:12px 0 0;gap:22px;border-bottom:1px solid #efefef;scrollbar-width:none}
+.book-index::-webkit-scrollbar{display:none}
+.book-index button,.book-index .tag-index button{flex:0 0 auto;padding:11px 1px 13px;margin:0;border:0;border-bottom:2px solid transparent;border-radius:0;box-shadow:none;background:transparent;color:#737373;font-size:13px;font-weight:450}
+.book-index button:hover,.book-index .tag-index button:hover{background:transparent;color:#171717}
+.book-index button.active,.book-index button[aria-pressed="true"],.book-index .tag-index button.active{color:#171717;background:transparent;border:0;border-bottom:2px solid #171717;font-weight:650}
+#home-page #filter{margin:0 0 15px}
+#home-page #books.grid.cards{gap:0}
+#home-page .cards .card-art{background:#f2f2f2}
+#home-page .cards .card:hover .card-art{filter:brightness(.96)}
+#home-page .cards .card-art .cover{border:0;box-shadow:none}
+#home-page .cards .card-art .cover.fallback{border:0}
+.demo-bar{color:#737373}
+button,input,select,textarea{border-radius:5px}
+button{background:#fff;border:1px solid #dbdbdb;color:#262626}
+button:hover{background:#f7f7f7}
+.primary{background:#171717;color:white;border:1px solid #171717}
+.primary:hover{background:#363636;color:white}
+input,select,textarea{background:#fff;border:1px solid #dbdbdb;color:#171717}
+textarea{background:#fff;line-height:1.8}
+footer{border-color:#efefef;margin:0 24px;padding:16px 0 25px}
+footer button{background:#fff}
+.muted{color:#737373}
+#detaildialog.book-page{color:#171717}
+.detail-page-top{padding:24px 0 30px;border-bottom:1px solid #f0f0f0;margin-bottom:26px}
+#detail-back{color:#262626}
+.detail-eyebrow{font-size:11px;color:#737373;letter-spacing:.12em}
+#detaildialog .detail-cover .cover{background:#f4f4f4;box-shadow:none}
+#detaildialog .detail-heading h2{font-family:inherit;color:#171717;font-size:clamp(24px,3.2vw,34px);font-weight:650;letter-spacing:-.02em}
+#detaildialog .detail-status{color:#555}
+#detaildialog .detail-note-section,#detaildialog .detail-actions{border-color:#efefef}
+#detaildialog .detail-note-section h3{font-weight:650;letter-spacing:0}
+#detaildialog .detail-tags span{background:#f4f4f4;color:#454545;border-radius:4px}
+dialog{border:1px solid #e5e5e5;border-radius:9px;background:#fff;color:#171717;box-shadow:0 15px 50px #0002}
+dialog::backdrop{background:#0006}
+#google-settings-form{background:#fafafa;border-color:#e5e5e5}
+.tag-chips span{background:#f4f4f4}
+.message{background:#fff;border:1px solid #e5e5e5}
+a{color:#262626}
+@media(max-width:700px){
+ body{padding:0}
+ .notebook{padding:0;border:0;box-shadow:none;border-radius:0}
+ header>div{padding:13px 16px;min-height:58px}
+ .site-name{font-size:20px}
+ main{padding:0 0 24px}
+ .book-index{margin:0 0 12px;padding:9px 16px 0;gap:18px}
+ .book-index button,.book-index .tag-index button{font-size:12px;padding:10px 1px 12px}
+ #home-page #filter{width:calc(100% - 32px);margin:0 16px 12px}
+ .demo-bar{margin:0 16px 12px}
+ #detaildialog.book-page{padding:0 16px 24px}
+ footer{margin:0 16px}
+}
 </style></head>
-<body><div class="notebook"><header><div><div class="brand"><img class="brand-logo" src="assets/recotte-logo.png" alt="Recotte!（レコッテ）" decoding="async"></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header><main>
+<body><div class="notebook"><header><div><div class="brand"><span class="site-name">Recotte!</span></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header><main>
 <section id="home-page" aria-label="本の一覧">
   <nav class="book-index" id="tabs" aria-label="本の分類"><button type="button" data-status="all" class="active" aria-pressed="true">すべて</button><button type="button" data-status="wish" aria-pressed="false">未読・読みたい</button><button type="button" data-status="reading" aria-pressed="false">読書中</button><button type="button" data-status="done" aria-pressed="false">読了</button><span id="tag-index" class="tag-index"></span></nav>
   <input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索">
