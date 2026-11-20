@@ -26,7 +26,6 @@ header>div{display:flex;justify-content:space-between;align-items:center;gap:16p
 .header-tools button:hover{background:#dbe7eb99}
 main{padding:23px 24px 30px;min-height:65vh}
 .toolbar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid #b8b7aa}
-.toolbar #view-select{font-size:14px;background:#fcf8ee}
 .tabs{display:flex;align-items:center;gap:7px}
 .tabs button{position:relative;isolation:isolate;white-space:nowrap;border:0;background:transparent;padding:10px 11px;font-size:14px}
 .tabs button:before{content:"";position:absolute;z-index:-1;inset:3px 0;background:#ece2ca99;clip-path:polygon(2% 3%,98% 0,100% 92%,97% 100%,0 96%);transform:rotate(-1deg)}
@@ -129,7 +128,6 @@ header>div{padding:15px 7px 16px;gap:8px}.brand-logo{width:171px}
 .header-tools{gap:5px}.header-tools .icon-button,.header-tools #add{width:36px;height:40px}
 main{padding:18px 7px 20px}
 .toolbar{display:grid;grid-template-columns:minmax(0,26fr) minmax(0,43fr) minmax(0,31fr);column-gap:0;row-gap:12px;padding-bottom:17px}
-.toolbar #view-select{width:calc(100% - 5px);font-size:10px;padding:10px 1px}
 .tabs{min-width:0;gap:0;justify-content:space-between}
 .tabs button{min-width:0;flex:1;font-size:10px;padding:11px 0;white-space:nowrap}
 .tabs button.active:after{left:4px;right:4px;bottom:5px}
@@ -155,9 +153,39 @@ dialog{padding:20px}dialog input,dialog select,dialog textarea{font-size:16px}
 .shelf{padding:3px 8px 0}.shelf-row{grid-template-columns:repeat(3,minmax(0,1fr));gap:15px;padding:24px 4px 0;margin-bottom:48px}.book-title{font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition:none!important}}
+
+/* Unruled drawing paper and page-edge view indexes. */
+:root{--paper:#fcfbf6}
+body{padding-right:65px}
+.notebook{
+ background-color:#fcfbf6;
+ background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='170' viewBox='0 0 170 170'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23grain)' opacity='.085'/%3E%3C/svg%3E"),linear-gradient(90deg,#bdb6a333,transparent 34px);
+}
+.notebook:before{background:#c9c4b86b}
+textarea{background:#fffdf7;line-height:1.9}
+.view-index{position:absolute;top:130px;right:-52px;display:flex;flex-direction:column;gap:9px;z-index:2}
+.view-index button{writing-mode:vertical-rl;text-orientation:upright;letter-spacing:.13em;min-height:85px;width:42px;padding:16px 10px;border:1px solid #aab9c2;border-left:0;border-radius:0 7px 7px 0;background:#d6e2e9;color:#30475d;box-shadow:2px 2px 3px #30475d16;font-size:13px;line-height:1.4}
+.view-index button:nth-child(2){background:#e8dfc7;border-color:#c8bea6}
+.view-index button:nth-child(3){background:#dbe2d5;border-color:#b8c4af}
+.view-index button[aria-selected="true"]{width:48px;font-weight:650;box-shadow:3px 2px 4px #30475d22;border-left:3px solid #567c99}
+.view-index button:hover{filter:brightness(1.035)}
+.view-index button:focus-visible{outline:2px solid #527b9b;outline-offset:2px}
+@media(max-width:700px){
+ body{padding-right:39px}
+ .toolbar{grid-template-columns:minmax(0,58fr) minmax(0,42fr)}
+ .toolbar .tabs{width:100%}
+ .toolbar .tabs button{font-size:11px}
+ .toolbar .tag-picker summary{font-size:11px}
+ .view-index{top:116px;right:-35px;gap:8px}
+ .view-index button{width:28px;min-height:72px;padding:12px 6px;font-size:11px;letter-spacing:.1em;border-radius:0 5px 5px 0}
+ .view-index button[aria-selected="true"]{width:32px;border-left-width:2px}
+ .brand-logo{width:150px}
+ .header-tools{gap:0}
+ .header-tools .icon-button,.header-tools #add{width:31px}
+}
 </style></head>
-<body><div class="notebook"><header><div><div class="brand"><img class="brand-logo" src="assets/recotte-logo.png" alt="Recotte!（レコッテ）" decoding="async"></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header>
-<main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">タイル</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
+<body><div class="notebook"><header><div><div class="brand"><img class="brand-logo" src="assets/recotte-logo.png" alt="Recotte!（レコッテ）" decoding="async"></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header><nav class="view-index" role="tablist" aria-label="表示形式" aria-orientation="vertical"><button id="view-timeline" type="button" role="tab" data-view="timeline" aria-controls="books" aria-selected="true" tabindex="0">タイムライン</button><button id="view-cards" type="button" role="tab" data-view="cards" aria-controls="books" aria-selected="false" tabindex="-1">タイル</button><button id="view-shelf" type="button" role="tab" data-view="shelf" aria-controls="books" aria-selected="false" tabindex="-1">本棚</button></nav>
+<main><div class="toolbar"><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-labelledby="view-timeline"></div></main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
 <dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><select id="book-search-type" aria-label="検索項目"><option value="title">タイトル</option><option value="author">著者名</option><option value="isbn">ISBN</option></select><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><div id="results" class="results"></div><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
 <dialog id="editdialog"><div class="dialoghead"><h2 id="edittitle">本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="editform"><a id="source-book" class="muted" target="_blank" rel="noopener noreferrer" hidden>書籍情報を見る</a><label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300"><label for="author">著者</label><input class="field" id="author" maxlength="300"><div class="row"><div><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読了</option></select></div><div><label for="date">読了日</label><input class="field" id="date" type="date"></div></div><label for="tags">ハッシュタグ</label><input class="field" id="tags" placeholder="#小説 #お気に入り" maxlength="500"><label for="note">感想・メモ</label><textarea id="note" placeholder="心に残ったことを、自由に。" maxlength="20000"></textarea><div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div></form></dialog><div class="message" id="message" role="status"></div>
@@ -204,8 +232,26 @@ for(const [i,b] of visible.entries()){
 if(view==='timeline'){const post=textNode('article','','post'),content=textNode('div','','post-content'),meta=textNode('div','','post-meta');meta.append(textNode('span',b.status==='done'?(b.date||names[b.status]):names[b.status],'muted'));content.append(meta,textNode('p',b.note||'「'+b.title+'」を'+names[b.status]+'に追加しました。','post-note'));const book=textNode('button','','post-book'),info=textNode('div','','info');book.type='button';info.append(textNode('h3',b.title),textNode('div',b.author||'著者未登録','muted'));book.append(bookCover(b),info);book.onclick=()=>selectBook(b);content.append(book,tagChips(b));post.append(content);container.append(post)}
 else if(view==='cards'){const card=textNode('button','','card'),art=textNode('div','','card-art'),info=textNode('div','','info');card.type='button';card.setAttribute('aria-label',b.title+'の記録');art.append(bookCover(b));info.append(textNode('span',names[b.status],'badge'),textNode('h3',b.title),textNode('div',b.author||'著者未登録','muted'));if(b.date)info.append(textNode('p',b.date,'muted'));info.append(textNode('p',b.note||'まだ感想はありません。','excerpt'));info.append(tagChips(b));card.append(art,info);card.onclick=()=>selectBook(b);container.append(card)}
 else{const columns=window.matchMedia('(max-width:600px)').matches?3:window.matchMedia('(max-width:900px)').matches?4:6;if(i%columns===0){shelfRow=textNode('div','','shelf-row');container.append(shelfRow)}const book=textNode('button','','shelf-book');book.type='button';book.title=b.title+' / '+b.author+' / '+names[b.status];book.setAttribute('aria-label',book.title);book.append(bookCover(b),textNode('span',b.title,'book-title'));book.onclick=()=>selectBook(b);shelfRow.append(book)}}}
-function setView(next){view=next;render()}
-$('view-select').onchange=e=>setView(e.target.value);
+function setView(next){
+ if(!['timeline','cards','shelf'].includes(next))return;
+ view=next;
+ document.querySelectorAll('[data-view]').forEach(button=>{const active=button.dataset.view===view;button.setAttribute('aria-selected',String(active));button.tabIndex=active?0:-1});
+ $('books').setAttribute('aria-labelledby','view-'+view);
+ render();
+}
+const viewTabs=[...document.querySelectorAll('[data-view]')];
+viewTabs.forEach((button,index)=>{
+ button.onclick=()=>setView(button.dataset.view);
+ button.onkeydown=e=>{
+  let target;
+  if(e.key==='ArrowDown'||e.key==='ArrowRight')target=(index+1)%viewTabs.length;
+  else if(e.key==='ArrowUp'||e.key==='ArrowLeft')target=(index+viewTabs.length-1)%viewTabs.length;
+  else if(e.key==='Home')target=0;
+  else if(e.key==='End')target=viewTabs.length-1;
+  else return;
+  e.preventDefault();setView(viewTabs[target].dataset.view);viewTabs[target].focus();
+ };
+});
 document.addEventListener('click',e=>{if(!$('tag-picker').contains(e.target))$('tag-picker').open=false});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')$('tag-picker').open=false});
 $('demo-toggle').onclick=()=>{showDemo=!showDemo;render()};for(const query of ['(max-width:600px)','(max-width:900px)'])window.matchMedia(query).addEventListener('change',()=>{if(view==='shelf')render()});
