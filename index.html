@@ -63,6 +63,16 @@ footer{margin:8px 18px 0;padding:18px 0 25px;gap:12px}footer .muted{font-size:11
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
 
+
+/* Compact square cover tiles; quiet shelf backing. */
+.grid.cards{grid-template-columns:repeat(5,minmax(0,1fr));gap:16px 14px}
+.cards .card-art{aspect-ratio:1}
+.cards .info{padding:8px 9px}
+.cards .info h3{margin:0;font-size:12px;line-height:1.5;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cards .info>.muted,.cards .excerpt,.cards .tag-chips{display:none}
+.shelf{background:#fff0cf}
+@media(max-width:900px){.grid.cards{grid-template-columns:repeat(4,minmax(0,1fr));gap:15px 12px}}
+@media(max-width:600px){.grid.cards{grid-template-columns:repeat(3,minmax(0,1fr));gap:13px 10px}.cards .card-art{aspect-ratio:1}.cards .info{padding:7px 6px}.cards .info h3{font-size:11px}}
 </style></head>
 <body><header><div><div class="brand">Recotte<span class="brand-bang">!</span> <small>レコッテ！</small></div><div class="header-tools"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div></header>
 <main><div class="toolbar"><select id="view-select" aria-label="表示形式"><option value="timeline">タイムライン</option><option value="cards">タイル</option><option value="shelf">本棚</option></select><div class="tabs" id="tabs"><button data-status="all" class="active">すべて</button><button data-status="wish">読みたい</button><button data-status="reading">読書中</button><button data-status="done">読了</button></div><details class="tag-picker" id="tag-picker"><summary id="tag-summary">ハッシュタグ</summary><div id="tag-options"></div></details><input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索"></div><div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div><div id="books" class="timeline" role="tabpanel" aria-label="読書記録"></div></main>
