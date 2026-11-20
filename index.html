@@ -414,6 +414,28 @@ main{padding-top:0}
 /* Restore the breathing room of the former header without restoring its content. */
 #home-page{padding-top:64px}
 @media(max-width:700px){#home-page{padding-top:58px}}
+
+/* Reading page: book + bibliographic details on the left, prose alongside on the right. */
+#detaildialog .detail-book{display:grid;grid-template-columns:minmax(155px,31%) minmax(0,1fr);align-items:start;gap:clamp(24px,5vw,58px);min-height:0}
+#detaildialog .detail-book-info{min-width:0}
+#detaildialog .detail-cover{width:100%}
+#detaildialog .detail-cover .cover{width:100%;max-height:none;height:auto;aspect-ratio:2/3;object-fit:contain}
+#detaildialog .detail-heading{padding:19px 0 0}
+#detaildialog .detail-heading h2{font-size:clamp(17px,2.1vw,23px);margin:0 0 10px;line-height:1.5;overflow-wrap:anywhere}
+#detaildialog .detail-heading .muted{font-size:13px;overflow-wrap:anywhere}
+#detaildialog .detail-status{margin:13px 0 6px}
+#detaildialog .detail-note-section{align-self:stretch;min-width:0;margin:0;border:0;border-left:1px solid #ededed;padding:0 0 0 clamp(18px,3vw,32px)}
+#detaildialog .detail-note-section h3{margin:0 0 16px;font-size:14px}
+#detaildialog .detail-note{min-height:270px;margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:2}
+@media(max-width:700px){
+ #detaildialog .detail-book{grid-template-columns:minmax(100px,35%) minmax(0,1fr);gap:14px}
+ #detaildialog .detail-heading{padding-top:12px}
+ #detaildialog .detail-heading h2{font-size:16px}
+ #detaildialog .detail-heading .muted{font-size:11px}
+ #detaildialog .detail-note-section{margin:0;padding:0 0 0 13px}
+ #detaildialog .detail-note-section h3{font-size:12px}
+ #detaildialog .detail-note{font-size:13px;line-height:1.85}
+}
 </style></head>
 <body><div class="notebook"><main>
 <section id="home-page" aria-label="本の一覧">
@@ -427,8 +449,7 @@ main{padding-top:0}
 </section>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
  <div class="detail-page-top"><button type="button" id="detail-back" aria-label="本の一覧に戻る">〈 本の一覧へ</button><span class="detail-eyebrow">READING RECORD</span></div>
- <div class="detail-book"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-status" class="detail-status"></p><p id="detail-date" class="muted"></p><div id="detail-tags" class="detail-tags"></div></div></div>
- <section class="detail-note-section"><h3>感想・メモ</h3><p id="detail-note" class="detail-note"></p></section>
+ <div class="detail-book"><div class="detail-book-info"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-status" class="detail-status"></p><p id="detail-date" class="muted"></p><div id="detail-tags" class="detail-tags"></div></div></div><section class="detail-note-section"><h3>感想・メモ</h3><p id="detail-note" class="detail-note"></p></section></div>
  <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a><button id="detail-edit" type="button" class="primary">編集する</button></div>
 </section>
 </main>
