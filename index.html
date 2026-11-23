@@ -885,7 +885,18 @@ function finishElements(skip=false){
  const previousEntries=Array.isArray(b.readEntries)?[...b.readEntries]:[];
  if(choiceMode==='reread'&&(b.note||b.reaction||b.noteMarks||b.customRatings?.length)){previousEntries.push({date:history.length>1?history[history.length-2].date:'',note:b.note||'',noteMarks:b.noteMarks||'',reaction:b.reaction||null,customRatings:b.customRatings||[]})}
  const revised={...b,status:'done',readHistory:history,date:/^\d{4}-\d{2}-\d{2}$/.test(choiceDate)?choiceDate:b.date||'',keywords:{elements:words,moods:[],likes:[]},readEntries:previousEntries,...(choiceMode==='reread'?{note:'',noteMarks:'',reaction:null,customRatings:[]}: {})};
- $('reading-elements').close();openEditor(revised);
+ $('reading-elements').close();
+ // A completed date/element step is already a valid reading record:
+ // persist it before opening the optional memo editor.
+ if(choiceMode==='first'&&revised.title?.trim()){
+  const saved={...revised,author:typeof revised.author==='string'?revised.author:'',note:typeof revised.note==='string'?revised.note:'',cover:typeof revised.cover==='string'?revised.cover:'',updatedAt:new Date().toISOString()};
+  if(!persist([...books.filter(x=>x.id!==saved.id),saved]))return;
+  if(detailBook&&detailBook.id===saved.id)selectBook(saved);
+  else{filter='done';refreshIndex();render()}
+  openEditor(saved);
+ }else{
+  openEditor(revised);
+ }
 }
 $('reading-elements-form').onsubmit=e=>{e.preventDefault();finishElements(false)};
 $('skip-elements').onclick=()=>finishElements(true);
