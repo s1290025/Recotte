@@ -761,6 +761,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #editdialog .record-writing>.reading-session,#editdialog .past-record-entry{padding:14px 12px}
  #editdialog .reading-session .note-editor{min-height:37dvh}
 }
+#editdialog .editor-status-internal[hidden]{display:none!important}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -798,14 +799,14 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <a id="source-book" class="muted" target="_blank" rel="noopener noreferrer" hidden>書籍情報を見る</a>
     <label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300">
     <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
-    <label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select>
+    <div class="editor-status-internal" hidden><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select></div>
  
     <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
    </div>
    <div class="record-writing">
     <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
     <div class="reading-session current-session">
-      <h3 class="session-title">今回の読書記録</h3>
+      
     <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div></div>
     <div class="note-heading"><div class="note-title-tools"><label for="note">感想・メモ</label><button type="button" id="mark-selection" class="mark-icon-button" title="選択した文章にマーカーを付ける・外す" aria-label="選択した文章にマーカーを付ける・外す"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 4 4"/><path d="m21 3-8 8-4-4 8-8z" transform="translate(-1 3)"/><path d="M3 21h12"/><path d="m6 18 4-4"/></svg></button></div><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div>
     <div id="note" class="note-editor" contenteditable="true" role="textbox" aria-label="感想・メモ" aria-multiline="true" data-placeholder="心に残ったことを、自由に書いてください。"></div>
