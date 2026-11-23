@@ -637,6 +637,11 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #editdialog .record-writing{padding:20px 0 0}
  #editdialog .note-editor{min-height:42dvh}
 }
+
+#home-page[hidden],#detaildialog[hidden],#editdialog [hidden]{display:none!important}
+#editdialog .api-book-metadata{font-size:12px;line-height:1.6;color:#777;margin:10px 0}
+#detaildialog #detail-categories{font-size:12px;margin:8px 0}
+#detaildialog .detail-mobile-slide{min-width:0}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -655,7 +660,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </section>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
  <div class="detail-main">
- <div class="detail-mobile-pagination" aria-label="読書記録の表示切替"><button type="button" data-page="0" aria-pressed="true">表紙</button><button type="button" data-page="1" aria-pressed="false">キーワード</button><button type="button" data-page="2" aria-pressed="false">評価</button></div><div class="detail-book"><div class="detail-book-info"><div class="detail-mobile-slides"><div class="detail-mobile-slide" data-slide="0"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-status" class="detail-status"></p><p id="detail-date" class="muted"></p></div></div><div class="detail-mobile-slide" data-slide="1"><div id="detail-keywords" class="detail-keywords"></div></div><div class="detail-mobile-slide" data-slide="2"><div id="detail-rating" class="detail-rating"></div></div></div></div><section class="detail-note-section"><h3>感想・メモ</h3><div id="detail-note" class="detail-note"></div></section></div>
+ <div class="detail-mobile-pagination" aria-label="読書記録の表示切替"><button type="button" data-page="0" aria-pressed="true">表紙</button><button type="button" data-page="1" aria-pressed="false">キーワード</button><button type="button" data-page="2" aria-pressed="false">評価</button></div><div class="detail-book"><div class="detail-book-info"><div class="detail-mobile-slides"><div class="detail-mobile-slide" data-slide="0"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-categories" class="muted"></p><p id="detail-status" class="detail-status"></p><p id="detail-date" class="muted"></p></div></div><div class="detail-mobile-slide" data-slide="1"><div id="detail-keywords" class="detail-keywords"></div></div><div class="detail-mobile-slide" data-slide="2"><div id="detail-rating" class="detail-rating"></div></div></div></div><section class="detail-note-section"><h3>感想・メモ</h3><div id="detail-note" class="detail-note"></div></section></div>
  <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a></div>
  </div>
  <aside class="detail-rail detail-rail-right" id="detail-actions-rail" aria-label="編集"><button type="button" id="detail-pin" aria-label="本をピン止め" title="ピン止め"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5-3 1-4 4v4l-2 2-4-4H4l-1-1 5-5 1-3z"/><path d="m9 15-6 6"/></svg></button><button type="button" id="detail-edit" aria-label="本の記録を編集" title="編集"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg></button></aside>
@@ -671,7 +676,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <div id="edit-cover-preview" class="edit-cover-preview" aria-label="本の表紙"></div>
     <a id="source-book" class="muted" target="_blank" rel="noopener noreferrer" hidden>書籍情報を見る</a>
     <label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300">
-    <label for="author">著者</label><input class="field" id="author" maxlength="300">
+    <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
     <div class="row"><div><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select></div><div><label for="date">読了日</label><input class="field" id="date" type="date"></div></div>
     <label for="tags">従来のタグ（互換用）</label><input class="field" id="tags" placeholder="#小説 #お気に入り" maxlength="500"><div id="read-fields" class="read-fields"><h3>キーワード</h3><label for="kw-elements">作品に含まれているもの</label><input class="field" id="kw-elements" placeholder="例：魔法、友情、伏線回収"><label for="kw-moods">作品から受ける印象</label><input class="field" id="kw-moods" placeholder="例：幻想的、切ない、温かい"><label for="kw-likes">自分がいいと思ったポイント</label><input class="field" id="kw-likes" placeholder="例：世界観、文章、結末"><h3>星評価</h3><div class="rating-input"><label for="overall-rating">総合評価</label><select id="overall-rating" class="field"><option value="">未評価</option></select></div><div id="custom-rating-fields"></div><div class="actions"><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div><h3>読書履歴</h3><p class="muted">読了日を追加すると、再読の履歴を残せます。</p><div id="read-history"></div><button type="button" id="add-read-history">＋ 読書日付を追加</button></div>
    </div>
@@ -685,7 +690,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </dialog><div class="message" id="message" role="status"></div>
 <script>
 'use strict';
-const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読了',paused:'中断'};
+const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読んだ',paused:'中断'};
 let books=[],filter='all',editing=null,searchController=null,view='timeline',showDemo=true,selectedTags=new Set();
 const demoBooks=[
 {title:'星を編む',author:'朝の文庫',status:'done',date:'2026-10-20',note:'最後のページを閉じてからも、登場人物の暮らしが続いているような気がした。静かな場面ほど心に残る。',color:'#687d8b'},
@@ -748,7 +753,7 @@ function tagChips(b){const wrap=textNode('div','','tag-chips');for(const t of ta
 function bookCover(b){const urls=coverURLs(b),e=coverNode(urls);if(!urls.length){e.classList.add('fallback');e.style.setProperty('--book-color',b.color||['#687d8b','#9e7960','#637d69','#8e86a0'][b.title.length%4]);e.replaceChildren(textNode('small','RECOTTE LIBRARY'),textNode('strong',b.title),textNode('small',b.author))}return e}
 
 const keywordLabels=[['elements','作品に含まれているもの'],['moods','作品から受ける印象'],['likes','自分がいいと思ったポイント']];
-function splitKeywords(value){return [...new Set(String(value||'').split(/[、,\\n]+/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))]}
+function splitKeywords(value){return [...new Set(String(value||'').split(/[、,\n]+/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))]}
 function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=!active;document.querySelector('.record-writing').hidden=!active}
 $('status').addEventListener('change',updateReadFields);
 for(let v=.5;v<=5;v+=.5){const o=document.createElement('option');o.value=String(v);o.textContent=v.toFixed(1)+' / 5';$('overall-rating').append(o)}
@@ -807,6 +812,7 @@ function selectBook(b){
  $('detail-cover').replaceChildren(bookCover(b));
  $('detail-title').textContent=b.title;
  $('detail-author').textContent=b.author||'著者未登録';
+ $('detail-categories').textContent=(Array.isArray(b.categories)?b.categories:[]).join(' / ');
  $('detail-status').textContent=names[b.status]||'';
  $('detail-date').textContent=b.date?'読了日　'+b.date:'';
  fillDetails(b);showDetailPage(0);
@@ -875,6 +881,7 @@ function openEditor(b=null){
  $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));
  $('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
  $('edit-cover-preview').replaceChildren(bookCover(editing));
+ $('api-book-metadata').textContent=[(editing.categories||[]).join(' / '),editing.publisher,editing.published,editing.pageCount?editing.pageCount+'ページ':''].filter(Boolean).join(' · ');
  updateReadFields();$('searchdialog').close();$('editdialog').showModal();
 }
 
@@ -889,7 +896,7 @@ $('editform').onsubmit=e=>{
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
  const readHistory=[...$('read-history').querySelectorAll('input[type=date]')].map(input=>input.value).filter(Boolean).map(date=>({date}));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
- const b={...editing,title,author:$('author').value.trim(),status,date:$('date').value||readHistory.at(-1)?.date||'',readHistory,keywords,rating:$('overall-rating').value===''?null:Number($('overall-rating').value),customRatings,note:status==='wish'?'':plain,noteMarks:status==='wish'?'':marks,tags:[...new Set($('tags').value.split(/[\\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
+ const b={...editing,title,author:$('author').value.trim(),status,date:$('date').value||readHistory.at(-1)?.date||'',readHistory,keywords,rating:$('overall-rating').value===''?null:Number($('overall-rating').value),customRatings,note:status==='wish'?'':plain,noteMarks:status==='wish'?'':marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
  if(persist([...books.filter(x=>x.id!==b.id),b])){$('editdialog').close();notify('記録を保存しました。')}
 };
 $('title').oninput=()=>$('title').setCustomValidity('');
@@ -947,7 +954,7 @@ $('searchform').onsubmit=async e=>{
  $('searchbutton').disabled=true;$('results').replaceChildren();$('searchmessage').textContent='検索しています…';
  try{
   const {items,source}=await searchBookCatalog(q,controller.signal);if(controller.signal.aborted)return;
-  $('searchmessage').textContent=items.length?(source+' · 本を選ぶと登録できます。'):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
+  $('searchmessage').textContent=items.length?(source+' · 本を選んで読書状況を登録してください。'):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
   for(const v of items){const b={id:crypto.randomUUID(),title:v.title,author:v.author,status:'wish',date:'',note:'',cover:v.cover,coverCandidates:v.coverCandidates,isbn:v.isbn,itemUrl:v.itemUrl,source:v.source,volumeId:v.volumeId,categories:v.categories,pageCount:v.pageCount,language:v.language,publisher:v.publisher,published:v.published};
    const button=textNode('button','','result');button.type='button';const info=textNode('span','');info.append(textNode('strong',b.title),textNode('div',[b.author,v.publisher,v.published].filter(Boolean).join(' / '),'muted'));
    button.append(coverNode(coverURLs(b)),info);button.onclick=()=>openEditor(b);$('results').append(button)
