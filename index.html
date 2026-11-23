@@ -1134,7 +1134,8 @@ function openEditor(b=null){
  for(const row of editing.customRatings||[])addCustomRatingRow(row);
  $('read-history').replaceChildren();
  const history=Array.isArray(editing.readHistory)?editing.readHistory:(editing.date?[{date:editing.date}]:[]);
- for(const row of history)addReadHistoryRow(row.date||'');
+ if(history.length)addReadHistoryRow(history[history.length-1].date||'');
+ else if(editing.status!=='wish')addReadHistoryRow(localToday());
  drawPastRecords(editing.readEntries);
  $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));
  $('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
@@ -1153,12 +1154,21 @@ $('editform').onsubmit=e=>{
  e.preventDefault();const title=$('title').value.trim();if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
  const status=$('status').value,words=currentEditorElements();
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
- const readHistory=status==='wish'&&Array.isArray(editing.readHistory)?[...editing.readHistory]:[];if(status!=='wish'){for(const el of $('read-history').children){const date=getDateFields(el.querySelector('.date-parts'));if(date===null)return;readHistory.push({date})}}
+ const previousHistory=Array.isArray(editing.readHistory)?editing.readHistory.map(x=>({...x})):(editing.date?[{date:editing.date}]:[]);
+ const readHistory=status==='wish'?previousHistory:[...previousHistory];
+ if(status!=='wish'){
+  const lastRow=$('read-history').lastElementChild;
+  if(lastRow){
+   const date=getDateFields(lastRow.querySelector('.date-parts'));if(date===null)return;
+   if(readHistory.length)readHistory[readHistory.length-1]={...readHistory[readHistory.length-1],date};
+   else readHistory.push({date});
+  }
+ }
  const readEntries=collectPastRecords();if(readEntries===null)return;
  const oldDates=Array.isArray(editing.readEntries)?editing.readEntries.map(x=>x.date||''):[];
  for(let i=0;i<readEntries.length;i++){
   if(oldDates[i]===readEntries[i].date)continue;
-  const match=readHistory.find(x=>x.date===oldDates[i]);
+  const match=readHistory.slice(0,-1).find(x=>x.date===oldDates[i]);
   if(match)match.date=readEntries[i].date;
  }
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
