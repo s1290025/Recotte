@@ -717,6 +717,12 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog #editor-reread{width:auto;white-space:nowrap;padding:9px 13px;background:#f6f2ec;border:1px solid #ddd3c6;border-radius:7px;font-size:13px;font-weight:600;color:#554a3f}
 #editdialog #editor-reread:hover{background:#eee5d9}
 @media(max-width:520px){#editdialog .dialoghead{gap:6px}#editdialog .editor-header-actions{gap:7px}#editdialog #editor-reread{font-size:12px;padding:8px 9px}#editdialog #edittitle{font-size:17px}}
+#editdialog .element-chips{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}
+#editdialog .element-chip{display:inline-flex;align-items:center;background:#f4f3ef;border:1px solid #e8e6df;border-radius:18px;max-width:100%;overflow:hidden}
+#editdialog .element-chip-edit{padding:5px 5px 5px 11px;font-size:12px;border:0;background:transparent;color:inherit;text-align:left;overflow-wrap:anywhere}
+#editdialog .element-chip-remove{padding:5px 10px 5px 3px;font-size:15px;border:0;background:transparent;color:#888}
+#editdialog .element-chip button:hover{color:#a36a49}
+#editdialog .element-help{margin:6px 0 0;color:#888;font-size:11px;line-height:1.6}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -756,7 +762,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
     <label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select>
  <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div><button type="button" id="add-read-history">＋ 読んだ日を追加</button></div>
-    <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇"></div>
+    <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
    </div>
    <div class="record-writing">
     <div class="note-heading"><div class="note-title-tools"><label for="note">感想・メモ</label><button type="button" id="mark-selection" class="mark-icon-button" title="選択した文章にマーカーを付ける・外す" aria-label="選択した文章にマーカーを付ける・外す"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 4 4"/><path d="m21 3-8 8-4-4 8-8z" transform="translate(-1 3)"/><path d="M3 21h12"/><path d="m6 18 4-4"/></svg></button></div><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div>
@@ -832,7 +838,25 @@ function tagChips(b){const wrap=textNode('div','','tag-chips');for(const t of ta
 function bookCover(b){const urls=coverURLs(b),e=coverNode(urls);if(!urls.length){e.classList.add('fallback');e.style.setProperty('--book-color',b.color||['#687d8b','#9e7960','#637d69','#8e86a0'][b.title.length%4]);e.replaceChildren(textNode('small','RECOTTE LIBRARY'),textNode('strong',b.title),textNode('small',b.author))}return e}
 
 const keywordLabels=[['elements','作品の要素']];
-function splitKeywords(value){return [...new Set(String(value||'').split(/[、,\n]+/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))]}
+function splitKeywords(value){return [...new Set(String(value||'').split(/[、。，,\\n]+/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))]}
+let editorElements=[];
+function drawElementChips(){
+ const host=$('element-chips');host.replaceChildren();
+ editorElements.forEach((word,index)=>{
+  const chip=document.createElement('span');chip.className='element-chip';
+  const edit=document.createElement('button');edit.type='button';edit.className='element-chip-edit';edit.textContent=word;edit.title='この要素を編集';edit.setAttribute('aria-label',word+'を編集');
+  edit.onclick=()=>{const input=$('kw-elements');input.value=word;editorElements.splice(index,1);drawElementChips();input.focus()};
+  const remove=document.createElement('button');remove.type='button';remove.className='element-chip-remove';remove.textContent='×';remove.title='削除';remove.setAttribute('aria-label',word+'を削除');
+  remove.onclick=()=>{editorElements.splice(index,1);drawElementChips()};
+  chip.append(edit,remove);host.append(chip)
+ })
+}
+function addEditorElements(value){const next=splitKeywords(value);for(const word of next)if(!editorElements.includes(word))editorElements.push(word);drawElementChips()}
+function currentEditorElements(){return [...new Set([...editorElements,...splitKeywords($('kw-elements').value)])]}
+$('kw-elements').addEventListener('input',e=>{const text=e.target.value;if(/[、。，,\\n]/.test(text)){const parts=text.split(/[、。，,\\n]/);addEditorElements(parts.slice(0,-1).join('、'));e.target.value=parts.at(-1)}})
+$('kw-elements').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addEditorElements(e.target.value);e.target.value=''}});
+$('kw-elements').addEventListener('blur',()=>{if($('kw-elements').value.trim()){addEditorElements($('kw-elements').value);$('kw-elements').value=''}});
+
 function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=!active;document.querySelector('.record-writing').hidden=!active;$('date-records').hidden=!active;$('editor-elements').hidden=!active}
 $('status').addEventListener('change',updateReadFields);
 const localToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
@@ -1017,7 +1041,7 @@ function openEditor(b=null){
  for(const k of ['title','author','status'])$(k).value=editing[k]||'';
  $('tags').value=(Array.isArray(editing.tags)?editing.tags:[]).map(t=>'#'+t).join(' ');
  $('note').replaceChildren();writeNoteMarkup($('note'),editing.note||'',editing.noteMarks);
- $('kw-elements').value=[...new Set([...(editing.keywords?.elements||[]),...(editing.keywords?.moods||[]),...(editing.keywords?.likes||[])])].join('、');
+ editorElements=[...new Set([...(editing.keywords?.elements||[]),...(editing.keywords?.moods||[]),...(editing.keywords?.likes||[])])];$('kw-elements').value='';drawElementChips();
  setReaction(editing.reaction||null);
  $('custom-rating-fields').replaceChildren();
  for(const row of editing.customRatings||[])addCustomRatingRow(row);
@@ -1039,7 +1063,7 @@ let rereadAfterSave=false;
 $('editor-reread').onclick=()=>{rereadAfterSave=true;$('editform').requestSubmit()};
 $('editform').onsubmit=e=>{
  e.preventDefault();const title=$('title').value.trim();if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
- const status=$('status').value,words=splitKeywords($('kw-elements').value);
+ const status=$('status').value,words=currentEditorElements();
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
  const readHistory=status==='wish'&&Array.isArray(editing.readHistory)?[...editing.readHistory]:[];if(status!=='wish'){for(const el of $('read-history').children){const date=getDateFields(el.querySelector('.date-parts'));if(date===null)return;readHistory.push({date})}}
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
