@@ -954,8 +954,8 @@ function finishElements(skip=false){
  const words=skip?[...new Set([...(b.keywords?.elements||[]),...(b.keywords?.moods||[]),...(b.keywords?.likes||[])])]:splitKeywords($('choice-elements').value);
  const history=Array.isArray(b.readHistory)?[...b.readHistory]:(b.date?[{date:b.date}]:[]);
  history.push({date:choiceDate});
- const previousEntries=Array.isArray(b.readEntries)?[...b.readEntries]:[];
- if(choiceMode==='reread'&&(b.note||b.reaction||b.noteMarks||b.customRatings?.length)){previousEntries.push({date:history.length>1?history[history.length-2].date:'',note:b.note||'',noteMarks:b.noteMarks||'',reaction:b.reaction||null,customRatings:b.customRatings||[]})}
+ const previousEntries=historicalEntries(b);
+ if(choiceMode==='reread'){previousEntries.push({date:history.length>1?history[history.length-2].date:'',note:b.note||'',noteMarks:b.noteMarks||'',reaction:b.reaction||null,customRatings:b.customRatings||[]})}
  const revised={...b,status:'done',readHistory:history,date:/^\d{4}-\d{2}-\d{2}$/.test(choiceDate)?choiceDate:b.date||'',keywords:{elements:words,moods:[],likes:[]},readEntries:previousEntries,...(choiceMode==='reread'?{note:'',noteMarks:'',reaction:null,customRatings:[]}: {})};
  $('reading-elements').close();
  // A completed date/element step is already a valid reading record:
@@ -1075,6 +1075,19 @@ $('tabs').onclick=e=>{
  filter=btn.dataset.status;selectedTags.clear();refreshIndex();render();
 };
 $('demo-toggle').onclick=()=>{showDemo=!showDemo;render()};
+function historicalEntries(book){
+ const dates=(Array.isArray(book.readHistory)?book.readHistory:(book.date?[{date:book.date}]:[])).slice(0,-1);
+ const originals=Array.isArray(book.readEntries)?book.readEntries:[];
+ const used=new Set();
+ return dates.map((record,index)=>{
+  const date=record.date||'';
+  let originalIndex=originals.findIndex((entry,i)=>!used.has(i)&&entry.date===date);
+  if(originalIndex<0&&originals.length===dates.length&&!used.has(index))originalIndex=index;
+  const found=originalIndex>=0?originals[originalIndex]:null;
+  if(originalIndex>=0)used.add(originalIndex);
+  return {date,note:'',noteMarks:'',reaction:null,customRatings:[],...(found||{}),date};
+ });
+}
 function drawPastRecords(entries){
  const wrap=$('past-record-list');wrap.replaceChildren();
  const list=Array.isArray(entries)?entries:[];
@@ -1136,6 +1149,7 @@ function openEditor(b=null){
  const history=Array.isArray(editing.readHistory)?editing.readHistory:(editing.date?[{date:editing.date}]:[]);
  if(history.length)addReadHistoryRow(history[history.length-1].date||'');
  else if(editing.status!=='wish')addReadHistoryRow(localToday());
+ editing.readEntries=historicalEntries(editing);
  drawPastRecords(editing.readEntries);
  $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));
  $('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
@@ -1165,11 +1179,10 @@ $('editform').onsubmit=e=>{
   }
  }
  const readEntries=collectPastRecords();if(readEntries===null)return;
- const oldDates=Array.isArray(editing.readEntries)?editing.readEntries.map(x=>x.date||''):[];
- for(let i=0;i<readEntries.length;i++){
-  if(oldDates[i]===readEntries[i].date)continue;
-  const match=readHistory.slice(0,-1).find(x=>x.date===oldDates[i]);
-  if(match)match.date=readEntries[i].date;
+ // Each previous reading has a corresponding memo block, including blank notes.
+ // Sync by reading index so repeated dates do not update the wrong session.
+ for(let i=0;i<readEntries.length&&i<readHistory.length-1;i++){
+  readHistory[i]={...readHistory[i],date:readEntries[i].date};
  }
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
