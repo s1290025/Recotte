@@ -696,6 +696,14 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #reading-action .choice-buttons{display:flex;gap:12px;flex-wrap:wrap}
 #reading-action .choice-buttons button{flex:1;min-width:155px;padding:14px 10px}
 #detaildialog .detail-mobile-pagination button{white-space:nowrap}
+#editdialog .editor-elements{padding-top:17px;border-top:1px solid #eee;margin-top:17px}
+#editdialog .editor-elements[hidden]{display:none!important}
+#editdialog .editor-elements label{font-size:14px;font-weight:600}
+#detaildialog .detail-previous-reads{border-top:1px solid #eee;margin-top:32px;padding-top:18px}
+#detaildialog .detail-previous-reads:empty{display:none}
+#detaildialog .previous-entry{padding:12px 0;border-bottom:1px solid #eee}
+#detaildialog .previous-entry h5{font-size:13px;margin:0 0 8px}
+#detaildialog .previous-entry p{white-space:pre-wrap;font-size:13px;line-height:1.8;margin:0}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -714,7 +722,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </section>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
  <div class="detail-main">
- <div class="detail-mobile-pagination" aria-label="読書記録の表示切替"><button type="button" data-page="0" aria-pressed="true">表紙</button><button type="button" data-page="1" aria-pressed="false">作品の要素</button><button type="button" data-page="2" aria-pressed="false">自分のものさし</button></div><div class="detail-book"><div class="detail-book-info"><div class="detail-mobile-slides"><div class="detail-mobile-slide" data-slide="0"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-categories" class="muted"></p><p id="detail-status" class="detail-status"></p><button id="detail-date" type="button" class="muted" title="読書日付を編集"></button></div></div><div class="detail-mobile-slide" data-slide="1"><div id="detail-keywords" class="detail-keywords"></div></div><div class="detail-mobile-slide" data-slide="2"><div id="detail-rating" class="detail-rating"></div></div></div></div><section class="detail-note-section"><div class="detail-note-heading"><h3>感想・メモ</h3><span id="detail-reaction"></span></div><div id="detail-note" class="detail-note"></div></section></div>
+ <div class="detail-mobile-pagination" aria-label="読書記録の表示切替"><button type="button" data-page="0" aria-pressed="true">表紙</button><button type="button" data-page="1" aria-pressed="false">作品の要素</button><button type="button" data-page="2" aria-pressed="false">自分のものさし</button></div><div class="detail-book"><div class="detail-book-info"><div class="detail-mobile-slides"><div class="detail-mobile-slide" data-slide="0"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-categories" class="muted"></p><p id="detail-status" class="detail-status"></p><button id="detail-date" type="button" class="muted" title="読書日付を編集"></button></div></div><div class="detail-mobile-slide" data-slide="1"><div id="detail-keywords" class="detail-keywords"></div></div><div class="detail-mobile-slide" data-slide="2"><div id="detail-rating" class="detail-rating"></div></div></div></div><section class="detail-note-section"><div class="detail-note-heading"><h3>感想・メモ</h3><span id="detail-reaction"></span></div><div id="detail-note" class="detail-note"></div><div id="detail-previous-reads" class="detail-previous-reads"></div></section></div>
  <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a></div>
  </div>
  <aside class="detail-rail detail-rail-right" id="detail-actions-rail" aria-label="編集"><button type="button" id="detail-pin" aria-label="本をピン止め" title="ピン止め"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5-3 1-4 4v4l-2 2-4-4H4l-1-1 5-5 1-3z"/><path d="m9 15-6 6"/></svg></button><button type="button" id="detail-edit" aria-label="本の記録を編集" title="編集"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg></button></aside>
@@ -735,12 +743,12 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
     <label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select>
  <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div><button type="button" id="add-read-history">＋ 読んだ日を追加</button></div>
-    <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div>
+    <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇"></div>
    </div>
    <div class="record-writing">
     <div class="note-heading"><label for="note">感想・メモ</label><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div>
     <div class="marker-toolbar"><button type="button" id="mark-selection" title="選択した文章にマーカーを引く">マーカー</button><button type="button" id="unmark-selection" title="選択した文章のマーカーを外す">解除</button></div><div id="note" class="note-editor" contenteditable="true" role="textbox" aria-label="感想・メモ" aria-multiline="true" data-placeholder="心に残ったことを、自由に書いてください。"></div>
-    <div id="read-fields" class="read-fields"><label for="kw-elements">作品の要素</label><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
+    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
    </div>
   </div>
   <div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div>
@@ -812,7 +820,7 @@ function bookCover(b){const urls=coverURLs(b),e=coverNode(urls);if(!urls.length)
 
 const keywordLabels=[['elements','作品の要素']];
 function splitKeywords(value){return [...new Set(String(value||'').split(/[、,\n]+/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))]}
-function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=!active;document.querySelector('.record-writing').hidden=!active;$('date-records').hidden=!active}
+function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=!active;document.querySelector('.record-writing').hidden=!active;$('date-records').hidden=!active;$('editor-elements').hidden=!active}
 $('status').addEventListener('change',updateReadFields);
 const localToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 function dateParts(date){const match=String(date||'').match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);return match?{year:match[1],month:match[2]||'',day:match[3]||''}:{year:String(new Date().getFullYear()),month:'',day:''}}
@@ -869,7 +877,7 @@ function finishElements(skip=false){
  history.push({date:choiceDate});
  const previousEntries=Array.isArray(b.readEntries)?[...b.readEntries]:[];
  if(choiceMode==='reread'&&(b.note||b.reaction||b.noteMarks||b.customRatings?.length)){previousEntries.push({date:history.length>1?history[history.length-2].date:'',note:b.note||'',noteMarks:b.noteMarks||'',reaction:b.reaction||null,customRatings:b.customRatings||[]})}
- const revised={...b,status:'done',readHistory:history,date:/^\\d{4}-\\d{2}-\\d{2}$/.test(choiceDate)?choiceDate:b.date||'',keywords:{elements:words,moods:[],likes:[]},readEntries:previousEntries,...(choiceMode==='reread'?{note:'',noteMarks:'',reaction:null,customRatings:[]}: {})};
+ const revised={...b,status:'done',readHistory:history,date:/^\d{4}-\d{2}-\d{2}$/.test(choiceDate)?choiceDate:b.date||'',keywords:{elements:words,moods:[],likes:[]},readEntries:previousEntries,...(choiceMode==='reread'?{note:'',noteMarks:'',reaction:null,customRatings:[]}: {})};
  $('reading-elements').close();openEditor(revised);
 }
 $('reading-elements-form').onsubmit=e=>{e.preventDefault();finishElements(false)};
@@ -908,6 +916,7 @@ function fillDetails(book){
  $('detail-date').textContent=dates.length?'読んだ日　'+dates.join('、'):'読んだ日を追加';
  const reactionMark=$('detail-reaction');reactionMark.replaceChildren();const reactionButton=document.querySelector('#reaction-picks [data-reaction="'+book.reaction+'"]');if(reactionButton)for(const node of reactionButton.childNodes)reactionMark.append(node.cloneNode(true));
  $('detail-reaction').title={heart:'大好き',good:'よかった',triangle:'自分には合わなかった'}[book.reaction]||'';
+ const prev=$('detail-previous-reads');prev.replaceChildren();if(Array.isArray(book.readEntries)&&book.readEntries.length){prev.append(textNode('h4','過去の読書記録'));book.readEntries.forEach((entry,i)=>{const section=textNode('section','','previous-entry');section.append(textNode('h5',(entry.date||'日付未登録')+' の記録'),textNode('p',entry.note||'感想なし'));prev.append(section)})}
  const note=$('detail-note');note.replaceChildren();writeNoteMarkup(note,book.note||'まだ感想・メモはありません。',book.noteMarks);
  $('detail-pin').hidden=!!book.demo;$('detail-pin').setAttribute('aria-pressed',String(!!book.pinned));$('detail-pin').title=book.pinned?'ピン止めを解除':'ピン止め';
 }
@@ -1011,7 +1020,7 @@ $('editform').onsubmit=e=>{
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
  const b={...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
- if(persist([...books.filter(x=>x.id!==b.id),b])){$('editdialog').close();if(detailBook&&detailBook.id===b.id){selectBook(b)}notify('記録を保存しました。')}
+ if(persist([...books.filter(x=>x.id!==b.id),b])){$('editdialog').close();if(detailBook&&detailBook.id===b.id){selectBook(b)}else{filter=b.status==='wish'?'wish':'done';refreshIndex();render()}notify('記録を保存しました。')}
 };
 $('title').oninput=()=>$('title').setCustomValidity('');
 $('delete').onclick=()=>{if(confirm(`「${editing.title}」の記録を削除しますか？`)&&persist(books.filter(b=>b.id!==editing.id))){$('editdialog').close();notify('記録を削除しました。')}};
