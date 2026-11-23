@@ -744,6 +744,23 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .past-score-row .past-score-value{width:120px}
 #editdialog .past-score-row button{background:transparent;border:0;font-size:20px}
 @media(max-width:700px){#editdialog .record-book-info{padding-bottom:15px;border-bottom:1px solid #eee}}
+
+/* Reading entries are independent vertical blocks, with the user's scale above them. */
+#editdialog .record-writing>.read-fields{order:0;margin:0 0 22px;padding:0 0 22px;border:0;border-bottom:1px solid #e9e6df}
+#editdialog .record-writing>.reading-session{order:1;display:block;border:1px solid #e9e5de;border-radius:9px;padding:19px 20px 22px;margin-bottom:16px;background:#fff}
+#editdialog .record-writing>.past-records{order:2;border:0;margin:0;padding:0}
+#editdialog .reading-session .session-title{font-size:14px;font-weight:600;margin:0 0 14px;color:#555}
+#editdialog .reading-session .date-records{padding:0;margin:0 0 18px;border:0}
+#editdialog .reading-session .note-editor{min-height:310px}
+#editdialog .past-records h3{font-size:14px;color:#555;margin:0 0 12px}
+#editdialog .past-records>.muted{display:none}
+#editdialog .past-record-entry{background:#fff;padding:19px 20px 22px;border-radius:9px;margin-bottom:16px}
+#editdialog .past-record-entry h4{font-size:14px;color:#555}
+#editdialog .past-record-entry .past-note{min-height:200px;line-height:1.8}
+@media(max-width:700px){
+ #editdialog .record-writing>.reading-session,#editdialog .past-record-entry{padding:14px 12px}
+ #editdialog .reading-session .note-editor{min-height:37dvh}
+}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -786,10 +803,14 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
    </div>
    <div class="record-writing">
+    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
+    <div class="reading-session current-session">
+      <h3 class="session-title">今回の読書記録</h3>
     <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div><button type="button" id="add-read-history">＋ 読んだ日を追加</button></div>
     <div class="note-heading"><div class="note-title-tools"><label for="note">感想・メモ</label><button type="button" id="mark-selection" class="mark-icon-button" title="選択した文章にマーカーを付ける・外す" aria-label="選択した文章にマーカーを付ける・外す"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 4 4"/><path d="m21 3-8 8-4-4 8-8z" transform="translate(-1 3)"/><path d="M3 21h12"/><path d="m6 18 4-4"/></svg></button></div><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div>
     <div id="note" class="note-editor" contenteditable="true" role="textbox" aria-label="感想・メモ" aria-multiline="true" data-placeholder="心に残ったことを、自由に書いてください。"></div>
-    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div><section id="past-records" class="past-records" hidden><h3>以前の読書記録</h3><p class="muted">再読前の感想・評価も編集できます。</p><div id="past-record-list"></div></section>
+    </div>
+    <section id="past-records" class="past-records" hidden><h3>以前の読書記録</h3><p class="muted">再読前の感想・評価も編集できます。</p><div id="past-record-list"></div></section>
    </div>
   </div>
   <div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div>
