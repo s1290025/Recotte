@@ -608,7 +608,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </section>
 </main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
-<dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><select id="book-search-type" aria-label="検索項目"><option value="title">タイトル</option><option value="author">著者名</option><option value="isbn">ISBN</option></select><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><div id="results" class="results"></div><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
+<dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><div id="results" class="results"></div><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
 <dialog id="editdialog" aria-labelledby="edittitle">
  <div class="dialoghead"><h2 id="edittitle">本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div>
  <form id="editform">
@@ -793,18 +793,16 @@ async function requestBookJSON(url,parentSignal,apiKey){
  }catch(error){if(parentSignal.aborted)throw error;if(controller.signal.aborted)throw new Error('検索に時間がかかっています。もう一度お試しください。');if(error instanceof TypeError)throw new Error('Google Booksに接続できません。通信状況を確認してください。');throw error}
  finally{clearTimeout(timeout);parentSignal.removeEventListener('abort',abort)}
 }
-function googleSearchURL(q,type){
- const value=q.normalize('NFKC').trim(),digits=value.replace(/[-\s]/g,''),isISBN=/^(?:\d{9}[\dXx]|\d{13})$/.test(digits),field=isISBN?'isbn':type;
- if(!['title','author','isbn'].includes(field))throw new Error('検索項目を選択してください。');
- if(field==='isbn'&&!isISBN)throw new Error('ISBNは10桁または13桁で入力してください。');
- const query=field==='isbn'?'isbn:'+digits:(field==='author'?'inauthor:':'intitle:')+value;
+function googleSearchURL(q){
+ const value=q.normalize('NFKC').trim(),digits=value.replace(/[-\s]/g,''),isISBN=/^(?:\d{9}[\dXx]|\d{13})$/.test(digits);
+ const query=isISBN?'isbn:'+digits:value;
  return 'https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(query)+'&maxResults=20&printType=books&orderBy=relevance';
 }
 async function searchBookCatalog(q,signal){
  const apiKey=getGoogleAPIKey();if(!apiKey){$('google-settings').open=true;throw new Error('検索設定でGoogle Books APIキーを設定してください。')}
- const type=$('book-search-type').value,key=type+':'+q.normalize('NFKC').trim(),cached=bookSearchCache.get(key);
+ const key=q.normalize('NFKC').trim(),cached=bookSearchCache.get(key);
  if(cached&&Date.now()-cached.time<600000)return cached.result;
- const data=await requestBookJSON(googleSearchURL(q,type),signal,apiKey);
+ const data=await requestBookJSON(googleSearchURL(q),signal,apiKey);
  if(data.items!==undefined&&!Array.isArray(data.items))throw new Error('Google Booksの検索結果を読み込めませんでした。');
  const items=(data.items||[]).map(normalizeGoogleBook),result={items,source:'Google Books'};
  bookSearchCache.set(key,{time:Date.now(),result});return result;
