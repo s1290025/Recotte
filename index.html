@@ -1095,7 +1095,8 @@ function collectPastRecords(){
  for(const section of $('past-record-list').children){
   const date=getDateFields(section.querySelector('.date-parts'));if(date===null)return null;
   const customRatings=[...section.querySelectorAll('.past-score-row')].map(row=>({name:row.querySelector('.past-score-name').value.trim(),value:row.querySelector('.past-score-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
-  entries.push({date,note:section.querySelector('.past-note').value, reaction:section.querySelector('.past-reaction').value||null,customRatings});
+  const previous=editing.readEntries?.[entries.length]||{};
+  entries.push({...previous,date,note:section.querySelector('.past-note').value, reaction:section.querySelector('.past-reaction').value||null,customRatings,noteMarks:section.querySelector('.past-note').value===String(previous.note||'')?previous.noteMarks||'':''});
  }
  return entries;
 }
@@ -1134,6 +1135,12 @@ $('editform').onsubmit=e=>{
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
  const readHistory=status==='wish'&&Array.isArray(editing.readHistory)?[...editing.readHistory]:[];if(status!=='wish'){for(const el of $('read-history').children){const date=getDateFields(el.querySelector('.date-parts'));if(date===null)return;readHistory.push({date})}}
  const readEntries=collectPastRecords();if(readEntries===null)return;
+ const oldDates=Array.isArray(editing.readEntries)?editing.readEntries.map(x=>x.date||''):[];
+ for(let i=0;i<readEntries.length;i++){
+  if(oldDates[i]===readEntries[i].date)continue;
+  const match=readHistory.find(x=>x.date===oldDates[i]);
+  if(match)match.date=readEntries[i].date;
+ }
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
  const b={...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
