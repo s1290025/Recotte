@@ -723,6 +723,27 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .element-chip-remove{padding:5px 10px 5px 3px;font-size:15px;border:0;background:transparent;color:#888}
 #editdialog .element-chip button:hover{color:#a36a49}
 #editdialog .element-help{margin:6px 0 0;color:#888;font-size:11px;line-height:1.6}
+/* Editor: reference and work elements left, reading sessions on the right */
+@media(min-width:701px){
+ #editdialog .record-editor{display:grid;grid-template-columns:minmax(230px,31%) minmax(0,1fr);gap:34px;align-items:start}
+ #editdialog .record-book-info{min-width:0}
+ #editdialog .record-writing{min-width:0;padding-top:0}
+}
+#editdialog .record-writing>.date-records{margin-top:0;margin-bottom:22px;border-top:0;border-bottom:1px solid #ece9e4;padding:0 0 18px}
+#editdialog .past-records{border-top:1px solid #e8e5df;margin-top:24px;padding-top:22px}
+#editdialog .past-records[hidden]{display:none!important}
+#editdialog .past-records h3{font-size:15px;margin:0 0 5px}
+#editdialog .past-records>.muted{font-size:12px;margin:0 0 15px}
+#editdialog .past-record-entry{border:1px solid #e9e5de;border-radius:8px;padding:16px;margin-bottom:15px;background:#fbfaf8}
+#editdialog .past-record-entry h4{margin:0 0 13px;font-size:14px}
+#editdialog .past-record-entry label{display:block;font-size:12px;margin:12px 0 5px;color:#68645d}
+#editdialog .past-record-entry textarea{resize:vertical;min-height:105px;width:100%}
+#editdialog .past-record-entry .muted{margin:14px 0 7px;font-size:12px}
+#editdialog .past-score-row{display:flex;gap:7px;align-items:center;margin-bottom:8px}
+#editdialog .past-score-row .past-score-name{flex:1;min-width:0}
+#editdialog .past-score-row .past-score-value{width:120px}
+#editdialog .past-score-row button{background:transparent;border:0;font-size:20px}
+@media(max-width:700px){#editdialog .record-book-info{padding-bottom:15px;border-bottom:1px solid #eee}}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -761,13 +782,14 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300">
     <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
     <label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select>
- <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div><button type="button" id="add-read-history">＋ 読んだ日を追加</button></div>
+ 
     <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
    </div>
    <div class="record-writing">
+    <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div><button type="button" id="add-read-history">＋ 読んだ日を追加</button></div>
     <div class="note-heading"><div class="note-title-tools"><label for="note">感想・メモ</label><button type="button" id="mark-selection" class="mark-icon-button" title="選択した文章にマーカーを付ける・外す" aria-label="選択した文章にマーカーを付ける・外す"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 4 4"/><path d="m21 3-8 8-4-4 8-8z" transform="translate(-1 3)"/><path d="M3 21h12"/><path d="m6 18 4-4"/></svg></button></div><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div>
     <div id="note" class="note-editor" contenteditable="true" role="textbox" aria-label="感想・メモ" aria-multiline="true" data-placeholder="心に残ったことを、自由に書いてください。"></div>
-    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
+    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div><section id="past-records" class="past-records" hidden><h3>以前の読書記録</h3><p class="muted">再読前の感想・評価も編集できます。</p><div id="past-record-list"></div></section>
    </div>
   </div>
   <div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div>
@@ -1033,6 +1055,50 @@ $('tabs').onclick=e=>{
  filter=btn.dataset.status;selectedTags.clear();refreshIndex();render();
 };
 $('demo-toggle').onclick=()=>{showDemo=!showDemo;render()};
+function drawPastRecords(entries){
+ const wrap=$('past-record-list');wrap.replaceChildren();
+ const list=Array.isArray(entries)?entries:[];
+ $('past-records').hidden=!list.length;
+ list.forEach((entry,index)=>{
+  const section=document.createElement('section');section.className='past-record-entry';
+  const heading=document.createElement('h4');heading.textContent='以前の記録 '+(index+1);section.append(heading);
+  const dateLabel=document.createElement('label');dateLabel.textContent='読んだ日';section.append(dateLabel);
+  const dateWrap=document.createElement('div');buildDateFields(dateWrap,entry.date||'');section.append(dateWrap);
+  const reactionLabel=document.createElement('label');reactionLabel.textContent='読後の気持ち';section.append(reactionLabel);
+  const reaction=document.createElement('select');reaction.className='field past-reaction';
+  [['','付けない'],['heart','大好き'],['good','よかった'],['triangle','自分には合わなかった']].forEach(([value,label])=>reaction.add(new Option(label,value)));
+  reaction.value=entry.reaction||'';section.append(reaction);
+  const memoLabel=document.createElement('label');memoLabel.textContent='感想・メモ';section.append(memoLabel);
+  const note=document.createElement('textarea');note.className='field past-note';note.rows=5;note.value=entry.note||'';section.append(note);
+  const scoresTitle=document.createElement('p');scoresTitle.className='muted';scoresTitle.textContent='以前のカスタム評価';section.append(scoresTitle);
+  const scores=document.createElement('div');scores.className='past-score-list';section.append(scores);
+  for(const score of entry.customRatings||[]){
+   const line=document.createElement('div');line.className='past-score-row';
+   const name=document.createElement('input');name.className='field past-score-name';name.value=score.name||'';name.setAttribute('aria-label','評価項目');
+   const value=document.createElement('select');value.className='field past-score-value';value.add(new Option('未評価',''));
+   for(let i=.5;i<=5;i+=.5)value.add(new Option(i.toFixed(1)+' / 5',String(i)));
+   value.value=String(score.value??'');
+   const del=document.createElement('button');del.type='button';del.textContent='×';del.setAttribute('aria-label','評価を削除');del.onclick=()=>line.remove();
+   line.append(name,value,del);scores.append(line)
+  }
+  const add=document.createElement('button');add.type='button';add.textContent='＋ 評価項目を追加';add.onclick=()=>{
+   const line=document.createElement('div');line.className='past-score-row';
+   const name=document.createElement('input');name.className='field past-score-name';name.placeholder='項目名';name.setAttribute('aria-label','評価項目');
+   const value=document.createElement('select');value.className='field past-score-value';value.add(new Option('未評価',''));
+   for(let i=.5;i<=5;i+=.5)value.add(new Option(i.toFixed(1)+' / 5',String(i)));
+   const del=document.createElement('button');del.type='button';del.textContent='×';del.onclick=()=>line.remove();line.append(name,value,del);scores.append(line)
+  };section.append(add);wrap.append(section);
+ })
+}
+function collectPastRecords(){
+ const entries=[];
+ for(const section of $('past-record-list').children){
+  const date=getDateFields(section.querySelector('.date-parts'));if(date===null)return null;
+  const customRatings=[...section.querySelectorAll('.past-score-row')].map(row=>({name:row.querySelector('.past-score-name').value.trim(),value:row.querySelector('.past-score-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
+  entries.push({date,note:section.querySelector('.past-note').value, reaction:section.querySelector('.past-reaction').value||null,customRatings});
+ }
+ return entries;
+}
 function openEditor(b=null){
  editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};
  rereadAfterSave=false;
@@ -1048,6 +1114,7 @@ function openEditor(b=null){
  $('read-history').replaceChildren();
  const history=Array.isArray(editing.readHistory)?editing.readHistory:(editing.date?[{date:editing.date}]:[]);
  for(const row of history)addReadHistoryRow(row.date||'');
+ drawPastRecords(editing.readEntries);
  $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));
  $('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
  $('edit-cover-preview').replaceChildren(bookCover(editing));
@@ -1066,9 +1133,10 @@ $('editform').onsubmit=e=>{
  const status=$('status').value,words=currentEditorElements();
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
  const readHistory=status==='wish'&&Array.isArray(editing.readHistory)?[...editing.readHistory]:[];if(status!=='wish'){for(const el of $('read-history').children){const date=getDateFields(el.querySelector('.date-parts'));if(date===null)return;readHistory.push({date})}}
+ const readEntries=collectPastRecords();if(readEntries===null)return;
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
- const b={...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
+ const b={...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
  if(persist([...books.filter(x=>x.id!==b.id),b])){$('editdialog').close();const reread=rereadAfterSave;rereadAfterSave=false;if(detailBook&&detailBook.id===b.id){selectBook(b)}else{filter=b.status==='wish'?'wish':'done';refreshIndex();render()}if(reread)startReadDate(b,'reread');else notify('記録を保存しました。')}
 };
 $('title').oninput=()=>$('title').setCustomValidity('');
