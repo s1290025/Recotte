@@ -546,6 +546,43 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #detaildialog .detail-book{grid-template-columns:minmax(100px,35%) minmax(0,1fr);gap:14px}
  #detaildialog .detail-note-section{padding-left:13px}
 }
+
+/* Full-page-like journal editor: book metadata to the left, generous writing area to the right. */
+#editdialog{width:min(1120px,calc(100vw - 40px));max-width:none;height:min(900px,calc(100dvh - 36px));max-height:calc(100dvh - 36px);padding:28px 34px 24px;border-radius:4px;background:#fff;border:1px solid #e6e6e6;overflow:auto}
+#editdialog .dialoghead{padding:0 0 18px;margin-bottom:24px;border-bottom:1px solid #ededed}
+#editdialog #edittitle{font-size:19px;font-weight:600}
+#editform{min-height:calc(100% - 80px);display:flex;flex-direction:column}
+.record-editor{display:grid;grid-template-columns:minmax(220px,30%) minmax(0,1fr);gap:clamp(26px,4vw,56px);flex:1;min-height:0}
+.record-book-info{min-width:0}
+.edit-cover-preview{width:min(100%,210px);margin:0 auto 24px;aspect-ratio:2/3;background:#f3f3f3}
+.edit-cover-preview .cover{display:block;width:100%;height:100%;object-fit:contain}
+.edit-cover-preview .cover.fallback{display:flex}
+.record-book-info label{margin:14px 0 7px;font-size:13px}
+.record-book-info .field{width:100%;padding:10px 11px;font-size:14px}
+.record-book-info .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.record-writing{display:flex;flex-direction:column;min-width:0;border-left:1px solid #ededed;padding-left:clamp(22px,3vw,34px)}
+.record-writing label{margin:0 0 13px;font-size:15px;font-weight:600}
+#editdialog #note{flex:1;width:100%;min-height:430px;resize:vertical;line-height:2;font-size:16px;border:0;border-radius:0;background:#fff;padding:4px 2px;outline:none}
+#editdialog #note:focus{outline:none;box-shadow:inset 0 -2px #b5b5b5}
+#editdialog .formactions{position:sticky;bottom:-24px;z-index:2;align-items:center;margin:22px -34px -24px;padding:16px 34px 20px;border-top:1px solid #ededed;background:#fff}
+#editdialog #source-book{display:inline-block;margin:0 0 6px;font-size:12px}
+#editdialog #source-book[hidden]{display:none}
+@media(max-width:700px){
+ #editdialog{width:calc(100vw - 14px);height:calc(100dvh - 14px);max-height:calc(100dvh - 14px);padding:17px 17px 15px}
+ #editdialog .dialoghead{margin-bottom:17px;padding-bottom:13px}
+ .record-editor{grid-template-columns:1fr;gap:22px}
+ .record-book-info{display:grid;grid-template-columns:100px minmax(0,1fr);column-gap:14px;align-items:start}
+ .edit-cover-preview{grid-column:1;grid-row:1/5;width:100px;margin:0}
+ .record-book-info #source-book{grid-column:2}
+ .record-book-info label,.record-book-info .field,.record-book-info .row{grid-column:2}
+ .record-book-info label{margin:10px 0 4px}
+ .record-book-info .row{grid-column:1/-1}
+ .record-book-info label[for="tags"],.record-book-info #tags{grid-column:1/-1}
+ .record-writing{border:0;border-top:1px solid #ededed;padding:20px 0 0}
+ #editdialog #note{min-height:45dvh;font-size:16px;padding:4px 0}
+ #editdialog .formactions{bottom:-15px;margin:16px -17px -15px;padding:13px 17px 17px}
+}
+@media(max-width:390px){.record-book-info{grid-template-columns:84px minmax(0,1fr);column-gap:11px}.edit-cover-preview{width:84px}.record-book-info .row{grid-template-columns:1fr 1fr}}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -572,7 +609,26 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
 <dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><select id="book-search-type" aria-label="検索項目"><option value="title">タイトル</option><option value="author">著者名</option><option value="isbn">ISBN</option></select><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><div id="results" class="results"></div><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
-<dialog id="editdialog"><div class="dialoghead"><h2 id="edittitle">本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="editform"><a id="source-book" class="muted" target="_blank" rel="noopener noreferrer" hidden>書籍情報を見る</a><label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300"><label for="author">著者</label><input class="field" id="author" maxlength="300"><div class="row"><div><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読了</option></select></div><div><label for="date">読了日</label><input class="field" id="date" type="date"></div></div><label for="tags">ハッシュタグ</label><input class="field" id="tags" placeholder="#小説 #お気に入り" maxlength="500"><label for="note">感想・メモ</label><textarea id="note" placeholder="心に残ったことを、自由に。" maxlength="20000"></textarea><div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div></form></dialog><div class="message" id="message" role="status"></div>
+<dialog id="editdialog" aria-labelledby="edittitle">
+ <div class="dialoghead"><h2 id="edittitle">本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div>
+ <form id="editform">
+  <div class="record-editor">
+   <div class="record-book-info">
+    <div id="edit-cover-preview" class="edit-cover-preview" aria-label="本の表紙"></div>
+    <a id="source-book" class="muted" target="_blank" rel="noopener noreferrer" hidden>書籍情報を見る</a>
+    <label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300">
+    <label for="author">著者</label><input class="field" id="author" maxlength="300">
+    <div class="row"><div><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読了</option></select></div><div><label for="date">読了日</label><input class="field" id="date" type="date"></div></div>
+    <label for="tags">ハッシュタグ</label><input class="field" id="tags" placeholder="#小説 #お気に入り" maxlength="500">
+   </div>
+   <div class="record-writing">
+    <label for="note">感想・メモ</label>
+    <textarea id="note" placeholder="心に残ったことを、自由に書いてください。" maxlength="20000"></textarea>
+   </div>
+  </div>
+  <div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>キャンセル</button><button class="primary">保存する</button></div>
+ </form>
+</dialog><div class="message" id="message" role="status"></div>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読了'};
@@ -699,7 +755,7 @@ $('tabs').onclick=e=>{
  filter=btn.dataset.status;selectedTags.clear();refreshIndex();render();
 };
 $('demo-toggle').onclick=()=>{showDemo=!showDemo;render()};
-function openEditor(b=null){editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};$('source-book').hidden=!(typeof editing.itemUrl==='string'&&editing.itemUrl.startsWith('https://'));if(!$('source-book').hidden){$('source-book').href=editing.itemUrl;$('source-book').textContent=editing.source==='Google Books'?'Google Booksで見る':'書籍情報を見る'}for(const k of ['title','author','status','date','note'])$(k).value=editing[k];$('tags').value=tagsOf(editing).map(t=>'#'+t).join(' ');$('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));$('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';$('searchdialog').close();$('editdialog').showModal()}
+function openEditor(b=null){editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};$('source-book').hidden=!(typeof editing.itemUrl==='string'&&editing.itemUrl.startsWith('https://'));if(!$('source-book').hidden){$('source-book').href=editing.itemUrl;$('source-book').textContent=editing.source==='Google Books'?'Google Booksで見る':'書籍情報を見る'}for(const k of ['title','author','status','date','note'])$(k).value=editing[k];$('tags').value=tagsOf(editing).map(t=>'#'+t).join(' ');$('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));$('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';$('edit-cover-preview').replaceChildren(bookCover(editing));$('searchdialog').close();$('editdialog').showModal()}
 $('add').onclick=()=>{closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>openEditor();$('filter').oninput=render;
 $('toggle-search').onclick=()=>{closeMobileMenu();const input=$('filter'),open=input.hidden;input.hidden=!open;$('toggle-search').setAttribute('aria-expanded',String(open));if(open)input.focus();else{input.value='';render()}};
 $('filter').addEventListener('keydown',e=>{if(e.key==='Escape'){$('toggle-search').click();$('toggle-search').focus()}});
