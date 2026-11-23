@@ -688,6 +688,8 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .reaction-picks button svg{display:block;margin:auto}
 #editdialog .date-records[hidden]{display:none!important}
 @media(max-width:700px){#detaildialog #detail-date{text-align:center;margin:auto}}
+#detaildialog #detail-reaction svg{height:24px;width:24px;display:block}
+@media(max-width:700px){#detaildialog .detail-mobile-pagination button{padding:8px 7px;font-size:11px}}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -706,7 +708,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </section>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
  <div class="detail-main">
- <div class="detail-mobile-pagination" aria-label="読書記録の表示切替"><button type="button" data-page="0" aria-pressed="true">表紙</button><button type="button" data-page="1" aria-pressed="false">キーワード</button><button type="button" data-page="2" aria-pressed="false">評価</button></div><div class="detail-book"><div class="detail-book-info"><div class="detail-mobile-slides"><div class="detail-mobile-slide" data-slide="0"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-categories" class="muted"></p><p id="detail-status" class="detail-status"></p><button id="detail-date" type="button" class="muted" title="読書日付を編集"></button></div></div><div class="detail-mobile-slide" data-slide="1"><div id="detail-keywords" class="detail-keywords"></div></div><div class="detail-mobile-slide" data-slide="2"><div id="detail-rating" class="detail-rating"></div></div></div></div><section class="detail-note-section"><div class="detail-note-heading"><h3>感想・メモ</h3><span id="detail-reaction"></span></div><div id="detail-note" class="detail-note"></div></section></div>
+ <div class="detail-mobile-pagination" aria-label="読書記録の表示切替"><button type="button" data-page="0" aria-pressed="true">表紙</button><button type="button" data-page="1" aria-pressed="false">作品の要素</button><button type="button" data-page="2" aria-pressed="false">自分のものさし</button></div><div class="detail-book"><div class="detail-book-info"><div class="detail-mobile-slides"><div class="detail-mobile-slide" data-slide="0"><div id="detail-cover" class="detail-cover"></div><div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-categories" class="muted"></p><p id="detail-status" class="detail-status"></p><button id="detail-date" type="button" class="muted" title="読書日付を編集"></button></div></div><div class="detail-mobile-slide" data-slide="1"><div id="detail-keywords" class="detail-keywords"></div></div><div class="detail-mobile-slide" data-slide="2"><div id="detail-rating" class="detail-rating"></div></div></div></div><section class="detail-note-section"><div class="detail-note-heading"><h3>感想・メモ</h3><span id="detail-reaction"></span></div><div id="detail-note" class="detail-note"></div></section></div>
  <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a></div>
  </div>
  <aside class="detail-rail detail-rail-right" id="detail-actions-rail" aria-label="編集"><button type="button" id="detail-pin" aria-label="本をピン止め" title="ピン止め"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 3 5 5-3 1-4 4v4l-2 2-4-4H4l-1-1 5-5 1-3z"/><path d="m9 15-6 6"/></svg></button><button type="button" id="detail-edit" aria-label="本の記録を編集" title="編集"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L9 17l-4 1 1-4Z"/></svg></button></aside>
@@ -882,7 +884,7 @@ function fillDetails(book){
  const history=Array.isArray(book.readHistory)?book.readHistory:[],dates=history.map(x=>x.date).filter(Boolean);
  if(!dates.length&&book.date)dates.push(book.date);
  $('detail-date').textContent=dates.length?'読んだ日　'+dates.join('、'):'読んだ日を追加';
- $('detail-reaction').textContent={heart:'♡',good:'GOOD',triangle:'△'}[book.reaction]||'';
+ const reactionMark=$('detail-reaction');reactionMark.replaceChildren();const reactionButton=document.querySelector('#reaction-picks [data-reaction="'+book.reaction+'"]');if(reactionButton)for(const node of reactionButton.childNodes)reactionMark.append(node.cloneNode(true));
  $('detail-reaction').title={heart:'大好き',good:'よかった',triangle:'自分には合わなかった'}[book.reaction]||'';
  const note=$('detail-note');note.replaceChildren();writeNoteMarkup(note,book.note||'まだ感想・メモはありません。',book.noteMarks);
  $('detail-pin').hidden=!!book.demo;$('detail-pin').setAttribute('aria-pressed',String(!!book.pinned));$('detail-pin').title=book.pinned?'ピン止めを解除':'ピン止め';
@@ -986,7 +988,7 @@ $('editform').onsubmit=e=>{
  e.preventDefault();const title=$('title').value.trim();if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
  const status=$('status').value,words=splitKeywords($('kw-elements').value);
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
- const readHistory=[];if(status!=='wish'){for(const el of $('read-history').children){const date=getDateFields(el.querySelector('.date-parts'));if(date===null)return;readHistory.push({date})}}
+ const readHistory=status==='wish'&&Array.isArray(editing.readHistory)?[...editing.readHistory]:[];if(status!=='wish'){for(const el of $('read-history').children){const date=getDateFields(el.querySelector('.date-parts'));if(date===null)return;readHistory.push({date})}}
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
  const b={...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
