@@ -799,22 +799,52 @@ function bookCover(b){const urls=coverURLs(b),e=coverNode(urls);if(!urls.length)
 
 const keywordLabels=[['elements','作品に含まれているもの'],['moods','作品から受ける印象'],['likes','自分がいいと思ったポイント']];
 function splitKeywords(value){return [...new Set(String(value||'').split(/[、,\n]+/).map(s=>s.trim().replace(/^#/,'')).filter(Boolean))]}
-function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=!active;document.querySelector('.record-writing').hidden=!active}
+function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=!active;document.querySelector('.record-writing').hidden=!active;$('date-records').hidden=!active}
 $('status').addEventListener('change',updateReadFields);
-for(let v=.5;v<=5;v+=.5){const o=document.createElement('option');o.value=String(v);o.textContent=v.toFixed(1)+' / 5';$('overall-rating').append(o)}
+const localToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
+function dateParts(date){const match=String(date||'').match(/^(\\d{4})(?:-(\\d{2})(?:-(\\d{2}))?)?$/);return match?{year:match[1],month:match[2]||'',day:match[3]||''}:{year:String(new Date().getFullYear()),month:'',day:''}}
+function buildDateFields(host,date=''){
+ const parts=dateParts(date);
+ host.classList.add('date-parts');host.replaceChildren();
+ const yearBox=document.createElement('div'),monthBox=document.createElement('div'),dayBox=document.createElement('div');
+ const field=(box,labelText,control)=>{const label=document.createElement('label');label.textContent=labelText;label.htmlFor=control.id;box.append(label,control);host.append(box)};
+ const year=document.createElement('input');year.id='date-y-'+crypto.randomUUID();year.className='field date-year';year.type='number';year.required=true;year.min='1000';year.max='9999';year.step='1';year.value=parts.year;field(yearBox,'年（必須）',year);
+ const month=document.createElement('select');month.id='date-m-'+crypto.randomUUID();month.className='field date-month';month.add(new Option('選択しない',''));for(let i=1;i<=12;i++)month.add(new Option(i+'月',String(i).padStart(2,'0')));month.value=parts.month;field(monthBox,'月',month);
+ const day=document.createElement('select');day.id='date-d-'+crypto.randomUUID();day.className='field date-day';field(dayBox,'日',day);
+ const fillDays=()=>{const selected=day.value||parts.day;day.replaceChildren(new Option('選択しない',''));const y=Number(year.value),m=Number(month.value);day.disabled=!month.value;if(!month.value)return;const count=Number.isInteger(y)&&y>0?new Date(y,m,0).getDate():31;for(let i=1;i<=count;i++)day.add(new Option(i+'日',String(i).padStart(2,'0')));if([...day.options].some(x=>x.value===selected))day.value=selected};
+ month.addEventListener('change',()=>{parts.day='';day.value='';fillDays()});year.addEventListener('change',fillDays);fillDays();
+ return {year,month,day};
+}
+function getDateFields(host){const y=host.querySelector('.date-year'),m=host.querySelector('.date-month'),d=host.querySelector('.date-day');const value=Number(y.value);if(!Number.isInteger(value)||value<1000||value>9999){y.reportValidity();y.focus();return null}return String(value).padStart(4,'0')+(m.value?'-'+m.value+(d.value?'-'+d.value:''):'')}
+function setDateFieldsToday(host){const today=dateParts(localToday());host.querySelector('.date-year').value=today.year;host.querySelector('.date-month').value=today.month;host.querySelector('.date-day').disabled=false;host.querySelector('.date-month').dispatchEvent(new Event('change'));host.querySelector('.date-day').value=today.day}
+function addReadHistoryRow(date=''){
+ const row=document.createElement('div');row.className='history-row';
+ const fields=document.createElement('div');buildDateFields(fields,date);
+ const del=document.createElement('button');del.type='button';del.textContent='×';del.setAttribute('aria-label','日付を削除');del.onclick=()=>row.remove();
+ row.append(fields,del);$('read-history').append(row);return row;
+}
+$('add-read-history').onclick=()=>addReadHistoryRow(localToday());
+$('today-edit').onclick=()=>{const row=$('read-history').lastElementChild||addReadHistoryRow(localToday());setDateFieldsToday(row.querySelector('.date-parts'))};
 function addCustomRatingRow(value={name:'',value:''}){
  const row=document.createElement('div');row.className='custom-rating-row';
- const name=document.createElement('input');name.className='field custom-rating-name';name.placeholder='評価項目（例：怖さ）';name.maxLength=60;name.value=value.name||'';name.setAttribute('aria-label','評価項目');
+ const name=document.createElement('input');name.className='field custom-rating-name';name.placeholder='項目（例：怖さ）';name.maxLength=60;name.value=value.name||'';name.setAttribute('aria-label','評価項目');
  const rating=document.createElement('select');rating.className='field custom-rating-value';rating.setAttribute('aria-label','評価値');
- const empty=document.createElement('option');empty.value='';empty.textContent='未評価';rating.append(empty);
- for(let i=.5;i<=5;i+=.5){const o=document.createElement('option');o.value=String(i);o.textContent=i.toFixed(1)+' / 5';rating.append(o)}
+ rating.add(new Option('未評価',''));
+ for(let i=.5;i<=5;i+=.5)rating.add(new Option(i.toFixed(1)+' / 5',String(i)));
  rating.value=value.value??'';
  const del=document.createElement('button');del.type='button';del.textContent='×';del.setAttribute('aria-label','評価項目を削除');del.onclick=()=>row.remove();
  row.append(name,rating,del);$('custom-rating-fields').append(row)
 }
 $('add-custom-rating').onclick=()=>addCustomRatingRow();
-function addReadHistoryRow(date=''){const row=document.createElement('div');row.className='history-row';const input=document.createElement('input');input.type='date';input.className='field';input.value=date;input.setAttribute('aria-label','読書日付');const del=document.createElement('button');del.type='button';del.textContent='×';del.setAttribute('aria-label','日付を削除');del.onclick=()=>row.remove();row.append(input,del);$('read-history').append(row)}
-$('add-read-history').onclick=()=>addReadHistoryRow();
+let selectedReaction=null;
+function setReaction(value){selectedReaction=value;document.querySelectorAll('#reaction-picks button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.reaction===value)))}
+document.querySelectorAll('#reaction-picks button').forEach(b=>b.onclick=()=>setReaction(selectedReaction===b.dataset.reaction?null:b.dataset.reaction));
+let choiceBook=null;
+function startReadingChoice(b){choiceBook={...b};$('choice-book-title').textContent=b.title||'手動で登録する';$('searchdialog').close();$('reading-choice').showModal()}
+$('choice-wish').onclick=()=>{const b=choiceBook;if(!b)return;$('reading-choice').close();if(books.some(x=>x.id===b.id)||!b.title.trim()){openEditor({...b,status:'wish'})}else{const saved={...b,status:'wish',updatedAt:new Date().toISOString()};if(persist([...books,saved]))notify('読みたい本に追加しました。')}};
+$('choice-done').onclick=()=>{$('reading-choice').close();buildDateFields($('choice-date-fields'),localToday());$('reading-date').showModal()};
+$('today-choice').onclick=()=>setDateFieldsToday($('choice-date-fields'));
+$('reading-date-form').onsubmit=e=>{e.preventDefault();const date=getDateFields($('choice-date-fields'));if(date===null)return;const b=choiceBook;if(!b)return;const history=Array.isArray(b.readHistory)?[...b.readHistory]:(b.date?[{date:b.date}]:[]);history.push({date});$('reading-date').close();openEditor({...b,status:'done',readHistory:history,date:/^\\d{4}-\\d{2}-\\d{2}$/.test(date)?date:''})};
 function writeNoteMarkup(el,plain,markup){if(markup){const template=document.createElement('template');template.innerHTML=markup;const safe=(node)=>{if(node.nodeType===Node.TEXT_NODE)return document.createTextNode(node.textContent);if(node.nodeType!==Node.ELEMENT_NODE)return document.createDocumentFragment();const allowed=node.tagName==='MARK'||node.tagName==='BR'||node.tagName==='DIV';const out=allowed?document.createElement(node.tagName.toLowerCase()):document.createDocumentFragment();for(const child of node.childNodes)out.append(safe(child));return out};el.replaceChildren(...[...template.content.childNodes].map(safe))}else el.textContent=plain}
 function readNoteMarkup(el){const clone=el.cloneNode(true);clone.querySelectorAll('*').forEach(n=>{if(!['MARK','BR','DIV'].includes(n.tagName))n.replaceWith(...n.childNodes)});return clone.innerHTML.slice(0,100000)}
 function markSelected(remove=false){const host=$('note'),selection=window.getSelection();if(!selection||!selection.rangeCount||selection.isCollapsed)return;const range=selection.getRangeAt(0);if(!host.contains(range.commonAncestorContainer))return;if(remove){const mark=range.startContainer.parentElement?.closest('mark');if(mark&&host.contains(mark))mark.replaceWith(...mark.childNodes);selection.removeAllRanges();return}const mark=document.createElement('mark');try{range.surroundContents(mark)}catch{const contents=range.extractContents();mark.append(contents);range.insertNode(mark)}selection.removeAllRanges()}
@@ -881,7 +911,7 @@ $('detail-edit').onclick=()=>{
  $('home-page').hidden=false;
  $('detail-back').hidden=true;
  closeMobileMenu();
- openEditor(b);
+ if(b.status==='wish')startReadingChoice(b);else openEditor(b);
 };
 function render(){
  const demo=!books.length&&showDemo,source=demo?demoBooks:books;
@@ -913,11 +943,11 @@ function openEditor(b=null){
  editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};
  $('source-book').hidden=!(typeof editing.itemUrl==='string'&&editing.itemUrl.startsWith('https://'));
  if(!$('source-book').hidden){$('source-book').href=editing.itemUrl;$('source-book').textContent=editing.source==='Google Books'?'Google Booksで見る':'書籍情報を見る'}
- for(const k of ['title','author','status','date'])$(k).value=editing[k]||'';
+ for(const k of ['title','author','status'])$(k).value=editing[k]||'';
  $('tags').value=(Array.isArray(editing.tags)?editing.tags:[]).map(t=>'#'+t).join(' ');
  $('note').replaceChildren();writeNoteMarkup($('note'),editing.note||'',editing.noteMarks);
- for(const [field,key] of [['kw-elements','elements'],['kw-moods','moods'],['kw-likes','likes']])$(field).value=(editing.keywords?.[key]||[]).join('、');
- $('overall-rating').value=editing.rating??'';
+ $('kw-elements').value=[...new Set([...(editing.keywords?.elements||[]),...(editing.keywords?.moods||[]),...(editing.keywords?.likes||[])])].join('、');
+ setReaction(editing.reaction||null);
  $('custom-rating-fields').replaceChildren();
  for(const row of editing.customRatings||[])addCustomRatingRow(row);
  $('read-history').replaceChildren();
@@ -930,18 +960,18 @@ function openEditor(b=null){
  updateReadFields();$('searchdialog').close();$('editdialog').showModal();
 }
 
-$('add').onclick=()=>{closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>openEditor();$('filter').oninput=render;
+$('add').onclick=()=>{closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>startReadingChoice({id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''});$('filter').oninput=render;
 $('toggle-search').onclick=()=>{closeMobileMenu();const input=$('filter'),open=input.hidden;input.hidden=!open;$('toggle-search').setAttribute('aria-expanded',String(open));if(open)input.focus();else{input.value='';render()}};
 $('filter').addEventListener('keydown',e=>{if(e.key==='Escape'){$('toggle-search').click();$('toggle-search').focus()}});
 
 $('editform').onsubmit=e=>{
- e.preventDefault();const title=$('title').value.trim();
- if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
- const status=$('status').value,keywords={elements:splitKeywords($('kw-elements').value),moods:splitKeywords($('kw-moods').value),likes:splitKeywords($('kw-likes').value)};
+ e.preventDefault();const title=$('title').value.trim();if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
+ const status=$('status').value,words=splitKeywords($('kw-elements').value);
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
- const readHistory=[...$('read-history').querySelectorAll('input[type=date]')].map(input=>input.value).filter(Boolean).map(date=>({date}));
+ const readHistory=[];if(status!=='wish'){for(const el of $('read-history').children){const date=getDateFields(el.querySelector('.date-parts'));if(date===null)return;readHistory.push({date})}}
+ const latestFull=[...readHistory].reverse().find(row=>/^\\d{4}-\\d{2}-\\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
- const b={...editing,title,author:$('author').value.trim(),status,date:$('date').value||readHistory.at(-1)?.date||'',readHistory,keywords,rating:$('overall-rating').value===''?null:Number($('overall-rating').value),customRatings,note:status==='wish'?'':plain,noteMarks:status==='wish'?'':marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
+ const b={...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
  if(persist([...books.filter(x=>x.id!==b.id),b])){$('editdialog').close();notify('記録を保存しました。')}
 };
 $('title').oninput=()=>$('title').setCustomValidity('');
@@ -1002,7 +1032,7 @@ $('searchform').onsubmit=async e=>{
   $('searchmessage').textContent=items.length?(source+' · 本を選んで読書状況を登録してください。'):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
   for(const v of items){const b={id:crypto.randomUUID(),title:v.title,author:v.author,status:'wish',date:'',note:'',cover:v.cover,coverCandidates:v.coverCandidates,isbn:v.isbn,itemUrl:v.itemUrl,source:v.source,volumeId:v.volumeId,categories:v.categories,pageCount:v.pageCount,language:v.language,publisher:v.publisher,published:v.published};
    const button=textNode('button','','result');button.type='button';const info=textNode('span','');info.append(textNode('strong',b.title),textNode('div',[b.author,v.publisher,v.published].filter(Boolean).join(' / '),'muted'));
-   button.append(coverNode(coverURLs(b)),info);button.onclick=()=>openEditor(b);$('results').append(button)
+   button.append(coverNode(coverURLs(b)),info);button.onclick=()=>startReadingChoice(b);$('results').append(button)
   }
  }catch(error){if(!controller.signal.aborted)$('searchmessage').textContent=error.message||'検索できませんでした。もう一度お試しください。'}
  finally{if(searchController===controller)$('searchbutton').disabled=false}
