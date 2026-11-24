@@ -1054,7 +1054,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  <form id="editform">
   <div class="record-editor">
    <div class="record-book-info">
-    <div id="edit-cover-preview" class="edit-cover-preview" aria-label="本の表紙"></div>
+    <div id="edit-cover-preview" class="edit-cover-preview" aria-label="本の表紙"></div><div id="volume-cover-field" hidden><label for="volume-cover-url">この巻の表紙URL（任意）</label><input id="volume-cover-url" class="field" type="url" placeholder="https://"></div>
     <a id="source-book" class="muted" target="_blank" rel="noopener noreferrer" hidden>書籍情報を見る</a>
     <label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300">
     <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
@@ -1104,7 +1104,7 @@ function validBook(b){return b&&typeof b.id==='string'&&typeof b.title==='string
 try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(data)||!data.every(validBook))throw Error();books=data}catch{notify('保存した記録を読み込めませんでした。読み込み機能からバックアップを復元できます。')}
 function persist(next){try{localStorage.setItem(KEY,JSON.stringify(next));books=next;render();return true}catch{notify('保存できませんでした。ブラウザの保存設定や空き容量をご確認ください。');return false}}
 function seriesMembers(series){return books.filter(b=>b.seriesId===series.id).sort((a,b)=>(Number(a.volumeNumber)||99999)-(Number(b.volumeNumber)||99999)||String(a.title).localeCompare(String(b.title),'ja'))}
-function seriesStatus(series){const members=seriesMembers(series);return members.some(b=>b.status!=='wish')?'done':members.length&&members.every(b=>b.status==='wish')?'wish':series.status||'wish'}
+function seriesStatus(series){const members=seriesMembers(series);return series.status==='done'||members.some(b=>b.status!=='wish')?'done':'wish'}
 function seriesCover(series){return series.cover||seriesMembers(series).find(b=>b.cover)?.cover||''}
 function persistSeries(next){try{localStorage.setItem(SERIES_KEY,JSON.stringify(next));seriesRecords=next;render();return true}catch{notify('シリーズを保存できませんでした。');return false}}
 function shelfSeriesGroups(visible){
@@ -1858,6 +1858,8 @@ function openEditor(b=null){
  $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));
  $('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
  $('edit-cover-preview').replaceChildren(bookCover(editing));
+ $('volume-cover-field').hidden=!editing.seriesId;
+ $('volume-cover-url').value=editing.seriesId?editing.cover||'':'';
  $('api-book-metadata').textContent=[(editing.categories||[]).join(' / '),editing.publisher,editing.published,editing.pageCount?editing.pageCount+'ページ':''].filter(Boolean).join(' · ');
  updateReadFields();$('reread-action').hidden=editing.status==='wish'||!books.some(x=>x.id===editing.id);$('searchdialog').close();$('editdialog').showModal();
 }
@@ -1897,7 +1899,7 @@ function editorSnapshot(){
  for(let i=0;i<readEntries.length&&i<readHistory.length-1;i++)readHistory[i]={...readHistory[i],date:readEntries[i].date};
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
- return {...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
+ return {...editing,title,author:$('author').value.trim(),cover:editing.seriesId?$('volume-cover-url').value.trim():editing.cover||'',status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
 }
 function writeEditorSnapshot(next,redraw=false){
  try{
@@ -1923,6 +1925,7 @@ function queueEditorAutosave(){
  if(!$('editdialog').open||!editing)return;
  clearTimeout(editorAutosaveTimer);editorAutosaveTimer=setTimeout(()=>saveEditorProgress(),450);
 }
+$('volume-cover-url').addEventListener('change',()=>{if(editing?.seriesId){const preview={...editing,cover:$('volume-cover-url').value.trim()};$('edit-cover-preview').replaceChildren(bookCover(preview))}});
 $('editform').addEventListener('input',queueEditorAutosave);
 $('editform').addEventListener('change',queueEditorAutosave);
 $('editdialog').addEventListener('close',()=>{
