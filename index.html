@@ -1117,7 +1117,7 @@ function shelfSeriesGroups(visible){
   groups.push({kind:'book',item:book});
  }
  for(const series of seriesRecords){
-  if(seen.has(series.id)||seriesMembers(series).length)continue;
+  if(seen.has(series.id))continue;
   if((filter==='wish'?seriesStatus(series)==='wish':seriesStatus(series)!=='wish')&&matchesShelfFacets(series)&&!selectedTags.size){
    const q=$('filter').value.trim().toLocaleLowerCase();
    if((series.title+' '+(series.author||'')+' '+(series.note||'')).toLocaleLowerCase().includes(q)){groups.push({kind:'series',item:series});seen.add(series.id)}
@@ -1495,20 +1495,33 @@ $('series-remove').onclick=()=>{
  const nextBooks=books.map(b=>b.seriesId===series.id?{...b,seriesId:null,volumeNumber:null}:b);
  try{localStorage.setItem(KEY,JSON.stringify(nextBooks));books=nextBooks}catch{notify('保存できませんでした。');return}
  if(!persistSeries(seriesRecords.filter(s=>s.id!==series.id)))return;
- $('series-editor').close();activeSeries=null;seriesReturnId=null;
+ skipSeriesCloseSave=true;$('series-editor').close();activeSeries=null;seriesReturnId=null;
  $('series-page').hidden=true;$('home-page').hidden=false;$('detail-back').hidden=true;
  render();notify('シリーズの設定を解除しました。各巻の記録は残っています。');
 };
-$('series-form').onsubmit=event=>{
- event.preventDefault();
- const title=$('series-name').value.trim();if(!title)return;
+function saveSeriesForm(){
+ const title=$('series-name').value.trim();if(!title)return null;
  const previous=seriesRecords.find(s=>s.id===editingSeriesId);
- const next={...previous,id:previous?.id||crypto.randomUUID(),title,author:$('series-author-input').value.trim(),
+ const next={...previous,id:previous?.id||editingSeriesId||crypto.randomUUID(),title,author:$('series-author-input').value.trim(),
   status:$('series-status').value,cover:$('series-cover-input').value.trim(),
   elements:splitKeywords($('series-elements-input').value),rating:$('series-rating-input').value===''?null:Number($('series-rating-input').value),
   note:$('series-note-input').value,updatedAt:new Date().toISOString()};
- if(!persistSeries([...seriesRecords.filter(s=>s.id!==next.id),next]))return;
- $('series-editor').close();openSeries(next.id);notify('シリーズを保存しました。');
+ if(!persistSeries([...seriesRecords.filter(s=>s.id!==next.id),next]))return null;
+ editingSeriesId=next.id;return next;
+}
+let seriesAutoTimer=null,skipSeriesCloseSave=false;
+$('series-form').addEventListener('input',()=>{clearTimeout(seriesAutoTimer);seriesAutoTimer=setTimeout(()=>{if($('series-editor').open)saveSeriesForm()},500)});
+$('series-form').addEventListener('change',()=>{clearTimeout(seriesAutoTimer);seriesAutoTimer=setTimeout(()=>{if($('series-editor').open)saveSeriesForm()},500)});
+$('series-editor').addEventListener('close',()=>{
+ clearTimeout(seriesAutoTimer);
+ if(!skipSeriesCloseSave&&saveSeriesForm())notify('シリーズの変更を保存しました。');
+ skipSeriesCloseSave=false;
+});
+window.addEventListener('pagehide',()=>{if($('series-editor').open)saveSeriesForm()});
+$('series-form').onsubmit=event=>{
+ event.preventDefault();
+ const next=saveSeriesForm();if(!next)return;
+ skipSeriesCloseSave=true;$('series-editor').close();openSeries(next.id);notify('シリーズを保存しました。');
 };
 for(let n=0;n<=5;n+=0.5)$('series-rating-input').add(new Option(n.toFixed(1),String(n)));
 $('series-add-volume').onclick=()=>{
@@ -1706,8 +1719,8 @@ $('tabs').addEventListener('click',e=>{
 $('facet-clear-current').onclick=()=>{if(openShelfFacet){shelfFacets[openShelfFacet].clear();if(openShelfFacet==='rating')ratingRanges.clear();render()}};
 $('shelf-sort').onchange=render;
 function render(refreshPanel=true){
- const demo=!books.length&&showDemo,source=demo?demoBooks:books;
- $('demo-bar').hidden=!!books.length;
+ const demo=!books.length&&!seriesRecords.length&&showDemo,source=demo?demoBooks:books;
+ $('demo-bar').hidden=!!books.length||!!seriesRecords.length;
  $('demo-label').textContent=demo?'表示見本 · 本のタイトル・著者・感想は架空です。':'まだ読書記録はありません。';
  $('demo-toggle').textContent=demo?'見本を非表示':'見本を表示';
  renderTags(source);
@@ -1744,7 +1757,7 @@ function render(refreshPanel=true){
    const count=seriesMembers(b).length;
    const label=textNode('span',count?count+'巻':'シリーズ','series-card-badge');art.append(label);
    card.setAttribute('aria-label',b.title+'のシリーズ記録を開く');
-   card.append(art);card.onclick=()=>openSeries(b.id);container.append(card);continue;
+   card.type='button';card.append(art);card.onclick=()=>openSeries(b.id);container.append(card);continue;
   }
   card.type='button';card.setAttribute('aria-label',b.title+'の読書記録を開く');
   art.append(bookCover(b));
