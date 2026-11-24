@@ -1015,7 +1015,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </dialog>
 <dialog id="series-volume-dialog" class="series-dialog" aria-labelledby="series-volume-dialog-title"><div class="dialoghead"><h2 id="series-volume-dialog-title">巻を追加</h2><button type="button" id="series-volume-close" aria-label="閉じる">×</button></div><form id="series-volume-form">
  <label for="series-volume-number">巻数</label><input id="series-volume-number" class="field" type="number" min="1" step="1" required>
- <label for="series-volume-name">タイトル</label><input id="series-volume-name" class="field" maxlength="250" required>
+ <label for="series-volume-end">最終巻（任意・複数巻をまとめて登録）</label><input id="series-volume-end" class="field" type="number" min="1" step="1" placeholder="1冊だけなら空欄"><label for="series-volume-name">タイトル（1冊だけ登録する場合）</label><input id="series-volume-name" class="field" maxlength="250" required>
  <label for="series-volume-status">読書状況</label><select id="series-volume-status" class="field"><option value="wish">読みたい</option><option value="done">読んだ</option></select>
  <div class="series-form-actions"><button type="button" id="series-volume-cancel">閉じる</button><button type="submit" class="primary">追加する</button></div></form>
 </dialog>
@@ -1515,6 +1515,7 @@ $('series-add-volume').onclick=()=>{
  const series=seriesRecords.find(s=>s.id===activeSeries);if(!series)return;
  const existing=seriesMembers(series);const nextNumber=Math.max(0,...existing.map(b=>Number(b.volumeNumber)||0))+1;
  $('series-volume-number').value=String(nextNumber);
+ $('series-volume-end').value='';
  $('series-volume-name').value=series.title+' '+nextNumber+'巻';
  $('series-volume-status').value='wish';
  $('series-volume-dialog').showModal();
@@ -1523,18 +1524,22 @@ $('series-volume-close').onclick=$('series-volume-cancel').onclick=()=>$('series
 $('series-volume-form').onsubmit=event=>{
  event.preventDefault();
  const series=seriesRecords.find(s=>s.id===activeSeries);if(!series)return;
- const number=Number($('series-volume-number').value);if(!Number.isSafeInteger(number)||number<1)return;
+ const number=Number($('series-volume-number').value);
+ const end=Number($('series-volume-end').value||number);
+ if(!Number.isSafeInteger(number)||number<1||!Number.isSafeInteger(end)||end<number||end-number>199){notify('登録できる巻数は一度に200冊までです。');return}
  const title=$('series-volume-name').value.trim();if(!title)return;
- if(seriesMembers(series).some(b=>Number(b.volumeNumber)===number)){
-  notify('この巻数はすでに登録されています。');return;
- }
+ const existing=new Set(seriesMembers(series).map(b=>Number(b.volumeNumber)));
  const status=$('series-volume-status').value;
- const book={id:crypto.randomUUID(),title,author:series.author||'',status,cover:'',date:'',
-  note:'',seriesId:series.id,volumeNumber:number,updatedAt:new Date().toISOString()};
- if(!persist([...books,book]))return;
- $('series-volume-dialog').close();
- renderSeriesPage();
- notify('巻を追加しました。表紙や読書記録は巻のページから編集できます。');
+ const created=[];
+ for(let n=number;n<=end;n++){
+  if(existing.has(n))continue;
+  created.push({id:crypto.randomUUID(),title:number===end?title:series.title+' '+n+'巻',author:series.author||'',status,cover:'',date:'',
+   note:'',seriesId:series.id,volumeNumber:n,updatedAt:new Date().toISOString()});
+ }
+ if(!created.length){notify('指定した巻数はすでに登録されています。');return}
+ if(!persist([...books,...created]))return;
+ $('series-volume-dialog').close();renderSeriesPage();
+ notify(created.length+'冊の巻を追加しました。表紙や感想は巻ごとに編集できます。');
 };
 $('series-link-volume').onclick=()=>{
  if(!activeSeries)return;
@@ -1989,7 +1994,7 @@ $('searchform').onsubmit=async e=>{
  }catch(error){if(!controller.signal.aborted)$('searchmessage').textContent=error.message||'検索できませんでした。もう一度お試しください。'}
  finally{if(searchController===controller)$('searchbutton').disabled=false}
 };
-$('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:1,books},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='recotte-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
-$('import').onclick=()=>$('importfile').click();$('importfile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error();const data=JSON.parse(await file.text());if(data.version!==1||!Array.isArray(data.books)||!data.books.every(validBook))throw Error();const incoming=new Map(data.books.map(b=>[b.id,b]));const collisions=books.some(b=>incoming.has(b.id));if(collisions&&!confirm('同じ記録はバックアップの内容で上書きします。読み込みますか？'))return;if(persist([...books.filter(b=>!incoming.has(b.id)),...incoming.values()]))notify('バックアップを読み込みました。')}catch{notify('読み込めませんでした。Recotte! のバックアップJSONを選んでください。')}finally{e.target.value=''}};
+$('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:2,books,series:seriesRecords},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='recotte-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
+$('import').onclick=()=>$('importfile').click();$('importfile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error();const data=JSON.parse(await file.text());if(![1,2].includes(data.version)||!Array.isArray(data.books)||!data.books.every(validBook))throw Error();const incoming=new Map(data.books.map(b=>[b.id,b]));const incomingSeries=data.version===2&&Array.isArray(data.series)?data.series.filter(s=>s&&typeof s.id==='string'&&typeof s.title==='string'):[];const collisions=books.some(b=>incoming.has(b.id))||seriesRecords.some(s=>incomingSeries.some(x=>x.id===s.id));if(collisions&&!confirm('同じ記録はバックアップの内容で上書きします。読み込みますか？'))return;const mergedSeries=[...seriesRecords.filter(s=>!incomingSeries.some(x=>x.id===s.id)),...incomingSeries];if(data.version===2&&!persistSeries(mergedSeries))return;if(persist([...books.filter(b=>!incoming.has(b.id)),...incoming.values()]))notify('バックアップを読み込みました。')}catch{notify('読み込めませんでした。Recotte! のバックアップJSONを選んでください。')}finally{e.target.value=''}};
 render();
 </script></body></html>
