@@ -1244,7 +1244,7 @@ $('kw-elements').addEventListener('input',e=>{const text=e.target.value;if(/[、
 $('kw-elements').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addEditorElements(e.target.value);e.target.value=''}});
 $('kw-elements').addEventListener('blur',()=>{if($('kw-elements').value.trim()){addEditorElements($('kw-elements').value);$('kw-elements').value=''}});
 
-function updateReadFields(){const active=$('status').value!=='wish',series=editing?.recordType==='series';$('read-fields').hidden=false;document.querySelector('.record-writing').hidden=false;document.querySelector('.current-session').hidden=!active&&!series;$('date-records').hidden=!active;$('editor-elements').hidden=false}
+function updateReadFields(){const active=$('status').value!=='wish',series=editing?.recordType==='series';$('read-fields').hidden=false;document.querySelector('.record-writing').hidden=false;document.querySelector('.current-session').hidden=!active&&!series;$('date-records').hidden=!active&&!series;$('editor-elements').hidden=false}
 $('status').addEventListener('change',updateReadFields);
 const localToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 function dateParts(date){const match=String(date||'').match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);return match?{year:match[1],month:match[2]||'',day:match[3]||''}:{year:String(new Date().getFullYear()),month:'',day:''}}
@@ -1414,12 +1414,11 @@ function fillDetails(book){
  const custom=(book.customRatings||[]).filter(x=>x.name&&Number(x.value)>0);
  if(custom.length>=3)drawRadar(custom,ratings);
  for(const item of custom){const label=item.name==='総合'||item.name==='総合評価'?'':item.name+'　';const line=textNode('p',label,'custom-display');line.append(ratingStars(item.value));ratings.append(line)}
- if(book.rating!=null){const line=textNode('p','以前の総合評価　','overall-display');line.append(ratingStars(book.rating));ratings.append(line)}
- ratings.hidden=!custom.length&&book.rating==null;
+ ratings.hidden=!custom.length;
  const history=Array.isArray(book.readHistory)?book.readHistory:[],dates=history.map(x=>x.date).filter(Boolean);
  if(!dates.length&&book.date)dates.push(book.date);
- $('detail-date').textContent=book.recordType==='series'?'':dates.length?'読んだ日　'+dates[dates.length-1]:'読んだ日を追加';
- $('detail-date').hidden=book.recordType==='series';
+ $('detail-date').textContent=dates.length?dates[dates.length-1]:'日付を追加';
+ $('detail-date').hidden=false;
  $('detail-current-reading').style.order=String(-readingDateSortValue(dates[dates.length-1]||''));
  const reactionMark=$('detail-reaction');reactionMark.replaceChildren();const reactionButton=document.querySelector('#reaction-picks [data-reaction="'+book.reaction+'"]');if(reactionButton)for(const node of reactionButton.childNodes)reactionMark.append(node.cloneNode(true));
  $('detail-reaction').title={heart:'大好き',good:'よかった',triangle:'自分には合わなかった'}[book.reaction]||'';
@@ -1428,7 +1427,7 @@ function fillDetails(book){
  const previous=historicalEntries(book);
  previous.forEach((entry,i)=>{
   const block=textNode('section','','detail-session-block previous-entry');
-  const date=textNode('div','読んだ日　'+(entry.date||pastDates[i]?.date||'未登録'),'detail-session-date');block.append(date);
+  const date=textNode('div',entry.date||pastDates[i]?.date||'未登録','detail-session-date');block.append(date);
   block.style.order=String(-readingDateSortValue(entry.date||pastDates[i]?.date||''));
   const card=textNode('div','','detail-reading-session');block.append(card);
   const heading=textNode('div','','detail-note-heading');
@@ -1958,7 +1957,7 @@ function editorSnapshot(){
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
  if($('overall-rating-value').value!=='')customRatings.unshift({name:'総合',value:Number($('overall-rating-value').value)});
  const readHistory=Array.isArray(editing.readHistory)?editing.readHistory.map(x=>({...x})):(editing.date?[{date:editing.date}]:[]);
- if(status!=='wish'){
+ if(status!=='wish'||editing.recordType==='series'){
   const lastRow=$('read-history').lastElementChild;
   const date=editorDateValue(lastRow?.querySelector('.date-parts'));
   if(date){if(readHistory.length)readHistory[readHistory.length-1]={...readHistory[readHistory.length-1],date};else readHistory.push({date})}
