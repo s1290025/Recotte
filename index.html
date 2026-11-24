@@ -792,6 +792,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .custom-rating-row .custom-rating-value{flex:0 0 94px;width:94px;min-width:0;font-size:12px;padding-left:5px;padding-right:3px}
 #editdialog .custom-rating-row>button{flex:0 0 28px;padding:4px}
 #detaildialog .fractional-stars{display:inline-flex;align-items:center;position:relative;vertical-align:middle;white-space:nowrap;line-height:1.2}
+#detaildialog .fractional-stars-track{display:inline-block;position:relative;white-space:nowrap;line-height:1.2}
 #detaildialog .fractional-stars-base{font-family:Arial,sans-serif;letter-spacing:0;display:inline-block;color:#c7c0b5;font-size:17px}
 #detaildialog .fractional-stars-fill{font-family:Arial,sans-serif;letter-spacing:0;position:absolute;left:0;top:0;white-space:nowrap;overflow:hidden;color:#c49b58;font-size:17px}
 #detaildialog .fractional-stars-count{font-size:12px;color:#746e63;margin-left:5px}
@@ -1032,10 +1033,11 @@ function ratingStars(value){
  const span=document.createElement('span');
  if(!Number.isFinite(n)||n<=0){span.textContent='未評価';return span}
  span.className='fractional-stars';span.setAttribute('role','img');span.setAttribute('aria-label',n.toFixed(1)+' / 5');
+ const track=document.createElement('span');track.className='fractional-stars-track';
  const base=document.createElement('span');base.className='fractional-stars-base';base.textContent='☆☆☆☆☆';
  const fill=document.createElement('span');fill.className='fractional-stars-fill';fill.textContent='★★★★★';fill.style.width=(Math.min(5,Math.max(0,n))/5*100)+'%';
  const count=document.createElement('span');count.className='fractional-stars-count';count.textContent=' ('+n.toFixed(1)+')';
- span.append(base,fill,count);return span
+ track.append(base,fill);span.append(track,count);return span
 }
 function drawRadar(items,host){
  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 300 270');svg.setAttribute('role','img');svg.setAttribute('aria-label','カスタム評価レーダーチャート');svg.classList.add('rating-radar');
