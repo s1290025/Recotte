@@ -876,6 +876,15 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .overall-rating-row .shared-reaction{display:flex;align-items:center;margin:0 0 0 8px}
 #editdialog .overall-rating-row .reaction-picks{display:flex;align-items:center;gap:3px;margin:0}
 #editdialog .overall-rating-row .reaction-picks button{width:38px;height:36px}
+
+/* Reading entries have just one memo frame; separate full entries with a single rule. */
+#detaildialog .detail-session-block.previous-entry{border:0!important;border-radius:0!important;background:transparent!important;padding:0!important;margin:0 0 22px}
+#detaildialog .detail-session-block.separated-reading{border-top:1px solid #e7e3de!important;padding-top:22px!important}
+#detaildialog .detail-session-block .detail-reading-session{border:1px solid #e9e5de;border-radius:9px;background:#fff}
+#editdialog .record-writing>.past-record-entry{border:0!important}
+#editdialog .record-writing>.separated-reading{border-top:1px solid #e7e3de!important;padding-top:22px!important}
+#editdialog .past-record-entry{border:0!important}
+#editdialog .record-writing>.reading-session.separated-reading{border-top:1px solid #e7e3de!important;padding-top:22px!important}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -920,7 +929,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
 <dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><div id="results" class="results"></div><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
 <dialog id="reading-choice" aria-labelledby="reading-choice-title"><div class="dialoghead"><h2 id="reading-choice-title">この本を読みましたか？</h2><button type="button" data-close aria-label="閉じる">×</button></div><div id="choice-book-title" class="choice-book-title"></div><div class="choice-buttons"><button type="button" id="choice-wish">まだ読んでいない</button><button type="button" id="choice-done" class="primary">読んだ</button></div></dialog>
-<dialog id="reading-date" aria-labelledby="reading-date-title"><div class="dialoghead"><h2 id="reading-date-title">読んだ日</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="reading-date-form"><div class="date-record-head"><span>日付を入力</span><button type="button" id="today-choice">今日を入力</button></div><div id="choice-date-fields" class="date-parts"></div><p class="muted">年は必須です。月と日は「選択しない」も選べます。</p><div class="formactions"><button type="button" data-close>戻る</button><button class="primary" type="submit">次へ</button></div></form></dialog><dialog id="reading-elements" aria-labelledby="reading-elements-title"><div class="dialoghead"><h2 id="reading-elements-title">作品の要素</h2><button type="button" data-close aria-label="閉じる">×</button></div><p class="muted">作品を表す言葉を自由に入力できます。スキップしても構いません。</p><form id="reading-elements-form"><label for="choice-elements">作品の要素（任意）</label><input id="choice-elements" class="field" placeholder="例：ファンタジー、伏線、政治劇"><div class="formactions"><button type="button" id="skip-elements">スキップ</button><button type="submit" class="primary">記録を書く</button></div></form></dialog><dialog id="reading-action" aria-labelledby="reading-action-title"><div class="dialoghead"><h2 id="reading-action-title">この本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><p>どちらを行いますか？</p><div class="choice-buttons"><button type="button" id="action-edit">記録を編集</button><button type="button" id="action-reread" class="primary">もう一度読んだ</button></div></dialog>
+<dialog id="reading-date" aria-labelledby="reading-date-title"><div class="dialoghead"><h2 id="reading-date-title">読んだ日</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="reading-date-form"><div class="date-record-head"><span>日付を入力</span><button type="button" id="today-choice">今日を入力</button></div><div id="choice-date-fields" class="date-parts"></div><p class="muted">年は必須です。月と日は「選択しない」も選べます。</p><div class="formactions"><button type="button" data-close>戻る</button><button class="primary" type="submit">次へ</button></div></form></dialog><dialog id="reading-elements" aria-labelledby="reading-elements-title"><div class="dialoghead"><h2 id="reading-elements-title">作品の要素</h2><button type="button" data-close aria-label="閉じる">×</button></div><p class="muted">作品を表す言葉を自由に入力できます。スキップしても構いません。</p><form id="reading-elements-form"><label for="choice-elements">作品の要素（任意）</label><input id="choice-elements" class="field" placeholder="要素を入力"><div class="formactions"><button type="button" id="skip-elements">スキップ</button><button type="submit" class="primary">記録を書く</button></div></form></dialog><dialog id="reading-action" aria-labelledby="reading-action-title"><div class="dialoghead"><h2 id="reading-action-title">この本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><p>どちらを行いますか？</p><div class="choice-buttons"><button type="button" id="action-edit">記録を編集</button><button type="button" id="action-reread" class="primary">もう一度読んだ</button></div></dialog>
 <dialog id="editdialog" aria-labelledby="edittitle">
  <div class="dialoghead"><h2 id="edittitle">本の記録</h2><div class="editor-header-actions"><div id="reread-action" class="reread-action" hidden><button type="button" id="editor-reread" title="今の記録を保存して、もう一度読んだ日付を追加">＋ もう一回読んだ</button></div><button type="button" id="edit-close-save" aria-label="記録を保存して閉じる" title="保存して閉じる">×</button></div></div>
  <form id="editform">
@@ -1060,7 +1069,7 @@ function addReadHistoryRow(date=''){
  const row=document.createElement('div');row.className='history-row';
  const fields=document.createElement('div');buildDateFields(fields,date);
  const del=document.createElement('button');del.type='button';del.textContent='×';del.setAttribute('aria-label','日付を削除');del.onclick=()=>row.remove();
- fields.addEventListener('change',()=>{const date=getDateFields(fields.querySelector('.date-parts'));if(date!==null)document.querySelector('.current-session').style.order=String(-readingDateSortValue(date))});
+ fields.addEventListener('change',()=>{const dateFields=fields.querySelector('.date-parts');const values=[dateFields.querySelector('.date-year').value,dateFields.querySelector('.date-month').value,dateFields.querySelector('.date-day').value].filter(Boolean);document.querySelector('.current-session').style.order=String(-readingDateSortValue(values.join('-')));updateEditorReadingSeparators()});
  row.append(fields,del);$('read-history').append(row);return row;
 }
 $('today-edit').onclick=()=>{const row=$('read-history').lastElementChild||addReadHistoryRow(localToday());setDateFieldsToday(row.querySelector('.date-parts'))};
@@ -1105,7 +1114,7 @@ function finishElements(skip=false){
   const saved={...revised,author:typeof revised.author==='string'?revised.author:'',note:typeof revised.note==='string'?revised.note:'',cover:typeof revised.cover==='string'?revised.cover:'',updatedAt:new Date().toISOString()};
   if(!persist([...books.filter(x=>x.id!==saved.id),saved]))return;
   if(detailBook&&detailBook.id===saved.id)selectBook(saved);
-  else{filter='done';refreshIndex();render()}
+  else{filter='done';refreshIndex()}
   openEditor(saved);
  }else{
   openEditor(revised);
@@ -1139,6 +1148,18 @@ function drawRadar(items,host){
 function readingDateSortValue(value){
  const parts=String(value||'').match(/^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?$/);
  return parts?Number(parts[1])*10000+Number(parts[2]||0)*100+Number(parts[3]||0):0;
+}
+function updateDetailReadingSeparators(){
+ const sections=[$('detail-current-reading'),...$('detail-previous-reads').querySelectorAll('.detail-session-block')];
+ const sorted=[...sections].sort((a,b)=>Number(a.style.order||0)-Number(b.style.order||0));
+ sections.forEach(section=>section.classList.toggle('separated-reading',section!==sorted[0]));
+}
+function updateEditorReadingSeparators(){
+ const current=document.querySelector('#editdialog .current-session');
+ const earlier=[...$('past-record-list').querySelectorAll('.past-record-entry')];
+ const sections=[current,...earlier];
+ const sorted=[...sections].sort((a,b)=>Number(a.style.order||0)-Number(b.style.order||0));
+ sections.forEach(section=>section.classList.toggle('separated-reading',section!==sorted[0]));
 }
 function fillDetails(book){
  const wrap=$('detail-keywords');wrap.replaceChildren();
@@ -1177,6 +1198,7 @@ function fillDetails(book){
   if(!entry.note)memo.classList.add('is-empty');
   card.append(memo);prev.append(block);
  });
+ updateDetailReadingSeparators();
  const note=$('detail-note');note.replaceChildren();writeNoteMarkup(note,book.note||'まだ感想・メモはありません。',book.noteMarks);
  $('detail-pin').hidden=!!book.demo;$('detail-pin').setAttribute('aria-pressed',String(!!book.pinned));$('detail-pin').title=book.pinned?'ピン止めを解除':'ピン止め';
 }
@@ -1279,12 +1301,13 @@ function drawPastRecords(entries){
 
   const dateLabel=document.createElement('label');dateLabel.textContent='読んだ日';section.append(dateLabel);
   const dateWrap=document.createElement('div');buildDateFields(dateWrap,entry.date||'');section.append(dateWrap);
-  dateWrap.addEventListener('change',()=>{const date=getDateFields(dateWrap.querySelector('.date-parts'));if(date!==null)section.style.order=String(-readingDateSortValue(date))});
+  dateWrap.addEventListener('change',()=>{const fields=dateWrap.querySelector('.date-parts');const year=fields.querySelector('.date-year').value,month=fields.querySelector('.date-month').value,day=fields.querySelector('.date-day').value;section.style.order=String(-readingDateSortValue([year,month,day].filter(Boolean).join('-')));updateEditorReadingSeparators()});
   const memoPanel=document.createElement('div');memoPanel.className='past-memo-panel';
   const memoLabel=document.createElement('label');memoLabel.textContent='感想・メモ';memoPanel.append(memoLabel);
   const note=document.createElement('textarea');note.className='field past-note';note.rows=5;note.value=entry.note||'';memoPanel.append(note);
   section.append(memoPanel);wrap.append(section);
- })
+ });
+ updateEditorReadingSeparators();
 }
 function collectPastRecords(){
  const entries=[];
