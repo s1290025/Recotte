@@ -2375,7 +2375,7 @@ function openDetailCatalog(kind){
  if(!base){catalogContext=null;return}
  $('query').value=base;
  $('search-context-hint').hidden=false;
- $('search-context-hint').textContent=kind==='series'?'このシリーズの巻をGoogle Booksから探します。':'シリーズ全体、またはほかの巻を選択してください。';
+ $('search-context-hint').textContent=kind==='series'?'このシリーズをGoogle Booksから探します。':'シリーズ全体、またはほかの巻を選択してください。';
  $('search-group-toggle').checked=true;
  $('results').replaceChildren();
  $('catalog-load-more').hidden=true;
