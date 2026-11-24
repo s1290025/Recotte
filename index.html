@@ -1218,10 +1218,13 @@ function openEditor(b=null){
  // Older versions cleared shared reactions and scales when a book was reread.
  // Recover the latest saved value if the current shared field is absent.
  const earlier=Array.isArray(editing.readEntries)?[...editing.readEntries].reverse():[];
- if(!editing.reaction){const previousReaction=earlier.find(x=>x.reaction);if(previousReaction)editing.reaction=previousReaction.reaction}
- if(!Array.isArray(editing.customRatings)||!editing.customRatings.length){
-  const previousScale=earlier.find(x=>Array.isArray(x.customRatings)&&x.customRatings.length);
-  if(previousScale)editing.customRatings=previousScale.customRatings.map(x=>({...x}));
+ if(!editing.sharedFieldsMigrated){
+  if(!editing.reaction){const previousReaction=earlier.find(x=>x.reaction);if(previousReaction)editing.reaction=previousReaction.reaction}
+  if(!Array.isArray(editing.customRatings)||!editing.customRatings.length){
+   const previousScale=earlier.find(x=>Array.isArray(x.customRatings)&&x.customRatings.length);
+   if(previousScale)editing.customRatings=previousScale.customRatings.map(x=>({...x}));
+  }
+  editing.sharedFieldsMigrated=true;
  }
  setReaction(editing.reaction||null);
  $('custom-rating-fields').replaceChildren();
