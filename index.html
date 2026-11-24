@@ -684,6 +684,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #editdialog .reaction-picks button{width:39px}
 }
 #detaildialog #detail-date{display:block;text-align:left;background:transparent;border:0;padding:5px 0;font:inherit;font-size:12px;line-height:1.6;cursor:pointer}
+#detaildialog #detail-date[hidden]{display:none}
 #detaildialog #detail-date:hover{text-decoration:underline}
 #editdialog .reaction-picks button svg{display:block;margin:auto}
 #editdialog .date-records[hidden]{display:none!important}
@@ -1617,7 +1618,7 @@ function fillDetails(book){
  const history=Array.isArray(book.readHistory)?book.readHistory:[],dates=history.map(x=>x.date).filter(Boolean);
  if(!dates.length&&book.date)dates.push(book.date);
  $('detail-date').textContent=dates.length?dates[dates.length-1]:'日付を追加';
- $('detail-date').hidden=false;
+ $('detail-date').hidden=book.status==='wish';
  $('detail-current-reading').style.order=String(-readingDateSortValue(dates[dates.length-1]||''));
  const reactionMark=$('detail-reaction');reactionMark.replaceChildren();const reactionButton=document.querySelector('#reaction-picks [data-reaction="'+book.reaction+'"]');if(reactionButton)for(const node of reactionButton.childNodes)reactionMark.append(node.cloneNode(true));
  $('detail-reaction').title={heart:'大好き',good:'よかった',triangle:'自分には合わなかった'}[book.reaction]||'';
