@@ -1112,9 +1112,11 @@ function finishElements(skip=false){
  // persist it before opening the optional memo editor.
  if(choiceMode==='first'&&revised.title?.trim()){
   const saved={...revised,author:typeof revised.author==='string'?revised.author:'',note:typeof revised.note==='string'?revised.note:'',cover:typeof revised.cover==='string'?revised.cover:'',updatedAt:new Date().toISOString()};
-  if(!persist([...books.filter(x=>x.id!==saved.id),saved]))return;
+  const previousFilter=filter;
+  filter='done';
+  if(!persist([...books.filter(x=>x.id!==saved.id),saved])){filter=previousFilter;return}
   if(detailBook&&detailBook.id===saved.id)selectBook(saved);
-  else{filter='done';refreshIndex()}
+  else refreshIndex();
   openEditor(saved);
  }else{
   openEditor(revised);
