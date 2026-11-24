@@ -1112,6 +1112,17 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #detaildialog .detail-book-info>#detail-volume-series{margin-top:18px;padding-top:15px}
 #searchdialog #search-context-hint{margin:12px 0 3px;font-size:13px}
 #searchdialog #search-context-hint[hidden]{display:none!important}
+/* Match the series-link underline interaction for individual volumes. */
+#detaildialog .series-volume-item:hover .volume-caption,
+#detaildialog .series-volume-item:focus-visible .volume-caption{text-decoration:underline;text-underline-offset:3px}
+#detaildialog .detail-book-info .series-add-button{
+ width:28px;height:28px;display:inline-flex;justify-content:center;align-items:center;
+ padding:0;border:0;border-radius:4px;background:transparent;color:#65594b;
+ font-family:inherit;font-size:25px;font-weight:400;line-height:1;cursor:pointer;
+}
+#detaildialog .detail-book-info .series-add-button:hover,
+#detaildialog .detail-book-info .series-add-button:focus-visible{background:#f4eee4}
+#detaildialog .detail-book-info .series-add-button[hidden]{display:none!important}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1159,8 +1170,8 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
    <div class="detail-heading"><div class="detail-title-row"><h2 id="detail-title"></h2><div id="detail-reaction" class="detail-title-reaction"></div></div><p id="detail-author" class="muted"></p><p id="detail-publisher-categories" class="detail-book-metadata" hidden></p><p id="detail-status" class="detail-status" hidden></p></div>
    <div id="detail-keywords" class="detail-keywords"></div>
    <div id="detail-rating" class="detail-rating"></div>
-   <section id="detail-series-volumes" class="detail-series-volumes" hidden><div class="series-section-head"><h3>各巻の記録</h3><button type="button" id="detail-add-volume" class="series-add-button" aria-label="シリーズの巻を追加" title="Google Booksから巻を探す">＋</button></div><div id="detail-series-volume-list" class="series-volume-list"></div></section>
-   <section id="detail-volume-series" class="detail-series-volumes" hidden><div class="series-section-head"><h3>シリーズ</h3><button type="button" id="detail-add-series" class="series-add-button" aria-label="シリーズやほかの巻を追加" title="Google Booksからシリーズやほかの巻を探す">＋</button></div><div id="detail-volume-series-link"></div></section>
+   <section id="detail-series-volumes" class="detail-series-volumes" hidden><div class="series-section-head"><h3>各巻の記録</h3><button type="button" id="detail-add-volume" class="series-add-button" aria-label="シリーズの巻を追加" title="Google Booksから巻を探す">+</button></div><div id="detail-series-volume-list" class="series-volume-list"></div></section>
+   <section id="detail-volume-series" class="detail-series-volumes" hidden><div class="series-section-head"><h3>シリーズ</h3><button type="button" id="detail-add-series" class="series-add-button" aria-label="シリーズやほかの巻を追加" title="Google Booksからシリーズやほかの巻を探す">+</button></div><div id="detail-volume-series-link"></div></section>
   </div>
   <section class="detail-note-section">
    <div id="detail-current-reading" class="detail-session-block">
@@ -1577,6 +1588,7 @@ function renderDetailVolumeSeries(book){
  const registered=seriesRecords.find(series=>series.id===book.seriesId);
  const isVolume=book.recordType!=='series'&&(!!book.seriesId||Number(book.volumeNumber)>0||!!parsed);
  section.hidden=!isVolume;
+ $('detail-add-series').hidden=!!registered;
  if(!isVolume)return;
  if(registered){
   const link=document.createElement('button');link.type='button';link.className='detail-series-navigation';
