@@ -802,6 +802,9 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .overall-rating-value{border:0;border-bottom:1px solid #cfc9bd;border-radius:0;background:transparent;min-width:105px;padding:8px 6px;font:inherit;color:inherit}
 #editdialog #custom-rating-fields:empty{display:none}
 #editdialog #add-custom-rating{margin:3px 0 0}
+#editdialog .overall-rating-row{justify-content:flex-start;gap:10px}
+#editdialog .overall-rating-row label{flex:0 0 auto;width:auto;white-space:nowrap}
+#editdialog .overall-rating-value{flex:0 0 auto;min-width:105px}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1065,7 +1068,7 @@ function fillDetails(book){
  const ratings=$('detail-rating');ratings.replaceChildren(textNode('h3','自分のものさし'));
  const custom=(book.customRatings||[]).filter(x=>x.name&&Number(x.value)>0);
  if(custom.length>=3)drawRadar(custom,ratings);
- for(const item of custom){const line=textNode('p',(item.name==='総合評価'?'総合':item.name)+'　','custom-display');line.append(ratingStars(item.value));ratings.append(line)}
+ for(const item of custom){const label=item.name==='総合'||item.name==='総合評価'?'':item.name+'　';const line=textNode('p',label,'custom-display');line.append(ratingStars(item.value));ratings.append(line)}
  if(book.rating!=null){const line=textNode('p','以前の総合評価　','overall-display');line.append(ratingStars(book.rating));ratings.append(line)}
  ratings.hidden=!custom.length&&book.rating==null;
  const history=Array.isArray(book.readHistory)?book.readHistory:[],dates=history.map(x=>x.date).filter(Boolean);
