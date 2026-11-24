@@ -2104,7 +2104,7 @@ async function requestBookJSON(url,parentSignal,apiKey){
 }
 const CATALOG_PAGE_SIZE=40,CATALOG_PAGES_PER_BATCH=4,CATALOG_MAX_OFFSET=960;
 function googleSearchURL(q,startIndex=0){
- const value=q.normalize('NFKC').trim(),digits=value.replace(/[-\s]/g,''),isISBN=/^(?:\\d{9}[\\dXx]|\\d{13})$/.test(digits);
+ const value=q.normalize('NFKC').trim(),digits=value.replace(/[-\s]/g,''),isISBN=/^(?:\d{9}[\dXx]|\d{13})$/.test(digits);
  const query=isISBN?'isbn:'+digits:value;
  return 'https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(query)+'&maxResults='+CATALOG_PAGE_SIZE+'&startIndex='+startIndex+'&printType=books&orderBy=relevance';
 }
