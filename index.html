@@ -1221,7 +1221,7 @@ function openEditor(b=null){
  $('custom-rating-fields').replaceChildren();
  const savedRatings=Array.isArray(editing.customRatings)?editing.customRatings:[];
  if(savedRatings.length){for(const row of savedRatings)addCustomRatingRow(row)}
- else if(editing.status!=='wish'){for(const name of ['ストーリー','キャラクター','世界観'])addCustomRatingRow({name,value:''})}
+ else if(editing.status!=='wish')addCustomRatingRow({name:'総合評価',value:''})
  $('read-history').replaceChildren();
  const history=Array.isArray(editing.readHistory)?editing.readHistory:(editing.date?[{date:editing.date}]:[]);
  if(history.length)addReadHistoryRow(history[history.length-1].date||'');
