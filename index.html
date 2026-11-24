@@ -1541,7 +1541,7 @@ function renderDetailSeriesVolumes(book){
   const button=textNode('button','','series-volume-item');button.type='button';
   button.append(bookCover(volume),
    textNode('div',(volume.volumeNumber?volume.volumeNumber+'巻 · ':'')+volume.title,'volume-caption'),
-   textNode('div',volume.status==='wish'?'未読':'読了','volume-state'));
+   );
   button.onclick=()=>{seriesReturnId=series.id;selectBook(volume)};
   list.append(button);
  }
