@@ -1257,7 +1257,7 @@ $('kw-elements').addEventListener('input',e=>{const text=e.target.value;if(/[、
 $('kw-elements').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addEditorElements(e.target.value);e.target.value=''}});
 $('kw-elements').addEventListener('blur',()=>{if($('kw-elements').value.trim()){addEditorElements($('kw-elements').value);$('kw-elements').value=''}});
 
-function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=false;document.querySelector('.record-writing').hidden=false;document.querySelector('.current-session').hidden=!active;$('date-records').hidden=!active;$('editor-elements').hidden=false}
+function updateReadFields(){const active=$('status').value!=='wish',series=editing?.recordType==='series';$('read-fields').hidden=false;document.querySelector('.record-writing').hidden=false;document.querySelector('.current-session').hidden=!active&&!series;$('date-records').hidden=!active;$('editor-elements').hidden=false}
 $('status').addEventListener('change',updateReadFields);
 const localToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 function dateParts(date){const match=String(date||'').match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);return match?{year:match[1],month:match[2]||'',day:match[3]||''}:{year:String(new Date().getFullYear()),month:'',day:''}}
@@ -1310,8 +1310,8 @@ function startReadDate(b,mode='first'){choiceBook={...b};choiceMode=mode;buildDa
 function startReadingAction(b){choiceBook={...b};$('reading-action').showModal()}
 $('action-edit').onclick=()=>{$('reading-action').close();openEditor(choiceBook)};
 $('action-reread').onclick=()=>{$('reading-action').close();startReadDate(choiceBook,'reread')};
-$('choice-wish').onclick=()=>{const b=choiceBook;if(!b)return;$('reading-choice').close();if(books.some(x=>x.id===b.id)||!b.title.trim()){openEditor({...b,status:'wish'})}else{const saved={...b,status:'wish',updatedAt:new Date().toISOString()};if(persist([...books,saved]))notify('読みたい本に追加しました。')}};
-$('choice-done').onclick=()=>{$('reading-choice').close();startReadDate(choiceBook,'first')};
+$('choice-wish').onclick=()=>{const b=choiceBook;if(!b)return;$('reading-choice').close();if(b.recordType==='series'||b.suggestedSeriesName||b.seriesId||books.some(x=>x.id===b.id)||!b.title.trim()){openEditor({...b,status:'wish'})}else{const saved={...b,status:'wish',updatedAt:new Date().toISOString()};if(persist([...books,saved]))notify('読みたい本に追加しました。')}};
+$('choice-done').onclick=()=>{$('reading-choice').close();if(choiceBook?.recordType==='series')openEditor({...choiceBook,status:'done'});else startReadDate(choiceBook,'first')};
 $('today-choice').onclick=()=>setDateFieldsToday($('choice-date-fields'));
 // Preserve a valid reading date and elements even if the onboarding dialogs are dismissed.
 const READING_DRAFT_KEY='recotte.reading.draft.v1';
@@ -1590,15 +1590,7 @@ $('series-form').onsubmit=event=>{
  skipSeriesCloseSave=true;$('series-editor').close();openSeries(next.id);notify('シリーズを保存しました。');
 };
 for(let n=0;n<=5;n+=0.5)$('series-rating-input').add(new Option(n.toFixed(1),String(n)));
-$('series-add-volume').onclick=()=>{
- const series=seriesRecords.find(s=>s.id===activeSeries);if(!series)return;
- const existing=seriesMembers(series);const nextNumber=Math.max(0,...existing.map(b=>Number(b.volumeNumber)||0))+1;
- $('series-volume-number').value=String(nextNumber);
- $('series-volume-end').value='';
- $('series-volume-name').value=series.title+' '+nextNumber+'巻';
- $('series-volume-status').value='wish';
- $('series-volume-dialog').showModal();
-};
+$('series-add-volume').onclick=()=>{const series=seriesRecords.find(s=>s.id===activeSeries);if(series)startVolumeEditor(series)};
 $('series-volume-close').onclick=$('series-volume-cancel').onclick=()=>$('series-volume-dialog').close();
 $('series-volume-form').onsubmit=event=>{
  event.preventDefault();
@@ -2114,13 +2106,29 @@ $('editform').onsubmit=e=>{
  const b=saveEditorProgress(true);if(!b)return;
  editorClosingSaved=true;$('editdialog').close();
  const reread=rereadAfterSave;rereadAfterSave=false;
- if(detailBook&&detailBook.id===b.id)selectBook(b);
+ if(b.recordType==='series'){openSeries(b.id)}
+ else if(detailBook&&detailBook.id===b.id)selectBook(b);
  else{filter=b.status==='wish'?'wish':'done';refreshIndex();render()}
  if(reread)startReadDate(b,'reread');else notify('記録を保存しました。');
 };
 $('title').oninput=()=>$('title').setCustomValidity('');
 $('edit-close-save').onclick=()=>{$('editform').requestSubmit()};
-$('delete').onclick=()=>{if(confirm(`「${editing.title}」の記録を削除しますか？`)&&persist(books.filter(b=>b.id!==editing.id))){editorClosingSaved=true;editing=null;clearTimeout(editorAutosaveTimer);localStorage.removeItem(EDITOR_DRAFT_KEY);$('editdialog').close();notify('記録を削除しました。')}};
+$('delete').onclick=()=>{
+ if(!editing||!confirm('「'+editing.title+'」の記録を削除しますか？'))return;
+ if(editing.recordType==='series'){
+  const id=editing.id;
+  try{
+   const remaining=books.map(b=>b.seriesId===id?{...b,seriesId:null,volumeNumber:null}:b);
+   localStorage.setItem(KEY,JSON.stringify(remaining));books=remaining;
+   const next=seriesRecords.filter(series=>series.id!==id);
+   localStorage.setItem(SERIES_KEY,JSON.stringify(next));seriesRecords=next;
+  }catch{notify('削除できませんでした。');return}
+  activeSeries=null;seriesReturnId=null;$('series-page').hidden=true;$('detaildialog').hidden=true;$('home-page').hidden=false;$('detail-back').hidden=true;
+ }else{
+  if(!persist(books.filter(b=>b.id!==editing.id)))return;
+ }
+ editorClosingSaved=true;editing=null;clearTimeout(editorAutosaveTimer);localStorage.removeItem(EDITOR_DRAFT_KEY);$('editdialog').close();render();notify('記録を削除しました。');
+};
 
 
 
@@ -2192,19 +2200,15 @@ function catalogResultNode(book,volume=null){
  const info=textNode('span','');
  info.append(textNode('strong',book.title),textNode('div',[volume?volume+'巻':'',book.author,book.publisher,book.published].filter(Boolean).join(' / '),'muted'));
  button.append(coverNode(coverURLs(book)),info);
- button.onclick=()=>startReadingChoice(book);
+ button.onclick=()=>{const parsed=seriesFromCatalogTitle(book.title);const existing=parsed&&seriesRecords.find(s=>s.title.normalize('NFKC').trim()===parsed.base.normalize('NFKC').trim());startReadingChoice({...book,seriesId:existing?.id||null,suggestedSeriesName:parsed&&!existing?parsed.base:'',volumeNumber:parsed?.volume||null})};
  return button;
 }
 function startCatalogSeriesRegistration(title,volumeOne){
- // Select the series itself, independently of any volume's reading record.
  const existing=seriesRecords.find(series=>series.title.normalize('NFKC').trim()===title.normalize('NFKC').trim());
- if($('searchdialog').open)$('searchdialog').close();
- openSeriesEditor(existing?.id||null);
- if(!existing){
-  $('series-name').value=title;
-  $('series-author-input').value=volumeOne.author||'';
-  $('series-cover-input').value=volumeOne.cover||'';
- }
+ const series=existing?seriesEditorBook(existing):{
+  id:crypto.randomUUID(),recordType:'series',title,author:volumeOne.author||'',status:'wish',
+  date:'',note:'',cover:volumeOne.cover||'',elements:[],customRatings:[],readHistory:[],readEntries:[],displayMode:'grouped'};
+ startReadingChoice(series);
 }
 function renderCatalogResults(){
  const list=$('results');list.replaceChildren();
