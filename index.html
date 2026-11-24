@@ -1112,8 +1112,8 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  <form id="editform">
   <div class="record-editor">
    <div class="record-book-info">
-    <label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300">
-    <label for="author">著者</label><input class="field" id="author" maxlength="300"><p id="api-fields-readonly" class="api-fields-readonly" hidden>Google Booksから取得した書誌情報は変更できません。</p><div id="api-book-metadata" class="api-book-metadata"></div>
+    <label for="title">タイトル</label><input class="field" id="title" required maxlength="300">
+    <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
     <div class="editor-status-internal" hidden><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select></div>
  
     <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div>
@@ -1926,7 +1926,7 @@ function openEditor(b=null){
   $(k).readOnly=catalogLocked;
   $(k).setAttribute('aria-readonly',String(catalogLocked));
  }
- $('api-fields-readonly').hidden=!catalogLocked;
+
  $('tags').value=(Array.isArray(editing.tags)?editing.tags:[]).map(t=>'#'+t).join(' ');
  $('note').replaceChildren();writeNoteMarkup($('note'),editing.note||'',editing.noteMarks);
  editorElements=[...new Set([...(editing.keywords?.elements||[]),...(editing.keywords?.moods||[]),...(editing.keywords?.likes||[])])];$('kw-elements').value='';drawElementChips();
