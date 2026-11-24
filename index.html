@@ -1490,7 +1490,7 @@ function render(refreshPanel=true){
  renderTags(source);
  if(refreshPanel)renderShelfFacets(source);
  else{
-  for(const button of document.querySelectorAll('#tabs [data-facet]')){const count=shelfFacets[button.dataset.facet].size;const key=button.dataset.facet;button.textContent=(key==='rating'?'☆ ':'')+facetLabels[key]+(count?' ('+count+')':'');button.classList.toggle('facet-applied',count>0)}
+  for(const button of document.querySelectorAll('#tabs [data-facet]')){const count=shelfFacets[button.dataset.facet].size;const key=button.dataset.facet;button.textContent=facetLabels[key]+(count?' ('+count+')':'');button.classList.toggle('facet-applied',count>0)}
   refreshActiveFilterChips(source);
  }
  const container=$('books');container.className='grid cards';container.replaceChildren();
