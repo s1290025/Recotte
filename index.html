@@ -923,6 +923,12 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #home-page .facet-panel{padding:12px 10px}
  #home-page .facet-options{gap:7px}
 }
+#home-page .facet-panel .rating-range{display:flex;align-items:end;flex-wrap:wrap;gap:9px 14px;margin-top:17px;padding-top:15px;border-top:1px solid #e1d9cf}
+#home-page .rating-range>p:first-child{width:100%;font-size:12px;font-weight:600;margin:0}
+#home-page .rating-range>label{display:flex;align-items:center;gap:7px;margin:0;font-size:12px}
+#home-page .rating-range-select{width:90px;min-width:0;padding:7px;font-size:12px;background:#fffdf9}
+#home-page .rating-range-hint{font-size:11px;color:#736a5e;margin:0;width:100%}
+#home-page .shelf-result-count{font-size:11px;color:#847b70;text-align:right;margin:0 2px 7px}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -932,7 +938,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 <main>
 <section id="home-page" aria-label="本の一覧">
   <div class="home-content">
-  <div class="shelf-controls"><nav class="book-index" id="tabs" aria-label="読書状況と絞り込み"><button type="button" data-status="wish" class="active" aria-pressed="true">読みたい</button><button type="button" data-status="done" aria-pressed="false">読んだ</button><span class="index-divider" aria-hidden="true"></span><button type="button" data-facet="publisher" aria-expanded="false" aria-controls="facet-panel">出版社</button><button type="button" data-facet="genre" aria-expanded="false" aria-controls="facet-panel">ジャンル</button><button type="button" data-facet="element" aria-expanded="false" aria-controls="facet-panel">要素</button><button type="button" data-facet="rating" aria-expanded="false" aria-controls="facet-panel">☆ 評価</button></nav><label class="shelf-sort-label" for="shelf-sort"><span class="sr-only">並べ替え</span><select id="shelf-sort" aria-label="本の並べ替え"><option value="updated-desc">更新した順</option><option value="updated-asc">更新が古い順</option><option value="added-desc">登録した順</option><option value="added-asc">登録が古い順</option><option value="read-desc">最近読んだ順</option><option value="read-asc">昔読んだ順</option><option value="title-asc">タイトル順</option><option value="rating-desc">評価が高い順</option><option value="rating-asc">評価が低い順</option><option value="memo-desc">感想が長い順</option><option value="memo-asc">感想が短い順</option><option value="reads-desc">読んだ回数順</option></select></label></div><section id="facet-panel" class="facet-panel" hidden aria-label="絞り込み項目"><div class="facet-panel-heading"><strong id="facet-heading"></strong><button id="facet-clear-current" type="button">この分類を解除</button></div><div id="facet-options" class="facet-options"></div></section><div id="active-filters" class="active-filters" hidden></div>
+  <div class="shelf-controls"><nav class="book-index" id="tabs" aria-label="読書状況と絞り込み"><button type="button" data-status="wish" class="active" aria-pressed="true">読みたい</button><button type="button" data-status="done" aria-pressed="false">読んだ</button><span class="index-divider" aria-hidden="true"></span><button type="button" data-facet="publisher" aria-expanded="false" aria-controls="facet-panel">出版社</button><button type="button" data-facet="genre" aria-expanded="false" aria-controls="facet-panel">ジャンル</button><button type="button" data-facet="element" aria-expanded="false" aria-controls="facet-panel">要素</button><button type="button" data-facet="rating" aria-expanded="false" aria-controls="facet-panel">☆ 評価</button></nav><label class="shelf-sort-label" for="shelf-sort"><span class="sr-only">並べ替え</span><select id="shelf-sort" aria-label="本の並べ替え"><option value="updated-desc">更新した順</option><option value="updated-asc">更新が古い順</option><option value="added-desc">登録した順</option><option value="added-asc">登録が古い順</option><option value="read-desc">最近読んだ順</option><option value="read-asc">昔読んだ順</option><option value="title-asc">タイトル順</option><option value="rating-desc">評価が高い順</option><option value="rating-asc">評価が低い順</option><option value="memo-desc">感想が長い順</option><option value="memo-asc">感想が短い順</option><option value="reads-desc">読んだ回数順</option></select></label></div><section id="facet-panel" class="facet-panel" hidden aria-label="絞り込み項目"><div class="facet-panel-heading"><strong id="facet-heading"></strong><button id="facet-clear-current" type="button">この分類を解除</button></div><div id="facet-options" class="facet-options"></div></section><div id="active-filters" class="active-filters" hidden></div><div id="shelf-result-count" class="shelf-result-count" aria-live="polite"></div>
   <input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索">
   <div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div>
   <div id="books" class="grid cards" aria-label="本の表紙一覧"></div>
@@ -1001,6 +1007,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読んだ',paused:'中断'};
 let books=[],filter='wish',editing=null,searchController=null,view='timeline',showDemo=true,selectedTags=new Set();
 const shelfFacets={publisher:new Set(),genre:new Set(),element:new Set(),rating:new Set()};
+const ratingRange={min:0.5,max:5};
 let openShelfFacet=null;
 const demoBooks=[
 {title:'星を編む',author:'朝の文庫',status:'done',date:'2026-10-20',note:'最後のページを閉じてからも、登場人物の暮らしが続いているような気がした。静かな場面ほど心に残る。',color:'#687d8b'},
@@ -1332,23 +1339,24 @@ function shelfMemoLength(b){return String(b.note||'').length+(Array.isArray(b.re
 function shelfReadDate(b){return Math.max(0,...(Array.isArray(b.readHistory)?b.readHistory.map(x=>readingDateSortValue(x.date)):[]),readingDateSortValue(b.date))}
 function shelfReadCount(b){return Array.isArray(b.readHistory)&&b.readHistory.length?b.readHistory.length:(b.date?1:0)}
 function shelfAddedAt(b){return b.createdAt||b.addedAt||b.updatedAt||''}
-function filterRatingMatch(book,value){
- const [kind,name,limit]=value.split('::');
- const score=kind==='custom'?(book.customRatings||[]).find(item=>item.name===name&&Number(item.value)>0)?.value:overallScore(book);
- if(limit==='未評価')return score==null;
- return score!=null&&Number(score)>=Number(limit);
+function ratingMetricScore(book,metric){
+ if(metric==='総合')return overallScore(book);
+ const row=(book.customRatings||[]).find(item=>item.name===metric&&Number(item.value)>0);
+ return row?Number(row.value):null;
 }
-function ratingFacetChoices(source){
- const choices=['5','4','3','2','1','未評価'].map(v=>({value:'overall::総合::'+v,label:v==='未評価'?'総合：未評価':'総合：'+v+'以上'}));
+function ratingMetricOptions(source){
  const names=[...new Set(source.flatMap(b=>(b.customRatings||[]).filter(x=>x.name&&x.name!=='総合'&&x.name!=='総合評価').map(x=>x.name)))].sort((a,b)=>collator.compare(a,b));
- for(const name of names)for(const n of ['5','4','3','2','1'])choices.push({value:'custom::'+name+'::'+n,label:name+'：'+n+'以上'});
- return choices;
+ return ['総合',...names];
 }
 function matchesShelfFacets(book){
  return Object.entries(shelfFacets).every(([key,set])=>{
   if(!set.size)return true;
-  const vals=shelfFacetValues(book,key);
-  return [...set].some(choice=>key==='rating'?filterRatingMatch(book,choice):vals.includes(choice))
+  if(key==='rating')return [...set].some(metric=>{
+   const score=ratingMetricScore(book,metric);
+   return score!==null&&score>=ratingRange.min&&score<=ratingRange.max;
+  });
+  const vals=shelfFacetValues(book,key).map(x=>String(x).trim());
+  return [...set].some(choice=>vals.includes(String(choice).trim()));
  })
 }
 function shelfSortBooks(a,b){
@@ -1369,6 +1377,23 @@ function shelfSortBooks(a,b){
  else if(type==='reads-desc')result=diff(shelfReadCount(b),shelfReadCount(a));
  return result||collator.compare(a.title||'',b.title||'');
 }
+function refreshActiveFilterChips(source){
+ const bar=$('active-filters');bar.replaceChildren();
+ for(const [key,set] of Object.entries(shelfFacets)){
+  for(const value of set){
+   const label=key==='rating'?value+'：'+ratingRange.min.toFixed(1)+'～'+ratingRange.max.toFixed(1):facetLabels[key]+'：'+value;
+   const chip=textNode('button',label+' ×','active-filter-chip');chip.type='button';chip.title='この条件を解除';
+   chip.onclick=()=>{set.delete(value);render()};
+   bar.append(chip);
+  }
+ }
+ if(bar.childElementCount){
+  const clear=textNode('button','すべて解除','clear-all-filters');clear.type='button';
+  clear.onclick=()=>{Object.values(shelfFacets).forEach(set=>set.clear());ratingRange.min=0.5;ratingRange.max=5;render()};
+  bar.append(clear);
+ }
+ bar.hidden=!bar.childElementCount;
+}
 function renderShelfFacets(source){
  for(const button of document.querySelectorAll('#tabs [data-facet]')){
   const key=button.dataset.facet;
@@ -1380,49 +1405,70 @@ function renderShelfFacets(source){
  }
  const panel=$('facet-panel');panel.hidden=!openShelfFacet;
  if(openShelfFacet){
-  const key=openShelfFacet;const box=$('facet-options');box.replaceChildren();
+  const key=openShelfFacet,box=$('facet-options');box.replaceChildren();
   $('facet-heading').textContent=facetLabels[key];
-  const candidates=key==='rating'?ratingFacetChoices(source):[...new Set(source.flatMap(b=>shelfFacetValues(b,key)))].filter(Boolean).sort((a,b)=>collator.compare(a,b)).map(value=>({value,label:value}));
-  for(const {value,label} of candidates){
+  const choices=key==='rating'?ratingMetricOptions(source):[...new Set(source.flatMap(b=>shelfFacetValues(b,key)))].filter(Boolean).sort((a,b)=>collator.compare(a,b));
+  for(const value of choices){
    const option=document.createElement('label');option.className='facet-option';
    const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=shelfFacets[key].has(value);
-   checkbox.onchange=()=>{if(checkbox.checked)shelfFacets[key].add(value);else shelfFacets[key].delete(value);render()};
-   const name=document.createElement('span');name.textContent=label;
+   checkbox.onchange=()=>{
+    if(checkbox.checked)shelfFacets[key].add(value);else shelfFacets[key].delete(value);
+    // Keep the current option list in place while the displayed books update.
+    render(false);
+   };
+   const name=document.createElement('span');name.textContent=key==='rating'&&value==='総合'?'総合評価':value;
    option.append(checkbox,name);box.append(option);
   }
-  if(!candidates.length)box.append(textNode('p','登録されている項目はありません。','muted'));
+  if(!choices.length)box.append(textNode('p','登録されている項目はありません。','muted'));
+  if(key==='rating'){
+   const range=document.createElement('div');range.className='rating-range';
+   const heading=document.createElement('p');heading.textContent='星の範囲（下限・上限）';range.append(heading);
+   const makeSelect=(part,labelText)=>{
+    const label=document.createElement('label');label.textContent=labelText;
+    const select=document.createElement('select');select.className='field rating-range-select';
+    for(let n=0.5;n<=5;n+=0.5)select.add(new Option(n.toFixed(1),String(n)));
+    select.value=String(ratingRange[part]);
+    select.onchange=()=>{
+     const value=Number(select.value);
+     ratingRange[part]=value;
+     if(ratingRange.min>ratingRange.max){
+      if(part==='min')ratingRange.max=value;else ratingRange.min=value;
+     }
+     render();
+    };
+    label.append(select);return label;
+   };
+   range.append(makeSelect('min','下限'),makeSelect('max','上限'));
+   const hint=document.createElement('p');hint.className='rating-range-hint';hint.textContent='選択した評価のうち、いずれかが範囲内の本を表示します。';range.append(hint);
+   panel.append(range);
+  }else{
+   const prior=panel.querySelector('.rating-range');if(prior)prior.remove();
+  }
  }
- const bar=$('active-filters');bar.replaceChildren();
- for(const [key,set] of Object.entries(shelfFacets))for(const value of set){
-  const chip=textNode('button',facetLabels[key]+'：'+(key==='rating'&&value!=='未評価'?value+'以上':value)+' ×','active-filter-chip');
-  if(key==='rating'){const option=ratingFacetChoices(source).find(c=>c.value===value);chip.textContent=option?.label+' ×'||value+' ×'}
-  chip.type='button';chip.title='この条件を解除';
-  chip.onclick=()=>{set.delete(value);render()};
-  bar.append(chip)
- }
- if(bar.childElementCount){
-  const clear=textNode('button','すべて解除','clear-all-filters');clear.type='button';
-  clear.onclick=()=>{Object.values(shelfFacets).forEach(set=>set.clear());render()};
-  bar.append(clear)
- }
- bar.hidden=!bar.childElementCount;
+ if(!openShelfFacet){panel.querySelector('.rating-range')?.remove()}
+ refreshActiveFilterChips(source);
 }
 $('tabs').addEventListener('click',e=>{
  const button=e.target.closest('[data-facet]');if(!button)return;
  openShelfFacet=openShelfFacet===button.dataset.facet?null:button.dataset.facet;render()
 });
-$('facet-clear-current').onclick=()=>{if(openShelfFacet){shelfFacets[openShelfFacet].clear();render()}};
+$('facet-clear-current').onclick=()=>{if(openShelfFacet){shelfFacets[openShelfFacet].clear();if(openShelfFacet==='rating'){ratingRange.min=0.5;ratingRange.max=5}render()}};
 $('shelf-sort').onchange=render;
-function render(){
+function render(refreshPanel=true){
  const demo=!books.length&&showDemo,source=demo?demoBooks:books;
  $('demo-bar').hidden=!!books.length;
  $('demo-label').textContent=demo?'表示見本 · 本のタイトル・著者・感想は架空です。':'まだ読書記録はありません。';
  $('demo-toggle').textContent=demo?'見本を非表示':'見本を表示';
  renderTags(source);
- renderShelfFacets(source);
+ if(refreshPanel)renderShelfFacets(source);
+ else{
+  for(const button of document.querySelectorAll('#tabs [data-facet]')){const count=shelfFacets[button.dataset.facet].size;const key=button.dataset.facet;button.textContent=(key==='rating'?'☆ ':'')+facetLabels[key]+(count?' · '+count:'');button.classList.toggle('facet-applied',count>0)}
+  refreshActiveFilterChips(source);
+ }
  const container=$('books');container.className='grid cards';container.replaceChildren();
  const q=$('filter').value.trim().toLocaleLowerCase();
  const visible=source.filter(b=>(filter==='wish'?b.status==='wish':b.status!=='wish')&&matchesShelfFacets(b)&&[...selectedTags].every(t=>tagsOf(b).includes(t))&&`${b.title} ${b.author} ${b.note}`.toLocaleLowerCase().includes(q)).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||shelfSortBooks(a,b));
+ $('shelf-result-count').textContent=visible.length+'冊';
  if(!visible.length){
   const e=textNode('div','','empty');
   if(source.length)e.append(textNode('h2','該当する本がありません'),textNode('p','インデックスや検索条件を変えてみてください。','muted'));
