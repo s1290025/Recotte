@@ -1077,6 +1077,20 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #editdialog .record-book-info>#read-fields .custom-rating-row{flex-wrap:wrap}
  #editdialog .record-book-info>#read-fields .custom-rating-row .custom-rating-name{flex:1 1 100%}
 }
+
+/* Smaller cover on book/series details, leaving more room for the rating. */
+#detaildialog .detail-book-info #detail-cover{width:min(100%,180px);max-width:180px;margin:0 auto}
+#detaildialog .detail-book-info #detail-cover .cover{display:block;width:100%;height:auto;max-height:270px;aspect-ratio:2 / 3;object-fit:contain}
+#detaildialog .detail-book-info .detail-heading{padding-top:12px}
+#detaildialog .detail-book-info #detail-keywords{margin-top:12px}
+#detaildialog .detail-book-info #detail-rating{margin-top:10px}
+@media(max-width:700px){
+ #detaildialog .detail-book-info #detail-cover{width:120px;max-width:120px;margin:0 auto}
+ #detaildialog .detail-book-info #detail-cover .cover{max-height:180px}
+ #detaildialog .detail-book-info .detail-heading{padding-top:9px}
+ #detaildialog .detail-book-info #detail-keywords{margin-top:9px}
+ #detaildialog .detail-book-info #detail-rating{margin-top:8px}
+}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
