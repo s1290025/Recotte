@@ -1001,6 +1001,16 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #searchdialog .catalog-whole-series{background:#f1ebdd;border:1px solid #d3c4af!important}
 #searchdialog .catalog-whole-series strong{color:#4f4437}
 #searchdialog .catalog-whole-series:hover{background:#e8dfce}
+#editdialog #editor-series-panel[hidden],#editdialog #editor-series-only[hidden],#editdialog #editor-volume-only[hidden],#editdialog #editor-series-new-wrap[hidden],#editdialog #editor-volume-number-wrap[hidden],#editdialog #editor-series-note-wrap[hidden]{display:none!important}
+#editdialog .editor-series-panel{background:#f7f4ed;border:1px solid #ded6c9;border-radius:9px;padding:14px 16px;margin:10px 0 20px}
+#editdialog .editor-series-panel label:not(.editor-inline-check){display:block;font-size:12px;margin:12px 0 6px}
+#editdialog .editor-series-panel .field{width:100%;box-sizing:border-box;max-width:560px}
+#editdialog .editor-series-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:9px;margin-bottom:12px}
+#editdialog .editor-series-head strong{font-size:14px}
+#editdialog .editor-series-head button{font-size:12px;border:1px solid #cabfae;background:#fffcf6;border-radius:7px;padding:8px 11px;color:#584b3e}
+#editdialog .editor-series-panel .editor-inline-check{display:flex;align-items:center;gap:8px;font-size:13px;margin:12px 0}
+#editdialog .editor-series-panel .muted{font-size:12px;margin:9px 0 0}
+#editdialog #editor-series-note-wrap{border-top:1px solid #e1d8ca;margin-top:12px;padding-top:8px}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1015,7 +1025,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
   <div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div>
   <div id="books" class="grid cards" aria-label="本の表紙一覧"></div>
   </div>
-  <div class="home-actions" id="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="series-create-icon" id="series-create" type="button" aria-label="シリーズを登録" title="シリーズを登録">本+</button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
+  <div class="home-actions" id="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
 </section>
 <section id="series-page" class="book-page" aria-labelledby="series-page-title" hidden>
  <div class="series-head"><div id="series-cover" class="series-cover"></div><div class="series-head-text"><div class="series-kicker">SERIES</div><h2 id="series-page-title"></h2><p id="series-author" class="muted"></p><p id="series-progress" class="muted"></p><div id="series-rating-display"></div><div id="series-elements-display" class="series-chips"></div></div></div>
@@ -1072,6 +1082,28 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 <dialog id="editdialog" aria-labelledby="edittitle">
  <div class="dialoghead"><h2 id="edittitle">本の記録</h2><div class="editor-header-actions"><div id="reread-action" class="reread-action" hidden><button type="button" id="editor-reread" title="今の記録を保存して、もう一度読んだ日付を追加">＋ もう一回読んだ</button></div><button type="button" id="edit-close-save" aria-label="記録を保存して閉じる" title="保存して閉じる">×</button></div></div>
  <form id="editform">
+  <section id="editor-series-panel" class="editor-series-panel" hidden>
+   <div id="editor-series-only" hidden>
+    <div class="editor-series-head"><strong>シリーズの記録</strong><button type="button" id="editor-add-volume">巻を登録する</button></div>
+    <label for="editor-display-mode">本棚での表示</label>
+    <select id="editor-display-mode" class="field"><option value="grouped">シリーズでまとめる</option><option value="volumes">巻ごとに表示する</option></select>
+    <p class="muted">シリーズ全体の感想や評価は、下の通常の記録欄に入力できます。</p>
+   </div>
+   <div id="editor-volume-only" hidden>
+    <div class="editor-series-head"><strong>シリーズについて</strong><button type="button" id="editor-open-series" hidden>シリーズの記録を見る</button></div>
+    <label for="editor-series-select">所属するシリーズ</label>
+    <select class="field" id="editor-series-select"></select>
+    <div id="editor-series-new-wrap" hidden><label for="editor-series-new-name">シリーズ名</label><input class="field" id="editor-series-new-name" maxlength="200"></div>
+    <div id="editor-volume-number-wrap" hidden><label for="editor-volume-number">巻数</label><input class="field" id="editor-volume-number" min="1" max="999" step="1" type="number"></div>
+    <label class="editor-inline-check"><input id="editor-volume-separate" type="checkbox"> この巻のみ別で表示する</label>
+    <label class="editor-inline-check"><input id="editor-series-note-check" type="checkbox"> シリーズ全体の感想も書く</label>
+    <div id="editor-series-note-wrap" hidden>
+     <label for="editor-series-note">シリーズ全体の感想・メモ</label>
+     <textarea class="field" id="editor-series-note" rows="4" placeholder="シリーズを通しての感想"></textarea>
+     <label for="editor-series-rating">シリーズ全体の総合評価</label><select class="field" id="editor-series-rating"><option value="">未評価</option></select>
+    </div>
+   </div>
+  </section>
   <div class="record-editor">
    <div class="record-book-info">
     <div id="edit-cover-preview" class="edit-cover-preview" aria-label="本の表紙"></div><div id="volume-cover-field" hidden><label for="volume-cover-url">この巻の表紙URL（任意）</label><input id="volume-cover-url" class="field" type="url" placeholder="https://"></div>
@@ -1125,6 +1157,17 @@ try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(dat
 function persist(next){try{localStorage.setItem(KEY,JSON.stringify(next));books=next;render();return true}catch{notify('保存できませんでした。ブラウザの保存設定や空き容量をご確認ください。');return false}}
 function seriesMembers(series){return books.filter(b=>b.seriesId===series.id).sort((a,b)=>(Number(a.volumeNumber)||99999)-(Number(b.volumeNumber)||99999)||String(a.title).localeCompare(String(b.title),'ja'))}
 function seriesStatus(series){const members=seriesMembers(series);return series.status==='done'||members.some(b=>b.status!=='wish')?'done':'wish'}
+function seriesEditorBook(series){
+ return {...series,recordType:'series',status:series.status||'wish',date:series.date||'',note:series.note||'',cover:seriesCover(series),
+  keywords:{elements:series.elements||series.keywords?.elements||[],moods:[],likes:[]},
+  customRatings:Array.isArray(series.customRatings)?series.customRatings:(series.rating!=null?[{name:'総合',value:series.rating}]:[]),
+  readHistory:series.readHistory||[],readEntries:series.readEntries||[]};
+}
+function startVolumeEditor(series){
+ const nextNumber=Math.max(0,...seriesMembers(series).map(b=>Number(b.volumeNumber)||0))+1;
+ openEditor({id:crypto.randomUUID(),title:series.title+' '+nextNumber+'巻',author:series.author||'',status:'wish',date:'',note:'',cover:'',
+  seriesId:series.id,volumeNumber:nextNumber});
+}
 function seriesCover(series){return series.cover||seriesMembers(series).find(b=>b.cover)?.cover||''}
 function persistSeries(next){try{localStorage.setItem(SERIES_KEY,JSON.stringify(next));seriesRecords=next;render();return true}catch{notify('シリーズを保存できませんでした。');return false}}
 function shelfSeriesGroups(visible){
@@ -1132,12 +1175,16 @@ function shelfSeriesGroups(visible){
  for(const book of visible){
   if(book.seriesId){
    const series=seriesRecords.find(x=>x.id===book.seriesId);
-   if(series){if(!seen.has(series.id)){groups.push({kind:'series',item:series});seen.add(series.id)}continue}
+   if(series&&series.displayMode!=='volumes'){
+    if(!seen.has(series.id)){groups.push({kind:'series',item:series});seen.add(series.id)}
+    if(book.showSeparately)groups.push({kind:'book',item:book});
+    continue;
+   }
   }
   groups.push({kind:'book',item:book});
  }
  for(const series of seriesRecords){
-  if(seen.has(series.id))continue;
+  if(seen.has(series.id)||series.displayMode==='volumes'&&seriesMembers(series).length)continue;
   if((filter==='wish'?seriesStatus(series)==='wish':seriesStatus(series)!=='wish')&&matchesShelfFacets(series)&&!selectedTags.size){
    const q=$('filter').value.trim().toLocaleLowerCase();
    if((series.title+' '+(series.author||'')+' '+(series.note||'')).toLocaleLowerCase().includes(q)){groups.push({kind:'series',item:series});seen.add(series.id)}
@@ -1505,8 +1552,7 @@ function openSeriesEditor(id=null){
  $('series-remove').hidden=!series;
  $('series-editor').showModal();
 }
-$('series-create').onclick=()=>openSeriesEditor();
-$('series-edit').onclick=()=>openSeriesEditor(activeSeries);
+$('series-edit').onclick=()=>{const series=seriesRecords.find(s=>s.id===activeSeries);if(series)openEditor(seriesEditorBook(series))};
 $('series-editor-close').onclick=()=>$('series-editor').close();
 $('series-remove').onclick=()=>{
  if(!editingSeriesId)return;
