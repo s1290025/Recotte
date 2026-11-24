@@ -1332,7 +1332,18 @@ function shelfMemoLength(b){return String(b.note||'').length+(Array.isArray(b.re
 function shelfReadDate(b){return Math.max(0,...(Array.isArray(b.readHistory)?b.readHistory.map(x=>readingDateSortValue(x.date)):[]),readingDateSortValue(b.date))}
 function shelfReadCount(b){return Array.isArray(b.readHistory)&&b.readHistory.length?b.readHistory.length:(b.date?1:0)}
 function shelfAddedAt(b){return b.createdAt||b.addedAt||b.updatedAt||''}
-function filterRatingMatch(book,value){const score=overallScore(book);if(value==='未評価')return score===null;return score!==null&&score>=Number(value)}
+function filterRatingMatch(book,value){
+ const [kind,name,limit]=value.split('::');
+ const score=kind==='custom'?(book.customRatings||[]).find(item=>item.name===name&&Number(item.value)>0)?.value:overallScore(book);
+ if(limit==='未評価')return score==null;
+ return score!=null&&Number(score)>=Number(limit);
+}
+function ratingFacetChoices(source){
+ const choices=['5','4','3','2','1','未評価'].map(v=>({value:'overall::総合::'+v,label:v==='未評価'?'総合：未評価':'総合：'+v+'以上'}));
+ const names=[...new Set(source.flatMap(b=>(b.customRatings||[]).filter(x=>x.name&&x.name!=='総合'&&x.name!=='総合評価').map(x=>x.name)))].sort((a,b)=>collator.compare(a,b));
+ for(const name of names)for(const n of ['5','4','3','2','1'])choices.push({value:'custom::'+name+'::'+n,label:name+'：'+n+'以上'});
+ return choices;
+}
 function matchesShelfFacets(book){
  return Object.entries(shelfFacets).every(([key,set])=>{
   if(!set.size)return true;
@@ -1371,12 +1382,12 @@ function renderShelfFacets(source){
  if(openShelfFacet){
   const key=openShelfFacet;const box=$('facet-options');box.replaceChildren();
   $('facet-heading').textContent=facetLabels[key];
-  const candidates=key==='rating'?['5','4','3','2','1','未評価']: [...new Set(source.flatMap(b=>shelfFacetValues(b,key)))].filter(Boolean).sort((a,b)=>collator.compare(a,b));
-  for(const value of candidates){
+  const candidates=key==='rating'?ratingFacetChoices(source):[...new Set(source.flatMap(b=>shelfFacetValues(b,key)))].filter(Boolean).sort((a,b)=>collator.compare(a,b)).map(value=>({value,label:value}));
+  for(const {value,label} of candidates){
    const option=document.createElement('label');option.className='facet-option';
    const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=shelfFacets[key].has(value);
    checkbox.onchange=()=>{if(checkbox.checked)shelfFacets[key].add(value);else shelfFacets[key].delete(value);render()};
-   const name=document.createElement('span');name.textContent=key==='rating'?(value==='未評価'?'未評価':value+'以上'):value;
+   const name=document.createElement('span');name.textContent=label;
    option.append(checkbox,name);box.append(option);
   }
   if(!candidates.length)box.append(textNode('p','登録されている項目はありません。','muted'));
@@ -1384,6 +1395,7 @@ function renderShelfFacets(source){
  const bar=$('active-filters');bar.replaceChildren();
  for(const [key,set] of Object.entries(shelfFacets))for(const value of set){
   const chip=textNode('button',facetLabels[key]+'：'+(key==='rating'&&value!=='未評価'?value+'以上':value)+' ×','active-filter-chip');
+  if(key==='rating'){const option=ratingFacetChoices(source).find(c=>c.value===value);chip.textContent=option?.label+' ×'||value+' ×'}
   chip.type='button';chip.title='この条件を解除';
   chip.onclick=()=>{set.delete(value);render()};
   bar.append(chip)
