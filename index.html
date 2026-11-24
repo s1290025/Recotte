@@ -2545,15 +2545,18 @@ async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
  let offset=previous?.nextIndex||0;
  let pageHasMore=previous?!!previous.pageHasMore:true,warning='',totalItems=previous?.totalItems||0;
  let completed=0;
+ const searchStarted=Date.now(),budget=loadMore?6500:4000;
+ const remaining=()=>Math.max(0,budget-(Date.now()-searchStarted));
+ const request=async url=>{const controller=new AbortController(),abort=()=>controller.abort();signal.addEventListener('abort',abort,{once:true});const timer=setTimeout(abort,remaining());if(signal.aborted||!remaining())abort();try{return await requestBookJSON(url,controller.signal,apiKey)}finally{clearTimeout(timer);signal.removeEventListener('abort',abort)}};
  const addItem=item=>{
   const id=item.volumeId||item.isbn||item.title+'|'+item.author;
   if(!seen.has(id)){seen.add(id);found.push(item)}
  };
  // Start with a broad page, then refine recognized series by metadata.
  if(pageHasMore){
-  for(let page=0;page<(catalogContext||previous?.audit?1:2)&&offset<=CATALOG_MAX_OFFSET;page++){
+  for(let page=0;page<1&&offset<=CATALOG_MAX_OFFSET;page++){
    let data;
-   try{data=await requestBookJSON(googleSearchURL(q,offset),signal,apiKey)}
+   try{data=await request(googleSearchURL(q,offset))}
    catch(error){
     if(signal.aborted)throw error;
     if(!completed&&!previous)throw error;
@@ -2579,11 +2582,11 @@ async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
  })}:null;
  let auditFinished=true,missingVolumes=[],checkedVolumes=0;
  if(audit){
-  const pending=audit.queries.filter(x=>!x.done).slice(0,SERIES_QUERY_PAGE_BATCH);
+  const pending=remaining()>500?audit.queries.filter(x=>!x.done).slice(0,loadMore?4:3):[];
   if(pending.length&&onProgress)onProgress('タイトル・著者・出版社・ジャンルからシリーズを探しています…');
   const outcomes=await Promise.allSettled(pending.map(async entry=>{
-   for(let page=0;page<2&&!entry.done;page++){
-   const data=await requestBookJSON(googleSearchURL(entry.term,entry.offset),signal,apiKey);
+   for(let page=0;page<1&&!entry.done;page++){
+   const data=await request(googleSearchURL(entry.term,entry.offset));
    const raw=data.items||[];
    for(const value of raw){
     const item=normalizeGoogleBook(value),parsed=seriesFromCatalogTitle(item.title);
@@ -2596,17 +2599,17 @@ async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
    }
   }));
   if(signal.aborted)throw new DOMException('Aborted','AbortError');
-  if(outcomes.some(x=>x.status==='rejected'))warning='一部の詳細検索を取得できませんでした。追加検索で再試行できます。';
+  if(outcomes.some(x=>x.status==='rejected')&&remaining()>0)warning='一部の詳細検索を取得できませんでした。追加検索で再試行できます。';
   const confirmed=seriesConfirmedVolumes(found,target);
   const highest=Math.max(0,...confirmed.keys());
   const checked=new Set(prevAudit?.base===target?prevAudit.checkedNumbers||[]:[]);
   const gaps=Array.from({length:highest},(_,i)=>i+1).filter(n=>!confirmed.has(n)&&!checked.has(n));
-  const probe=gaps.slice(0,12);
+  const probe=remaining()>700?gaps.slice(0,loadMore?6:3):[];
   if(probe.length&&onProgress)onProgress('見つかっていない巻を個別に探しています…');
-  for(let i=0;i<probe.length;i+=3){
+  for(let i=0;i<probe.length&&remaining()>500;i+=3){
    const outcomes=await Promise.allSettled(probe.slice(i,i+3).map(async n=>{
     for(const term of ['intitle:"'+target.replace(/["\\]/g,' ')+'" '+n,target+' '+n+'巻']){
-     const data=await requestBookJSON(googleSearchURL(term),signal,apiKey);
+     const data=await request(googleSearchURL(term));
      for(const raw of data.items||[]){
       const item=normalizeGoogleBook(raw),p=seriesFromCatalogTitle(item.title);
       if(p&&catalogSeriesKey(p.base)===catalogSeriesKey(target)&&seriesAuthorsCompatible(item.author,reference?.author))addItem(item);
