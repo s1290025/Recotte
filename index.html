@@ -797,6 +797,11 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #detaildialog .fractional-stars-fill{font-family:Arial,sans-serif;letter-spacing:0;position:absolute;left:0;top:0;white-space:nowrap;overflow:hidden;color:#c49b58;font-size:17px}
 #detaildialog .fractional-stars-count{font-size:12px;color:#746e63;margin-left:5px}
 @media(max-width:380px){#editdialog .custom-rating-row{flex-wrap:wrap}#editdialog .custom-rating-row .custom-rating-name{flex-basis:100%}}
+#editdialog .overall-rating-row{display:flex;align-items:center;gap:15px;margin:10px 0 16px;padding:0;border:0;background:transparent}
+#editdialog .overall-rating-row label{font-size:14px;font-weight:500;margin:0;flex:1}
+#editdialog .overall-rating-value{border:0;border-bottom:1px solid #cfc9bd;border-radius:0;background:transparent;min-width:105px;padding:8px 6px;font:inherit;color:inherit}
+#editdialog #custom-rating-fields:empty{display:none}
+#editdialog #add-custom-rating{margin:3px 0 0}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -854,7 +859,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
    </div>
    <div class="record-writing">
-    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
+    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div class="overall-rating-row"><label for="overall-rating-value">総合評価</label><select id="overall-rating-value" class="overall-rating-value" aria-label="総合評価"></select></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
     <div class="reading-session current-session">
       
     <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div></div>
@@ -986,6 +991,8 @@ function addCustomRatingRow(value={name:'',value:''}){
  const del=document.createElement('button');del.type='button';del.textContent='×';del.setAttribute('aria-label','評価項目を削除');del.onclick=()=>row.remove();
  row.append(name,rating,del);$('custom-rating-fields').append(row)
 }
+const overallSelect=$('overall-rating-value');overallSelect.add(new Option('未評価',''));
+for(let i=.5;i<=5;i+=.5)overallSelect.add(new Option(i.toFixed(1)+' / 5',String(i)));
 $('add-custom-rating').onclick=()=>addCustomRatingRow();
 let selectedReaction=null;
 function setReaction(value){selectedReaction=value;document.querySelectorAll('#reaction-picks button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.reaction===value)))}
@@ -1058,7 +1065,7 @@ function fillDetails(book){
  const ratings=$('detail-rating');ratings.replaceChildren(textNode('h3','自分のものさし'));
  const custom=(book.customRatings||[]).filter(x=>x.name&&Number(x.value)>0);
  if(custom.length>=3)drawRadar(custom,ratings);
- for(const item of custom){const line=textNode('p',item.name+'　','custom-display');line.append(ratingStars(item.value));ratings.append(line)}
+ for(const item of custom){const line=textNode('p',(item.name==='総合評価'?'総合':item.name)+'　','custom-display');line.append(ratingStars(item.value));ratings.append(line)}
  if(book.rating!=null){const line=textNode('p','以前の総合評価　','overall-display');line.append(ratingStars(book.rating));ratings.append(line)}
  ratings.hidden=!custom.length&&book.rating==null;
  const history=Array.isArray(book.readHistory)?book.readHistory:[],dates=history.map(x=>x.date).filter(Boolean);
@@ -1220,8 +1227,9 @@ function openEditor(b=null){
  setReaction(editing.reaction||null);
  $('custom-rating-fields').replaceChildren();
  const savedRatings=Array.isArray(editing.customRatings)?editing.customRatings:[];
- if(savedRatings.length){for(const row of savedRatings)addCustomRatingRow(row)}
- else if(editing.status!=='wish')addCustomRatingRow({name:'総合評価',value:''})
+ const overall=savedRatings.find(row=>row.name==='総合'||row.name==='総合評価');
+ $('overall-rating-value').value=overall?String(overall.value??''):'';
+ for(const row of savedRatings){if(row.name!=='総合'&&row.name!=='総合評価')addCustomRatingRow(row)}
  $('read-history').replaceChildren();
  const history=Array.isArray(editing.readHistory)?editing.readHistory:(editing.date?[{date:editing.date}]:[]);
  if(history.length)addReadHistoryRow(history[history.length-1].date||'');
@@ -1245,6 +1253,7 @@ $('editform').onsubmit=e=>{
  e.preventDefault();const title=$('title').value.trim();if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
  const status=$('status').value,words=currentEditorElements();
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
+ if($('overall-rating-value').value!=='')customRatings.unshift({name:'総合',value:Number($('overall-rating-value').value)});
  const previousHistory=Array.isArray(editing.readHistory)?editing.readHistory.map(x=>({...x})):(editing.date?[{date:editing.date}]:[]);
  const readHistory=status==='wish'?previousHistory:[...previousHistory];
  if(status!=='wish'){
