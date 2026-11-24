@@ -989,7 +989,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #searchdialog .catalog-series-group{margin:0 0 10px;background:#fbf8f1;border:1px solid #d9d1c5;border-radius:8px;overflow:hidden}
 #searchdialog .catalog-series-group summary{display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer;list-style:none}
 #searchdialog .catalog-series-group summary::-webkit-details-marker{display:none}
-#searchdialog .catalog-series-group summary::after{content:'⌄';font-size:17px;color:#796e60;margin-left:auto;transition:transform .15s}
+#searchdialog .catalog-series-group summary::after{content:'⌄';font-size:32px;font-weight:700;line-height:1;color:#675748;margin-left:auto;min-width:32px;text-align:center;transition:transform .15s}
 #searchdialog .catalog-series-group[open] summary::after{transform:rotate(180deg)}
 #searchdialog .catalog-series-group summary .cover{width:44px;height:65px;flex:0 0 44px;object-fit:cover}
 #searchdialog .catalog-series-info{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px}
@@ -998,6 +998,9 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #searchdialog .catalog-volume-list{padding:6px 9px 9px;border-top:1px solid #e7ded0;background:#fffdf9}
 #searchdialog .catalog-volume-list .result{margin:5px 0;border:1px solid #eee8de;border-radius:5px}
 #searchdialog .catalog-series-group summary:focus-visible{outline:2px solid #829da5;outline-offset:-3px}
+#searchdialog .catalog-whole-series{background:#f1ebdd;border:1px solid #d3c4af!important}
+#searchdialog .catalog-whole-series strong{color:#4f4437}
+#searchdialog .catalog-whole-series:hover{background:#e8dfce}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -2040,6 +2043,17 @@ function catalogResultNode(book,volume=null){
  button.onclick=()=>startReadingChoice(book);
  return button;
 }
+function startCatalogSeriesRegistration(title,volumeOne){
+ // Select the series itself, independently of any volume's reading record.
+ const existing=seriesRecords.find(series=>series.title.normalize('NFKC').trim()===title.normalize('NFKC').trim());
+ if($('searchdialog').open)$('searchdialog').close();
+ openSeriesEditor(existing?.id||null);
+ if(!existing){
+  $('series-name').value=title;
+  $('series-author-input').value=volumeOne.author||'';
+  $('series-cover-input').value=volumeOne.cover||'';
+ }
+}
 function renderCatalogResults(){
  const list=$('results');list.replaceChildren();
  const items=currentCatalogResults;
@@ -2068,12 +2082,19 @@ function renderCatalogResults(){
   displayed.add(key);
   const section=document.createElement('details');section.className='catalog-series-group';
   const header=document.createElement('summary');
-  const representative=group.find(v=>v.book.cover)||group[0];
+  const sorted=[...group].sort((a,b)=>a.series.volume-b.series.volume);
+  const representative=sorted[0];
   const info=textNode('span','','catalog-series-info');
-  info.append(textNode('strong',representative.series.base),textNode('small',group.length+'件の巻が見つかりました。開いて巻を選択','muted'));
+  info.append(textNode('strong',representative.series.base),textNode('small',group.length+'件の巻が見つかりました。シリーズ全体または巻を選択','muted'));
   header.append(coverNode(coverURLs(representative.book)),info);
   const listWrap=textNode('div','','catalog-volume-list');
-  for(const entry of [...group].sort((a,b)=>a.series.volume-b.series.volume))listWrap.append(catalogResultNode(entry.book,entry.series.volume));
+  const whole=textNode('button','','result catalog-whole-series');whole.type='button';
+  const wholeInfo=textNode('span','');
+  wholeInfo.append(textNode('strong','シリーズ全体を選ぶ'),textNode('div',representative.series.base,'muted'));
+  whole.append(coverNode(coverURLs(representative.book)),wholeInfo);
+  whole.onclick=()=>startCatalogSeriesRegistration(representative.series.base,representative.book);
+  listWrap.append(whole);
+  for(const entry of sorted)listWrap.append(catalogResultNode(entry.book,entry.series.volume));
   section.append(header,listWrap);list.append(section);
  }
 }
