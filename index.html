@@ -1091,6 +1091,11 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #detaildialog .detail-book-info #detail-keywords{margin-top:9px}
  #detaildialog .detail-book-info #detail-rating{margin-top:8px}
 }
+/* Keep series volume records immediately under the series ratings. */
+#detaildialog .detail-book-info>.detail-series-volumes{margin-top:18px;padding-top:15px}
+#detaildialog .detail-book-info>.detail-series-volumes h3{font-size:14px;margin:0 0 10px}
+#detaildialog .detail-book-info>.detail-series-volumes .series-volume-list{grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px}
+#detaildialog .detail-book-info>.detail-series-volumes .volume-caption{font-size:11px}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1138,6 +1143,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
    <div class="detail-heading"><div class="detail-title-row"><h2 id="detail-title"></h2><div id="detail-reaction" class="detail-title-reaction"></div></div><p id="detail-author" class="muted"></p><p id="detail-publisher-categories" class="detail-book-metadata" hidden></p><p id="detail-status" class="detail-status" hidden></p></div>
    <div id="detail-keywords" class="detail-keywords"></div>
    <div id="detail-rating" class="detail-rating"></div>
+   <section id="detail-series-volumes" class="detail-series-volumes" hidden><h3>各巻の記録</h3><div id="detail-series-volume-list" class="series-volume-list"></div></section>
   </div>
   <section class="detail-note-section">
    <div id="detail-current-reading" class="detail-session-block">
@@ -1148,7 +1154,6 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     </div>
    </div>
    <div id="detail-previous-reads" class="detail-previous-reads"></div>
-   <section id="detail-series-volumes" class="detail-series-volumes" hidden><h3>各巻の記録</h3><div id="detail-series-volume-list" class="series-volume-list"></div></section>
   </section>
  </div>
  <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a></div>
