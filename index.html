@@ -1329,7 +1329,9 @@ function collectPastRecords(){
  return entries;
 }
 function openEditor(b=null){
+ if(!b?.title){try{const draft=JSON.parse(localStorage.getItem(EDITOR_DRAFT_KEY)||'null');if(draft&&!draft.title)b=draft}catch{}}
  editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};
+ editorClosingSaved=false;clearTimeout(editorAutosaveTimer);
  rereadAfterSave=false;
  $('source-book').hidden=!(typeof editing.itemUrl==='string'&&editing.itemUrl.startsWith('https://'));
  if(!$('source-book').hidden){$('source-book').href=editing.itemUrl;$('source-book').textContent=editing.source==='Google Books'?'Google Booksで見る':'書籍情報を見る'}
@@ -1375,35 +1377,84 @@ $('filter').addEventListener('keydown',e=>{if(e.key==='Escape'){$('toggle-search
 
 let rereadAfterSave=false;
 $('editor-reread').onclick=()=>{rereadAfterSave=true;$('editform').requestSubmit()};
-$('editform').onsubmit=e=>{
- e.preventDefault();const title=$('title').value.trim();if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
- const status=$('status').value,words=currentEditorElements();
+// Save a draft as users type, and flush synchronously before closing or leaving.
+const EDITOR_DRAFT_KEY='recotte.editor.draft.v1';
+let editorAutosaveTimer=null,editorClosingSaved=false;
+function editorDateValue(host){
+ if(!host)return null;
+ const y=host.querySelector('.date-year')?.value,m=host.querySelector('.date-month')?.value,d=host.querySelector('.date-day')?.value;
+ return /^\d{4}$/.test(y||'')?y+(m?'-'+m+(d?'-'+d:''):''):null;
+}
+function editorSnapshot(){
+ if(!editing)return null;
+ const title=$('title').value.trim(),status=$('status').value||'wish',words=currentEditorElements();
  const customRatings=[...$('custom-rating-fields').children].map(row=>({name:row.querySelector('.custom-rating-name').value.trim(),value:row.querySelector('.custom-rating-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
  if($('overall-rating-value').value!=='')customRatings.unshift({name:'総合',value:Number($('overall-rating-value').value)});
- const previousHistory=Array.isArray(editing.readHistory)?editing.readHistory.map(x=>({...x})):(editing.date?[{date:editing.date}]:[]);
- const readHistory=status==='wish'?previousHistory:[...previousHistory];
+ const readHistory=Array.isArray(editing.readHistory)?editing.readHistory.map(x=>({...x})):(editing.date?[{date:editing.date}]:[]);
  if(status!=='wish'){
   const lastRow=$('read-history').lastElementChild;
-  if(lastRow){
-   const date=getDateFields(lastRow.querySelector('.date-parts'));if(date===null)return;
-   if(readHistory.length)readHistory[readHistory.length-1]={...readHistory[readHistory.length-1],date};
-   else readHistory.push({date});
-  }
+  const date=editorDateValue(lastRow?.querySelector('.date-parts'));
+  if(date){if(readHistory.length)readHistory[readHistory.length-1]={...readHistory[readHistory.length-1],date};else readHistory.push({date})}
  }
- const readEntries=collectPastRecords();if(readEntries===null)return;
- // Each previous reading has a corresponding memo block, including blank notes.
- // Sync by reading index so repeated dates do not update the wrong session.
- for(let i=0;i<readEntries.length&&i<readHistory.length-1;i++){
-  readHistory[i]={...readHistory[i],date:readEntries[i].date};
+ const readEntries=[];
+ for(const section of $('past-record-list').children){
+  const previous=editing.readEntries?.[readEntries.length]||{};
+  const date=editorDateValue(section.querySelector('.date-parts'))||previous.date||'';
+  const note=section.querySelector('.past-note').value;
+  readEntries.push({...previous,date,note,noteMarks:note===String(previous.note||'')?previous.noteMarks||'':''});
  }
+ for(let i=0;i<readEntries.length&&i<readHistory.length-1;i++)readHistory[i]={...readHistory[i],date:readEntries[i].date};
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
- const b={...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
- if(persist([...books.filter(x=>x.id!==b.id),b])){$('editdialog').close();const reread=rereadAfterSave;rereadAfterSave=false;if(detailBook&&detailBook.id===b.id){selectBook(b)}else{filter=b.status==='wish'?'wish':'done';refreshIndex();render()}if(reread)startReadDate(b,'reread');else notify('記録を保存しました。')}
+ return {...editing,title,author:$('author').value.trim(),status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
+}
+function writeEditorSnapshot(next,redraw=false){
+ try{
+  if(next.title){
+   const newBooks=[...books.filter(x=>x.id!==next.id),next];
+   localStorage.setItem(KEY,JSON.stringify(newBooks));books=newBooks;
+   localStorage.removeItem(EDITOR_DRAFT_KEY);
+   if(detailBook?.id===next.id)detailBook=next;
+   if(redraw)render();
+  }else{
+   localStorage.setItem(EDITOR_DRAFT_KEY,JSON.stringify(next));
+  }
+  editing={...next};return true;
+ }catch{notify('自動保存できませんでした。ブラウザの保存設定をご確認ください。');return false}
+}
+function saveEditorProgress(redraw=false){
+ if(!editing)return null;
+ clearTimeout(editorAutosaveTimer);editorAutosaveTimer=null;
+ const next=editorSnapshot();
+ return next&&writeEditorSnapshot(next,redraw)?next:null;
+}
+function queueEditorAutosave(){
+ if(!$('editdialog').open||!editing)return;
+ clearTimeout(editorAutosaveTimer);editorAutosaveTimer=setTimeout(()=>saveEditorProgress(),450);
+}
+$('editform').addEventListener('input',queueEditorAutosave);
+$('editform').addEventListener('change',queueEditorAutosave);
+$('editdialog').addEventListener('close',()=>{
+ clearTimeout(editorAutosaveTimer);
+ if(!editorClosingSaved){saveEditorProgress(true);if(detailBook&&books.some(b=>b.id===detailBook.id))selectBook(books.find(b=>b.id===detailBook.id))}
+ editorClosingSaved=false;
+});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&$('editdialog').open)saveEditorProgress()});
+window.addEventListener('pagehide',()=>{if($('editdialog').open)saveEditorProgress()});
+$('editform').onsubmit=e=>{
+ e.preventDefault();
+ const title=$('title').value.trim();
+ if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
+ const b=saveEditorProgress(true);if(!b)return;
+ editorClosingSaved=true;$('editdialog').close();
+ const reread=rereadAfterSave;rereadAfterSave=false;
+ if(detailBook&&detailBook.id===b.id)selectBook(b);
+ else{filter=b.status==='wish'?'wish':'done';refreshIndex();render()}
+ if(reread)startReadDate(b,'reread');else notify('記録を保存しました。');
 };
 $('title').oninput=()=>$('title').setCustomValidity('');
 $('edit-close-save').onclick=()=>{$('editform').requestSubmit()};
-$('delete').onclick=()=>{if(confirm(`「${editing.title}」の記録を削除しますか？`)&&persist(books.filter(b=>b.id!==editing.id))){$('editdialog').close();notify('記録を削除しました。')}};
+$('delete').onclick=()=>{if(confirm(`「${editing.title}」の記録を削除しますか？`)&&persist(books.filter(b=>b.id!==editing.id))){editorClosingSaved=true;editing=null;clearTimeout(editorAutosaveTimer);localStorage.removeItem(EDITOR_DRAFT_KEY);$('editdialog').close();notify('記録を削除しました。')}};
 
 
 
