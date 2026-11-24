@@ -1161,6 +1161,18 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #detaildialog .series-small-action{font-size:11px}
  #home-page #books.grid.cards .series-shelf-strip{gap:8px;padding:11px 6px 14px}
 }
+
+/* The display option belongs underneath the linked series, not beside the unlink action. */
+#detaildialog .detail-shelf-display-setting{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:15px;padding:14px 0 0;border-top:1px solid #ece6dd;cursor:pointer}
+#detaildialog .detail-shelf-display-setting[hidden]{display:none!important}
+#detaildialog .detail-shelf-setting-info{display:flex;flex-direction:column;gap:4px;min-width:0}
+#detaildialog .detail-shelf-setting-info strong{font-size:13px;font-weight:600}
+#detaildialog .detail-shelf-setting-info small{font-size:11px;color:#81796e;line-height:1.45}
+#detaildialog #detail-separate-volume{appearance:none;-webkit-appearance:none;position:relative;flex:0 0 38px;width:38px;height:22px;border:1px solid #d1cbc2;border-radius:999px;background:#dedbd5;cursor:pointer;transition:background .16s}
+#detaildialog #detail-separate-volume:before{content:'';position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:white;box-shadow:0 1px 3px #0002;transition:transform .16s}
+#detaildialog #detail-separate-volume:checked{background:#837767;border-color:#837767}
+#detaildialog #detail-separate-volume:checked:before{transform:translateX(16px)}
+#detaildialog #detail-separate-volume:focus-visible{outline:2px solid #736552;outline-offset:3px}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1209,7 +1221,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
    <div id="detail-keywords" class="detail-keywords"></div>
    <div id="detail-rating" class="detail-rating"></div>
    <section id="detail-series-volumes" class="detail-series-volumes" hidden><div class="series-section-head"><h3>各巻の記録</h3><button type="button" id="detail-add-volume" class="series-add-button" aria-label="シリーズの巻を追加" title="Google Booksから巻を探す">+</button></div><div id="detail-series-volume-list" class="series-volume-list"></div></section>
-   <section id="detail-volume-series" class="detail-series-volumes" hidden><div class="series-section-head"><h3>シリーズ</h3><div class="series-section-actions"><button type="button" id="detail-add-series" class="series-add-button" aria-label="シリーズやほかの巻を追加" title="Google Booksからシリーズやほかの巻を探す">+</button><button type="button" id="detail-unlink-series" class="series-small-action" hidden>解除</button><button type="button" id="detail-separate-volume" class="series-small-action" hidden>この本を独立に表示</button></div></div><div id="detail-volume-series-link"></div></section>
+   <section id="detail-volume-series" class="detail-series-volumes" hidden><div class="series-section-head"><h3>シリーズ</h3><div class="series-section-actions"><button type="button" id="detail-add-series" class="series-add-button" aria-label="シリーズやほかの巻を追加" title="Google Booksからシリーズやほかの巻を探す">+</button><button type="button" id="detail-unlink-series" class="series-small-action" hidden>解除</button></div></div><div id="detail-volume-series-link"></div><label id="detail-shelf-display-setting" class="detail-shelf-display-setting" hidden><span class="detail-shelf-setting-info"><strong>本棚にこの巻も表示</strong><small>シリーズとは別に表紙を並べる</small></span><input id="detail-separate-volume" type="checkbox" aria-label="本棚にこの巻も表示"></label></section>
   </div>
   <section class="detail-note-section">
    <div id="detail-current-reading" class="detail-session-block">
@@ -1662,9 +1674,8 @@ function renderDetailVolumeSeries(book){
  const parsed=seriesFromCatalogTitle(book.title);
  const registered=seriesRecords.find(series=>series.id===book.seriesId);
  $('detail-unlink-series').hidden=!registered;
- $('detail-separate-volume').hidden=!registered;
- $('detail-separate-volume').textContent=book.showSeparately?'独立表示をやめる':'この本を独立に表示';
- $('detail-separate-volume').setAttribute('aria-pressed',String(!!book.showSeparately));
+ $('detail-shelf-display-setting').hidden=!registered;
+ $('detail-separate-volume').checked=!!book.showSeparately;
  const isVolume=book.recordType!=='series'&&(!!book.seriesId||Number(book.volumeNumber)>0||!!parsed);
  section.hidden=!isVolume;
  $('detail-add-series').hidden=!!registered;
@@ -1684,10 +1695,10 @@ $('detail-unlink-series').onclick=()=>{
  if(!persist(books.map(b=>b.id===book.id?updated:b)))return;
  seriesReturnId=null;selectBook(updated);
 };
-$('detail-separate-volume').onclick=()=>{
+$('detail-separate-volume').onchange=()=>{
  const book=detailBook;
  if(!book||!seriesRecords.some(s=>s.id===book.seriesId))return;
- const updated={...book,showSeparately:!book.showSeparately,updatedAt:new Date().toISOString()};
+ const updated={...book,showSeparately:$('detail-separate-volume').checked,updatedAt:new Date().toISOString()};
  if(!persist(books.map(b=>b.id===book.id?updated:b)))return;
  selectBook(updated);
 };
