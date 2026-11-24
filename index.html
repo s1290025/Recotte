@@ -945,7 +945,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 <main>
 <section id="home-page" aria-label="本の一覧">
   <div class="home-content">
-  <div class="shelf-controls"><nav class="book-index" id="tabs" aria-label="読書状況と絞り込み"><button type="button" data-status="wish" class="active" aria-pressed="true">読みたい</button><button type="button" data-status="done" aria-pressed="false">読んだ</button><span class="index-divider" aria-hidden="true"></span><button type="button" data-facet="publisher" aria-expanded="false" aria-controls="facet-panel">出版社</button><button type="button" data-facet="genre" aria-expanded="false" aria-controls="facet-panel">ジャンル</button><button type="button" data-facet="element" aria-expanded="false" aria-controls="facet-panel">要素</button><button type="button" data-facet="rating" aria-expanded="false" aria-controls="facet-panel">☆ 評価</button></nav><label class="shelf-sort-label" for="shelf-sort"><span class="sr-only">並べ替え</span><select id="shelf-sort" aria-label="本の並べ替え"><option value="updated-desc">更新した順</option><option value="updated-asc">更新が古い順</option><option value="added-desc">登録した順</option><option value="added-asc">登録が古い順</option><option value="read-desc">最近読んだ順</option><option value="read-asc">昔読んだ順</option><option value="title-asc">タイトル順</option><option value="rating-desc">評価が高い順</option><option value="rating-asc">評価が低い順</option><option value="memo-desc">感想が長い順</option><option value="memo-asc">感想が短い順</option><option value="reads-desc">読んだ回数順</option></select></label></div><section id="facet-panel" class="facet-panel" hidden aria-label="絞り込み項目"><div class="facet-panel-heading"><strong id="facet-heading"></strong><button id="facet-clear-current" type="button">この分類を解除</button></div><div id="facet-options" class="facet-options"></div></section><div id="active-filters" class="active-filters" hidden></div><div id="shelf-result-count" class="shelf-result-count" aria-live="polite"></div>
+  <div class="shelf-controls"><nav class="book-index" id="tabs" aria-label="読書状況と絞り込み"><button type="button" data-status="wish" class="active" aria-pressed="true">読みたい</button><button type="button" data-status="done" aria-pressed="false">読んだ</button><span class="index-divider" aria-hidden="true"></span><button type="button" data-facet="publisher" aria-expanded="false" aria-controls="facet-panel">出版社</button><button type="button" data-facet="genre" aria-expanded="false" aria-controls="facet-panel">ジャンル</button><button type="button" data-facet="element" aria-expanded="false" aria-controls="facet-panel">要素</button><button type="button" data-facet="rating" aria-expanded="false" aria-controls="facet-panel">☆</button></nav><label class="shelf-sort-label" for="shelf-sort"><span class="sr-only">並べ替え</span><select id="shelf-sort" aria-label="本の並べ替え"><option value="updated-desc">更新した順</option><option value="updated-asc">更新が古い順</option><option value="added-desc">登録した順</option><option value="added-asc">登録が古い順</option><option value="read-desc">最近読んだ順</option><option value="read-asc">昔読んだ順</option><option value="title-asc">タイトル順</option><option value="rating-desc">評価が高い順</option><option value="rating-asc">評価が低い順</option><option value="memo-desc">感想が長い順</option><option value="memo-asc">感想が短い順</option><option value="reads-desc">読んだ回数順</option></select></label></div><section id="facet-panel" class="facet-panel" hidden aria-label="絞り込み項目"><div class="facet-panel-heading"><strong id="facet-heading"></strong><button id="facet-clear-current" type="button">この分類を解除</button></div><div id="facet-options" class="facet-options"></div></section><div id="active-filters" class="active-filters" hidden></div><div id="shelf-result-count" class="shelf-result-count" aria-live="polite"></div>
   <input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索">
   <div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div>
   <div id="books" class="grid cards" aria-label="本の表紙一覧"></div>
@@ -1333,7 +1333,7 @@ $('detail-edit').onclick=()=>{
  closeMobileMenu();
  if(b.status==='wish')startReadDate(b,'first');else openEditor(b);
 };
-const facetLabels={publisher:'出版社',genre:'ジャンル',element:'作品の要素',rating:'評価'};
+const facetLabels={publisher:'出版社',genre:'ジャンル',element:'要素',rating:'☆'};
 const collator=new Intl.Collator('ja',{numeric:true,sensitivity:'base'});
 function shelfFacetValues(book,facet){
  if(facet==='publisher')return typeof book.publisher==='string'&&book.publisher.trim()?[book.publisher.trim()]:[];
@@ -1405,7 +1405,7 @@ function renderShelfFacets(source){
  for(const button of document.querySelectorAll('#tabs [data-facet]')){
   const key=button.dataset.facet;
   const count=shelfFacets[key].size;
-  button.textContent=(key==='rating'?'☆ ': '')+facetLabels[key]+(count?' · '+count:'');
+  button.textContent=facetLabels[key]+(count?' · '+count:'');
   button.classList.toggle('facet-applied',count>0);
   button.classList.toggle('facet-open',key===openShelfFacet);
   button.setAttribute('aria-expanded',String(key===openShelfFacet));
