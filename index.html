@@ -1096,6 +1096,22 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #detaildialog .detail-book-info>.detail-series-volumes h3{font-size:14px;margin:0 0 10px}
 #detaildialog .detail-book-info>.detail-series-volumes .series-volume-list{grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px}
 #detaildialog .detail-book-info>.detail-series-volumes .volume-caption{font-size:11px}
+
+/* Series navigation directly beneath book ratings. */
+#detaildialog .detail-book-info .series-section-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+#detaildialog .detail-book-info .series-section-head h3{font-size:14px;margin:0}
+#detaildialog .detail-book-info .series-add-button{width:32px;height:32px;display:grid;place-items:center;border:1px solid #ded7ca;border-radius:50%;background:transparent;color:#65594b;font-size:21px;line-height:1;cursor:pointer}
+#detaildialog .detail-book-info .series-add-button:hover{background:#f4eee4}
+#detaildialog .detail-book-info .series-volume-list{grid-template-columns:repeat(auto-fill,minmax(62px,1fr));gap:11px}
+#detaildialog .detail-book-info .series-volume-item .cover{aspect-ratio:2 / 3;object-fit:contain}
+#detaildialog .detail-book-info .series-volume-item .volume-caption{text-align:center;padding-top:5px;font-size:12px}
+#detaildialog .detail-book-info .detail-series-volumes[hidden]{display:none!important}
+#detaildialog .detail-series-navigation{display:flex;align-items:center;gap:11px;padding:3px 0;border:0;background:transparent;max-width:100%;color:inherit;text-align:left;cursor:pointer;font-size:13px}
+#detaildialog .detail-series-navigation .cover{width:52px;height:76px;object-fit:contain;flex:none}
+#detaildialog .detail-series-navigation:hover span{text-decoration:underline}
+#detaildialog .detail-book-info>#detail-volume-series{margin-top:18px;padding-top:15px}
+#searchdialog #search-context-hint{margin:12px 0 3px;font-size:13px}
+#searchdialog #search-context-hint[hidden]{display:none!important}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1143,7 +1159,8 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
    <div class="detail-heading"><div class="detail-title-row"><h2 id="detail-title"></h2><div id="detail-reaction" class="detail-title-reaction"></div></div><p id="detail-author" class="muted"></p><p id="detail-publisher-categories" class="detail-book-metadata" hidden></p><p id="detail-status" class="detail-status" hidden></p></div>
    <div id="detail-keywords" class="detail-keywords"></div>
    <div id="detail-rating" class="detail-rating"></div>
-   <section id="detail-series-volumes" class="detail-series-volumes" hidden><h3>各巻の記録</h3><div id="detail-series-volume-list" class="series-volume-list"></div></section>
+   <section id="detail-series-volumes" class="detail-series-volumes" hidden><div class="series-section-head"><h3>各巻の記録</h3><button type="button" id="detail-add-volume" class="series-add-button" aria-label="シリーズの巻を追加" title="Google Booksから巻を探す">＋</button></div><div id="detail-series-volume-list" class="series-volume-list"></div></section>
+   <section id="detail-volume-series" class="detail-series-volumes" hidden><div class="series-section-head"><h3>シリーズ</h3><button type="button" id="detail-add-series" class="series-add-button" aria-label="シリーズやほかの巻を追加" title="Google Booksからシリーズやほかの巻を探す">＋</button></div><div id="detail-volume-series-link"></div></section>
   </div>
   <section class="detail-note-section">
    <div id="detail-current-reading" class="detail-session-block">
@@ -1162,7 +1179,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </section>
 </main>
 <footer><span class="muted">記録はこのブラウザに保存されます。定期的にバックアップしてください。</span><div class="actions"><button id="export">書き出し</button><button id="import">読み込み</button><input id="importfile" type="file" accept="application/json,.json" hidden></div></footer></div>
-<dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><label id="search-group-control" class="search-group-control" hidden><input id="search-group-toggle" type="checkbox" checked> シリーズごとにまとめる</label><div id="results" class="results"></div><button type="button" id="catalog-load-more" hidden>さらに検索結果を読み込む</button><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
+<dialog id="searchdialog"><div class="dialoghead"><h2>本を検索</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="searchform"><label for="query">Google Booksで検索</label><div class="actions"><input id="query" style="flex:1;min-width:120px" required placeholder="タイトル・著者名・ISBN" type="search" autocomplete="off"><button class="primary" id="searchbutton">検索</button></div></form><p id="search-context-hint" class="muted" hidden></p><p class="muted" id="searchmessage" role="status">タイトル・著者名・ISBNから探せます。</p><details id="google-settings"><summary>検索設定</summary><form id="google-settings-form"><label for="google-api-key">Google Books APIキー</label><input id="google-api-key" class="field" type="password" autocomplete="off" spellcheck="false" required><p class="muted">APIキーをこのブラウザに保存します。</p><div class="actions"><button type="button" id="google-settings-clear">設定を削除</button><button class="primary" type="submit">保存</button></div><p class="muted" id="google-settings-status" role="status"></p></form></details><label id="search-group-control" class="search-group-control" hidden><input id="search-group-toggle" type="checkbox" checked> シリーズごとにまとめる</label><div id="results" class="results"></div><button type="button" id="catalog-load-more" hidden>さらに検索結果を読み込む</button><div class="book-source-credit"><a href="https://books.google.com/" target="_blank" rel="noopener noreferrer">Powered by Google Books</a></div><div class="separator">見つからない本はこちらから</div><button id="manual" style="width:100%">手動で登録する</button></dialog>
 <dialog id="reading-choice" aria-labelledby="reading-choice-title"><div class="dialoghead"><h2 id="reading-choice-title">この本を読みましたか？</h2><button type="button" data-close aria-label="閉じる">×</button></div><div id="choice-book-title" class="choice-book-title"></div><div class="choice-buttons"><button type="button" id="choice-wish">まだ読んでいない</button><button type="button" id="choice-done" class="primary">読んだ</button></div></dialog>
 <dialog id="reading-date" aria-labelledby="reading-date-title"><div class="dialoghead"><h2 id="reading-date-title">読んだ日</h2><button type="button" data-close aria-label="閉じる">×</button></div><form id="reading-date-form"><div class="date-record-head"><span>日付を入力</span><button type="button" id="today-choice">今日を入力</button></div><div id="choice-date-fields" class="date-parts"></div><p class="muted">年は必須です。月と日は「選択しない」も選べます。</p><div class="formactions"><button type="button" data-close>戻る</button><button class="primary" type="submit">次へ</button></div></form></dialog><dialog id="reading-elements" aria-labelledby="reading-elements-title"><div class="dialoghead"><h2 id="reading-elements-title">作品の要素</h2><button type="button" data-close aria-label="閉じる">×</button></div><p class="muted">作品を表す言葉を自由に入力できます。スキップしても構いません。</p><form id="reading-elements-form"><label for="choice-elements">作品の要素（任意）</label><input id="choice-elements" class="field" placeholder="要素を入力"><div class="formactions"><button type="button" id="skip-elements">スキップ</button><button type="submit" class="primary">記録を書く</button></div></form></dialog><dialog id="reading-action" aria-labelledby="reading-action-title"><div class="dialoghead"><h2 id="reading-action-title">この本の記録</h2><button type="button" data-close aria-label="閉じる">×</button></div><p>どちらを行いますか？</p><div class="choice-buttons"><button type="button" id="action-edit">記録を編集</button><button type="button" id="action-reread" class="primary">もう一度読んだ</button></div></dialog>
 <dialog id="editdialog" aria-labelledby="edittitle">
@@ -1547,12 +1564,26 @@ function renderDetailSeriesVolumes(book){
  if(!members.length){section.append();list.append(textNode('p','まだ巻ごとの記録はありません。','muted'));return}
  for(const volume of members){
   const button=textNode('button','','series-volume-item');button.type='button';
-  button.append(bookCover(volume),
-   textNode('div',(volume.volumeNumber?volume.volumeNumber+'巻 · ':'')+volume.title,'volume-caption'),
-   );
+  button.append(bookCover(volume),textNode('div',volume.volumeNumber?volume.volumeNumber+'巻':'巻数未登録','volume-caption'));
+  button.setAttribute('aria-label',volume.title+'の記録を開く');
   button.onclick=()=>{seriesReturnId=series.id;selectBook(volume)};
   list.append(button);
  }
+}
+function renderDetailVolumeSeries(book){
+ const section=$('detail-volume-series'),host=$('detail-volume-series-link');
+ host.replaceChildren();
+ const parsed=seriesFromCatalogTitle(book.title);
+ const registered=seriesRecords.find(series=>series.id===book.seriesId);
+ const isVolume=book.recordType!=='series'&&(!!book.seriesId||Number(book.volumeNumber)>0||!!parsed);
+ section.hidden=!isVolume;
+ if(!isVolume)return;
+ if(registered){
+  const link=document.createElement('button');link.type='button';link.className='detail-series-navigation';
+  link.append(bookCover(registered),textNode('span',registered.title));
+  link.setAttribute('aria-label',registered.title+'のシリーズ記録を開く');
+  link.onclick=()=>openSeries(registered.id);host.append(link);
+ }else host.append(textNode('p','シリーズ未登録','muted'));
 }
 function selectBook(b){
  if(!b.seriesId&&b.recordType!=='series')seriesReturnId=null;
@@ -1568,6 +1599,7 @@ function selectBook(b){
  $('detail-date').textContent='';
  fillDetails(b);
  renderDetailSeriesVolumes(b);
+ renderDetailVolumeSeries(b);
  $('detail-note').classList.toggle('is-empty',!b.note);
 
  $('detail-current-note-heading').textContent=b.recordType==='series'?'シリーズ全体の感想・メモ':b.seriesId&&Number(b.volumeNumber)>0?b.volumeNumber+'巻の感想・メモ':'感想・メモ';
