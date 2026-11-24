@@ -1207,6 +1207,29 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #detaildialog #detail-home,#detaildialog #detail-back,#detaildialog #detail-pin,#detaildialog #detail-edit{width:36px;height:40px;flex-basis:40px}
 }
 #home-page[hidden],#detaildialog[hidden]{display:none!important}
+
+/* Consistent shelf controls and balanced page margins. */
+#home-page{max-width:1050px;width:calc(100% - 96px);margin-inline:auto}
+#home-page .shelf-controls{align-items:flex-end;gap:8px}
+#home-page .shelf-controls .book-index{align-items:flex-end}
+#home-page .shelf-controls .book-index button{box-sizing:border-box;height:38px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center}
+#home-page .shelf-sort-label,#home-page .home-actions,body.mobile-menu-open #home-page:not([hidden]) .home-actions{align-self:flex-end;margin-bottom:0}
+#home-page #shelf-sort,#home-page .home-actions #toggle-search,#home-page .home-actions #add{box-sizing:border-box;height:38px;border:1px solid #d6d6d6;border-radius:7px 7px 0 0;background:#f6f6f6;color:#646464;box-shadow:none;margin:0}
+#home-page #shelf-sort{padding:0 10px;font-size:12px}
+#home-page .home-actions{gap:5px}
+#home-page .home-actions #toggle-search,#home-page .home-actions #add{width:38px;flex:0 0 38px;padding:0}
+#home-page .home-actions #add{font-size:24px;font-weight:400;line-height:1}
+#home-page .home-actions #toggle-search svg{width:19px;height:19px}
+#home-page .home-actions #toggle-search:hover,#home-page .home-actions #add:hover,#home-page #shelf-sort:hover{background:#eee;color:#222}
+#detaildialog.book-page{padding-top:30px}
+#detaildialog .detail-rail-left svg,#detaildialog .detail-rail-right svg{display:block;width:22px;height:22px;stroke-width:1.8}
+@media(max-width:700px){
+ #home-page{width:calc(100% - 28px)}
+ #home-page .shelf-controls .book-index button{height:34px;padding:0 10px}
+ #home-page #shelf-sort,#home-page .home-actions #toggle-search,#home-page .home-actions #add{height:34px}
+ #home-page .home-actions #toggle-search,#home-page .home-actions #add{width:34px;flex-basis:34px}
+ #detaildialog.book-page{padding-top:18px}
+}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1247,7 +1270,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </dialog>
 <dialog id="series-link-dialog" class="series-dialog" aria-labelledby="series-link-title"><div class="dialoghead"><h2 id="series-link-title">既存の本を追加</h2><button type="button" id="series-link-close" aria-label="閉じる">×</button></div><p class="muted">追加したい本を選んでください。現在の記録や感想はそのまま残ります。</p><div id="series-link-list" class="series-link-list"></div><div class="series-form-actions"><button type="button" id="series-link-cancel">閉じる</button><button type="button" id="series-link-save" class="primary">選んだ本を追加</button></div></dialog>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
- <aside class="detail-rail detail-rail-left" aria-label="移動"><div class="header-navigation"><button type="button" id="detail-home" class="header-back" aria-label="ホーム" title="ホーム" hidden><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/></svg></button><button type="button" id="detail-back" class="header-back" aria-label="戻る" title="戻る" hidden>＜</button></div></aside>
+ <aside class="detail-rail detail-rail-left" aria-label="移動"><div class="header-navigation"><button type="button" id="detail-home" class="header-back" aria-label="ホーム" title="ホーム" hidden><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/></svg></button><button type="button" id="detail-back" class="header-back" aria-label="戻る" title="戻る" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 5-9 7 9 7"/></svg></button></div></aside>
  <div class="detail-main">
  <div class="detail-book">
   <div class="detail-book-info">
