@@ -786,6 +786,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #detaildialog .detail-book-info,#detaildialog .detail-note-section{width:100%}
  #detaildialog .detail-reading-session{padding:15px 14px}
 }
+#detaildialog #detail-keywords[hidden],#detaildialog #detail-rating[hidden]{display:none!important}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -940,7 +941,7 @@ $('kw-elements').addEventListener('input',e=>{const text=e.target.value;if(/[、
 $('kw-elements').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();addEditorElements(e.target.value);e.target.value=''}});
 $('kw-elements').addEventListener('blur',()=>{if($('kw-elements').value.trim()){addEditorElements($('kw-elements').value);$('kw-elements').value=''}});
 
-function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=!active;document.querySelector('.record-writing').hidden=!active;$('date-records').hidden=!active;$('editor-elements').hidden=!active}
+function updateReadFields(){const active=$('status').value!=='wish';$('read-fields').hidden=false;document.querySelector('.record-writing').hidden=false;document.querySelector('.current-session').hidden=!active;$('date-records').hidden=!active;$('editor-elements').hidden=false}
 $('status').addEventListener('change',updateReadFields);
 const localToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
 function dateParts(date){const match=String(date||'').match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);return match?{year:match[1],month:match[2]||'',day:match[3]||''}:{year:String(new Date().getFullYear()),month:'',day:''}}
@@ -1033,12 +1034,13 @@ function fillDetails(book){
  for(const word of new Set(all))chips.append(textNode('span','#'+word));
  if(!chips.childNodes.length)chips.append(textNode('span','未登録','muted'));
  group.append(chips);wrap.append(group);
+ wrap.hidden=!all.some(word=>typeof word==='string'&&word.trim());
  const ratings=$('detail-rating');ratings.replaceChildren(textNode('h3','自分のものさし'));
  const custom=(book.customRatings||[]).filter(x=>x.name&&Number(x.value)>0);
  if(custom.length>=3)drawRadar(custom,ratings);
  for(const item of custom)ratings.append(textNode('p',item.name+'　'+ratingStars(item.value),'custom-display'));
- if(!custom.length)ratings.append(textNode('p','まだ設定されていません','muted'));
  if(book.rating!=null)ratings.append(textNode('p','以前の総合評価　'+ratingStars(book.rating),'overall-display'));
+ ratings.hidden=!custom.length&&book.rating==null;
  const history=Array.isArray(book.readHistory)?book.readHistory:[],dates=history.map(x=>x.date).filter(Boolean);
  if(!dates.length&&book.date)dates.push(book.date);
  $('detail-date').textContent=dates.length?'読んだ日　'+dates[dates.length-1]:'読んだ日を追加';
