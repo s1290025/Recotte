@@ -1421,6 +1421,7 @@ function renderShelfFacets(source){
   }
   if(!choices.length)box.append(textNode('p','登録されている項目はありません。','muted'));
   if(key==='rating'){
+   panel.querySelector('.rating-range')?.remove();
    const range=document.createElement('div');range.className='rating-range';
    const heading=document.createElement('p');heading.textContent='星の範囲（下限・上限）';range.append(heading);
    const makeSelect=(part,labelText)=>{
