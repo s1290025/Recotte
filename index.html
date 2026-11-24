@@ -929,6 +929,13 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #home-page .rating-range-select{width:90px;min-width:0;padding:7px;font-size:12px;background:#fffdf9}
 #home-page .rating-range-hint{font-size:11px;color:#736a5e;margin:0;width:100%}
 #home-page .shelf-result-count{font-size:11px;color:#847b70;text-align:right;margin:0 2px 7px}
+/* Keep bookmark tabs in the page flow without a separate scrolling region. */
+#home-page .shelf-controls .book-index{overflow:visible!important;overflow-x:visible!important;overflow-y:visible!important;flex-wrap:wrap;align-content:flex-end;scrollbar-width:none}
+#home-page .book-index .index-divider{min-height:28px}
+#home-page .rating-range{justify-content:flex-start;align-items:center!important;gap:10px!important}
+#home-page .rating-range-picker{display:inline-flex!important;align-items:center!important;margin:0!important}
+#home-page .rating-range-select{min-width:84px}
+#home-page .rating-range-separator{font-size:14px;color:#766b61}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1007,7 +1014,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読んだ',paused:'中断'};
 let books=[],filter='wish',editing=null,searchController=null,view='timeline',showDemo=true,selectedTags=new Set();
 const shelfFacets={publisher:new Set(),genre:new Set(),element:new Set(),rating:new Set()};
-const ratingRange={min:0.5,max:5};
+const ratingRange={min:0,max:5};
 let openShelfFacet=null;
 const demoBooks=[
 {title:'星を編む',author:'朝の文庫',status:'done',date:'2026-10-20',note:'最後のページを閉じてからも、登場人物の暮らしが続いているような気がした。静かな場面ほど心に残る。',color:'#687d8b'},
@@ -1329,9 +1336,9 @@ $('detail-edit').onclick=()=>{
 const facetLabels={publisher:'出版社',genre:'ジャンル',element:'作品の要素',rating:'評価'};
 const collator=new Intl.Collator('ja',{numeric:true,sensitivity:'base'});
 function shelfFacetValues(book,facet){
- if(facet==='publisher')return book.publisher?[book.publisher.trim()]:[];
- if(facet==='genre')return Array.isArray(book.categories)?book.categories.filter(Boolean):[];
- if(facet==='element')return [...new Set([...(book.keywords?.elements||[]),...(book.keywords?.moods||[]),...(book.keywords?.likes||[])].filter(Boolean))];
+ if(facet==='publisher')return typeof book.publisher==='string'&&book.publisher.trim()?[book.publisher.trim()]:[];
+ if(facet==='genre')return Array.isArray(book.categories)?book.categories.filter(v=>typeof v==='string'&&v.trim()).map(v=>v.trim()):[];
+ if(facet==='element'){const kw=book.keywords||{};return [...new Set(['elements','moods','likes'].flatMap(k=>Array.isArray(kw[k])?kw[k]:[]).filter(v=>typeof v==='string'&&v.trim()).map(v=>v.trim()))]}
  return [];
 }
 function overallScore(book){const v=(book.customRatings||[]).find(x=>x.name==='総合'||x.name==='総合評価');return v&&Number(v.value)>0?Number(v.value):(Number(book.rating)>0?Number(book.rating):null)}
@@ -1355,8 +1362,8 @@ function matchesShelfFacets(book){
    const score=ratingMetricScore(book,metric);
    return score!==null&&score>=ratingRange.min&&score<=ratingRange.max;
   });
-  const vals=shelfFacetValues(book,key).map(x=>String(x).trim());
-  return [...set].some(choice=>vals.includes(String(choice).trim()));
+  const vals=shelfFacetValues(book,key).map(x=>String(x).trim().normalize('NFKC'));
+  return [...set].some(choice=>vals.includes(String(choice).trim().normalize('NFKC')));
  })
 }
 function shelfSortBooks(a,b){
@@ -1389,7 +1396,7 @@ function refreshActiveFilterChips(source){
  }
  if(bar.childElementCount){
   const clear=textNode('button','すべて解除','clear-all-filters');clear.type='button';
-  clear.onclick=()=>{Object.values(shelfFacets).forEach(set=>set.clear());ratingRange.min=0.5;ratingRange.max=5;render()};
+  clear.onclick=()=>{Object.values(shelfFacets).forEach(set=>set.clear());ratingRange.min=0;ratingRange.max=5;render()};
   bar.append(clear);
  }
  bar.hidden=!bar.childElementCount;
@@ -1413,7 +1420,7 @@ function renderShelfFacets(source){
    const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=shelfFacets[key].has(value);
    checkbox.onchange=()=>{
     if(checkbox.checked)shelfFacets[key].add(value);else shelfFacets[key].delete(value);
-    // Keep the current option list in place while the displayed books update.
+    // Apply the filter immediately while preserving this checkbox's focus.
     render(false);
    };
    const name=document.createElement('span');name.textContent=key==='rating'&&value==='総合'?'総合評価':value;
@@ -1423,11 +1430,13 @@ function renderShelfFacets(source){
   if(key==='rating'){
    panel.querySelector('.rating-range')?.remove();
    const range=document.createElement('div');range.className='rating-range';
-   const heading=document.createElement('p');heading.textContent='星の範囲（下限・上限）';range.append(heading);
-   const makeSelect=(part,labelText)=>{
-    const label=document.createElement('label');label.textContent=labelText;
-    const select=document.createElement('select');select.className='field rating-range-select';
-    for(let n=0.5;n<=5;n+=0.5)select.add(new Option(n.toFixed(1),String(n)));
+   
+   const makeSelect=(part)=>{
+    const label=document.createElement('label');label.className='rating-range-picker';
+    const select=document.createElement('select');select.className='field rating-range-select';select.setAttribute('aria-label',part==='min'?'星の最小値':'星の最大値');
+    select.add(new Option('選ぶ',''));
+    for(let n=0;n<=5;n+=0.5)select.add(new Option(n.toFixed(1),String(n)));
+    if(part==='min'&&ratingRange.min===0)select.value='0';
     select.value=String(ratingRange[part]);
     select.onchange=()=>{
      const value=Number(select.value);
@@ -1439,8 +1448,8 @@ function renderShelfFacets(source){
     };
     label.append(select);return label;
    };
-   range.append(makeSelect('min','下限'),makeSelect('max','上限'));
-   const hint=document.createElement('p');hint.className='rating-range-hint';hint.textContent='選択した評価のうち、いずれかが範囲内の本を表示します。';range.append(hint);
+   range.append(makeSelect('min'),textNode('span','～','rating-range-separator'),makeSelect('max'));
+
    panel.append(range);
   }else{
    const prior=panel.querySelector('.rating-range');if(prior)prior.remove();
@@ -1453,7 +1462,7 @@ $('tabs').addEventListener('click',e=>{
  const button=e.target.closest('[data-facet]');if(!button)return;
  openShelfFacet=openShelfFacet===button.dataset.facet?null:button.dataset.facet;render()
 });
-$('facet-clear-current').onclick=()=>{if(openShelfFacet){shelfFacets[openShelfFacet].clear();if(openShelfFacet==='rating'){ratingRange.min=0.5;ratingRange.max=5}render()}};
+$('facet-clear-current').onclick=()=>{if(openShelfFacet){shelfFacets[openShelfFacet].clear();if(openShelfFacet==='rating'){ratingRange.min=0;ratingRange.max=5}render()}};
 $('shelf-sort').onchange=render;
 function render(refreshPanel=true){
  const demo=!books.length&&showDemo,source=demo?demoBooks:books;
