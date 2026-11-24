@@ -1014,7 +1014,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読んだ',paused:'中断'};
 let books=[],filter='wish',editing=null,searchController=null,view='timeline',showDemo=true,selectedTags=new Set();
 const shelfFacets={publisher:new Set(),genre:new Set(),element:new Set(),rating:new Set()};
-const ratingRange={min:0,max:5};
+const ratingRange={min:null,max:null};
 let openShelfFacet=null;
 const demoBooks=[
 {title:'星を編む',author:'朝の文庫',status:'done',date:'2026-10-20',note:'最後のページを閉じてからも、登場人物の暮らしが続いているような気がした。静かな場面ほど心に残る。',color:'#687d8b'},
@@ -1360,7 +1360,7 @@ function matchesShelfFacets(book){
   if(!set.size)return true;
   if(key==='rating')return [...set].some(metric=>{
    const score=ratingMetricScore(book,metric);
-   return score!==null&&score>=ratingRange.min&&score<=ratingRange.max;
+   return score!==null&&score>=(ratingRange.min??0)&&score<=(ratingRange.max??5);
   });
   const vals=shelfFacetValues(book,key).map(x=>String(x).trim().normalize('NFKC'));
   return [...set].some(choice=>vals.includes(String(choice).trim().normalize('NFKC')));
@@ -1388,7 +1388,7 @@ function refreshActiveFilterChips(source){
  const bar=$('active-filters');bar.replaceChildren();
  for(const [key,set] of Object.entries(shelfFacets)){
   for(const value of set){
-   const label=key==='rating'?value+'：'+ratingRange.min.toFixed(1)+'～'+ratingRange.max.toFixed(1):facetLabels[key]+'：'+value;
+   const label=key==='rating'?value+'：'+(ratingRange.min===null?'0':ratingRange.min.toFixed(1))+'～'+(ratingRange.max===null?'5':ratingRange.max.toFixed(1)):facetLabels[key]+'：'+value;
    const chip=textNode('button',label+' ×','active-filter-chip');chip.type='button';chip.title='この条件を解除';
    chip.onclick=()=>{set.delete(value);render()};
    bar.append(chip);
@@ -1396,7 +1396,7 @@ function refreshActiveFilterChips(source){
  }
  if(bar.childElementCount){
   const clear=textNode('button','すべて解除','clear-all-filters');clear.type='button';
-  clear.onclick=()=>{Object.values(shelfFacets).forEach(set=>set.clear());ratingRange.min=0;ratingRange.max=5;render()};
+  clear.onclick=()=>{Object.values(shelfFacets).forEach(set=>set.clear());ratingRange.min=null;ratingRange.max=null;render()};
   bar.append(clear);
  }
  bar.hidden=!bar.childElementCount;
@@ -1420,7 +1420,7 @@ function renderShelfFacets(source){
    const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=shelfFacets[key].has(value);
    checkbox.onchange=()=>{
     if(checkbox.checked)shelfFacets[key].add(value);else shelfFacets[key].delete(value);
-    // Apply the filter immediately while preserving this checkbox's focus.
+    // Preserve the checkbox and recalculate the book list immediately.
     render(false);
    };
    const name=document.createElement('span');name.textContent=key==='rating'&&value==='総合'?'総合評価':value;
@@ -1436,14 +1436,9 @@ function renderShelfFacets(source){
     const select=document.createElement('select');select.className='field rating-range-select';select.setAttribute('aria-label',part==='min'?'星の最小値':'星の最大値');
     select.add(new Option('選ぶ',''));
     for(let n=0;n<=5;n+=0.5)select.add(new Option(n.toFixed(1),String(n)));
-    if(part==='min'&&ratingRange.min===0)select.value='0';
-    select.value=String(ratingRange[part]);
+    select.value=ratingRange[part]===null?'':String(ratingRange[part]);
     select.onchange=()=>{
-     const value=Number(select.value);
-     ratingRange[part]=value;
-     if(ratingRange.min>ratingRange.max){
-      if(part==='min')ratingRange.max=value;else ratingRange.min=value;
-     }
+     ratingRange[part]=select.value===''?null:Number(select.value);
      render();
     };
     label.append(select);return label;
@@ -1462,7 +1457,7 @@ $('tabs').addEventListener('click',e=>{
  const button=e.target.closest('[data-facet]');if(!button)return;
  openShelfFacet=openShelfFacet===button.dataset.facet?null:button.dataset.facet;render()
 });
-$('facet-clear-current').onclick=()=>{if(openShelfFacet){shelfFacets[openShelfFacet].clear();if(openShelfFacet==='rating'){ratingRange.min=0;ratingRange.max=5}render()}};
+$('facet-clear-current').onclick=()=>{if(openShelfFacet){shelfFacets[openShelfFacet].clear();if(openShelfFacet==='rating'){ratingRange.min=null;ratingRange.max=null}render()}};
 $('shelf-sort').onchange=render;
 function render(refreshPanel=true){
  const demo=!books.length&&showDemo,source=demo?demoBooks:books;
@@ -1477,7 +1472,13 @@ function render(refreshPanel=true){
  }
  const container=$('books');container.className='grid cards';container.replaceChildren();
  const q=$('filter').value.trim().toLocaleLowerCase();
- const visible=source.filter(b=>(filter==='wish'?b.status==='wish':b.status!=='wish')&&matchesShelfFacets(b)&&[...selectedTags].every(t=>tagsOf(b).includes(t))&&`${b.title} ${b.author} ${b.note}`.toLocaleLowerCase().includes(q)).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||shelfSortBooks(a,b));
+ const visible=source.filter(b=>{
+  const statusOk=filter==='wish'?b.status==='wish':b.status!=='wish';
+  const facetsOk=matchesShelfFacets(b);
+  const tagsOk=[...selectedTags].every(t=>tagsOf(b).includes(t));
+  const searchOk=String(b.title||'')+' '+String(b.author||'')+' '+String(b.note||'');
+  return statusOk&&facetsOk&&tagsOk&&searchOk.toLocaleLowerCase().includes(q);
+ }).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||shelfSortBooks(a,b));
  $('shelf-result-count').textContent=visible.length+'冊';
  if(!visible.length){
   const e=textNode('div','','empty');
