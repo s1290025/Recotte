@@ -1123,6 +1123,44 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #detaildialog .detail-book-info .series-add-button:hover,
 #detaildialog .detail-book-info .series-add-button:focus-visible{background:#f4eee4}
 #detaildialog .detail-book-info .series-add-button[hidden]{display:none!important}
+
+/* Series shelf: the main cover stays a book; the separate chevron opens a horizontal, numbered strip. */
+#home-page #books.grid.cards .series-shelf-entry{position:relative;min-width:0;aspect-ratio:2/3}
+#home-page #books.grid.cards .series-shelf-entry>.card{width:100%;height:100%}
+#home-page #books.grid.cards .series-shelf-expand{
+ position:absolute;right:6px;bottom:6px;z-index:2;display:grid;place-items:center;
+ min-width:34px;height:30px;padding:0 5px;border:1px solid #d6cfc3;border-radius:4px;
+ background:#fffcf0e8;color:#534b42;font-size:20px;line-height:1;cursor:pointer;
+}
+#home-page #books.grid.cards .series-shelf-expand:hover{background:#fff}
+#home-page #books.grid.cards .series-shelf-strip{
+ grid-column:1/-1;display:flex;align-items:flex-start;gap:9px;min-width:0;max-width:100%;
+ padding:13px 8px 17px;overflow-x:auto;background:#f6f4ef;line-height:1.4;
+ scrollbar-width:thin;
+}
+#home-page #books.grid.cards .series-shelf-volume{
+ flex:0 0 clamp(67px,11vw,112px);min-width:0;padding:0;border:0;border-radius:0;
+ background:transparent;color:inherit;text-align:center;cursor:pointer;font-size:12px;
+}
+#home-page #books.grid.cards .series-shelf-volume .cover{
+ display:block;width:100%;height:auto;aspect-ratio:2/3;object-fit:cover;border:0;border-radius:0;
+}
+#home-page #books.grid.cards .series-shelf-volume span{display:block;margin-top:7px;line-height:1.35}
+#home-page #books.grid.cards .series-shelf-volume:hover span,
+#home-page #books.grid.cards .series-shelf-volume:focus-visible span{text-decoration:underline;text-underline-offset:3px}
+#home-page #books.grid.cards .series-shelf-volume:focus-visible,
+#home-page #books.grid.cards .series-shelf-expand:focus-visible{outline:2px solid #746958;outline-offset:2px}
+#detaildialog .series-section-actions{display:flex;align-items:center;justify-content:flex-end;gap:9px;flex-wrap:wrap}
+#detaildialog .series-small-action{border:0;border-radius:0;background:transparent;padding:5px 0;
+ color:#685d51;font-size:12px;line-height:1.4;cursor:pointer}
+#detaildialog .series-small-action:hover{text-decoration:underline}
+#detaildialog .series-small-action[hidden]{display:none!important}
+@media(max-width:700px){
+ #detaildialog .series-section-head{align-items:flex-start}
+ #detaildialog .series-section-actions{gap:8px}
+ #detaildialog .series-small-action{font-size:11px}
+ #home-page #books.grid.cards .series-shelf-strip{gap:8px;padding:11px 6px 14px}
+}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1171,7 +1209,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
    <div id="detail-keywords" class="detail-keywords"></div>
    <div id="detail-rating" class="detail-rating"></div>
    <section id="detail-series-volumes" class="detail-series-volumes" hidden><div class="series-section-head"><h3>各巻の記録</h3><button type="button" id="detail-add-volume" class="series-add-button" aria-label="シリーズの巻を追加" title="Google Booksから巻を探す">+</button></div><div id="detail-series-volume-list" class="series-volume-list"></div></section>
-   <section id="detail-volume-series" class="detail-series-volumes" hidden><div class="series-section-head"><h3>シリーズ</h3><button type="button" id="detail-add-series" class="series-add-button" aria-label="シリーズやほかの巻を追加" title="Google Booksからシリーズやほかの巻を探す">+</button></div><div id="detail-volume-series-link"></div></section>
+   <section id="detail-volume-series" class="detail-series-volumes" hidden><div class="series-section-head"><h3>シリーズ</h3><div class="series-section-actions"><button type="button" id="detail-add-series" class="series-add-button" aria-label="シリーズやほかの巻を追加" title="Google Booksからシリーズやほかの巻を探す">+</button><button type="button" id="detail-unlink-series" class="series-small-action" hidden>解除</button><button type="button" id="detail-separate-volume" class="series-small-action" hidden>この本を独立に表示</button></div></div><div id="detail-volume-series-link"></div></section>
   </div>
   <section class="detail-note-section">
    <div id="detail-current-reading" class="detail-session-block">
@@ -1265,27 +1303,64 @@ function startVolumeEditor(series){
 function seriesCover(series){return series.cover||seriesMembers(series).find(b=>b.cover)?.cover||''}
 function persistSeries(next){try{localStorage.setItem(SERIES_KEY,JSON.stringify(next));seriesRecords=next;render();return true}catch{notify('シリーズを保存できませんでした。');return false}}
 function shelfSeriesGroups(visible){
+ // A linked volume is hidden from the main shelf unless independently displayed.
+ // Independently displayed volumes keep ordinary filters, sort order and pinning.
  const groups=[],seen=new Set();
  for(const book of visible){
-  if(book.seriesId){
-   const series=seriesRecords.find(x=>x.id===book.seriesId);
-   if(series&&series.displayMode!=='volumes'){
-    if(!seen.has(series.id)){groups.push({kind:'series',item:series});seen.add(series.id)}
-    if(book.showSeparately)groups.push({kind:'book',item:book});
-    continue;
-   }
-  }
-  groups.push({kind:'book',item:book});
+  const series=seriesRecords.find(x=>x.id===book.seriesId);
+  if(series&&series.displayMode!=='volumes'){
+   if(!seen.has(series.id)){groups.push({kind:'series',item:series});seen.add(series.id)}
+   if(book.showSeparately)groups.push({kind:'book',item:book});
+  }else groups.push({kind:'book',item:book});
  }
  for(const series of seriesRecords){
   if(seen.has(series.id)||series.displayMode==='volumes'&&seriesMembers(series).length)continue;
   if((filter==='wish'?seriesStatus(series)==='wish':seriesStatus(series)!=='wish')&&matchesShelfFacets(series)&&!selectedTags.size){
    const q=$('filter').value.trim().toLocaleLowerCase();
-   if((series.title+' '+(series.author||'')+' '+(series.note||'')).toLocaleLowerCase().includes(q)){groups.push({kind:'series',item:series});seen.add(series.id)}
+   if((series.title+' '+(series.author||'')+' '+(series.note||'')).toLocaleLowerCase().includes(q)){
+    groups.push({kind:'series',item:series});seen.add(series.id);
+   }
   }
  }
- return groups;
+ return groups.sort((a,b)=>Number(!!b.item.pinned)-Number(!!a.item.pinned)||shelfSortBooks(a.item,b.item));
 }
+const expandedShelfSeries=new Set();
+function shelfSeriesExpansion(series){
+ const expanded=expandedShelfSeries.has(series.id),wrap=textNode('div','','series-shelf-entry');
+ const card=textNode('button','','card series-card'),art=textNode('div','','card-art');
+ const cover=seriesCover(series);
+ if(cover)art.append(coverNode(cover));
+ else{
+  const fallback=textNode('div','','cover fallback');
+  fallback.style.setProperty('--book-color','#7d8274');
+  fallback.append(textNode('small','RECOTTE SERIES'),textNode('strong',series.title));art.append(fallback);
+ }
+ card.type='button';card.append(art);
+ card.setAttribute('aria-label',series.title+'のシリーズ記録を開く');
+ card.onclick=()=>openSeries(series.id);
+ const toggle=textNode('button',expanded?'≪':'≫','series-shelf-expand');
+ toggle.type='button';toggle.setAttribute('aria-expanded',String(expanded));
+ toggle.setAttribute('aria-label',series.title+(expanded?'の巻一覧を閉じる':'の巻一覧を開く'));
+ toggle.title=expanded?'巻一覧を閉じる':'登録済みの巻を表示';
+ toggle.onclick=()=>{if(expandedShelfSeries.has(series.id))expandedShelfSeries.delete(series.id);else expandedShelfSeries.add(series.id);render(false)};
+ wrap.append(card,toggle);
+ return wrap;
+}
+function shelfSeriesVolumeStrip(series){
+ const strip=textNode('div','','series-shelf-strip');
+ strip.setAttribute('aria-label',series.title+'の各巻');
+ const volumes=seriesMembers(series);
+ if(!volumes.length)strip.append(textNode('p','まだ登録された巻はありません。','muted'));
+ for(const volume of volumes){
+  const item=textNode('button','','series-shelf-volume');item.type='button';
+  item.setAttribute('aria-label',volume.title+'の記録を開く');
+  item.append(bookCover(volume),textNode('span',volume.volumeNumber?volume.volumeNumber+'巻':'巻数未登録'));
+  item.onclick=()=>{seriesReturnId=series.id;selectBook(volume)};
+  strip.append(item);
+ }
+ return strip;
+}
+
 function coverNode(url){
  const candidates=[...new Set((Array.isArray(url)?url:[url]).filter(u=>typeof u==='string'&&/^https:\/\//.test(u)))];
  if(!candidates.length){const p=document.createElement('div');p.className='cover';p.textContent='Recotte!';return p}
@@ -1586,6 +1661,10 @@ function renderDetailVolumeSeries(book){
  host.replaceChildren();
  const parsed=seriesFromCatalogTitle(book.title);
  const registered=seriesRecords.find(series=>series.id===book.seriesId);
+ $('detail-unlink-series').hidden=!registered;
+ $('detail-separate-volume').hidden=!registered;
+ $('detail-separate-volume').textContent=book.showSeparately?'独立表示をやめる':'この本を独立に表示';
+ $('detail-separate-volume').setAttribute('aria-pressed',String(!!book.showSeparately));
  const isVolume=book.recordType!=='series'&&(!!book.seriesId||Number(book.volumeNumber)>0||!!parsed);
  section.hidden=!isVolume;
  $('detail-add-series').hidden=!!registered;
@@ -1597,6 +1676,21 @@ function renderDetailVolumeSeries(book){
   link.onclick=()=>openSeries(registered.id);host.append(link);
  }else host.append(textNode('p','シリーズ未登録','muted'));
 }
+$('detail-unlink-series').onclick=()=>{
+ const book=detailBook,series=seriesRecords.find(s=>s.id===book?.seriesId);
+ if(!book||!series)return;
+ if(!confirm('「'+series.title+'」からこの巻の関連付けを解除しますか？ 読書記録は削除されません。'))return;
+ const updated={...book,seriesId:null,showSeparately:false,updatedAt:new Date().toISOString()};
+ if(!persist(books.map(b=>b.id===book.id?updated:b)))return;
+ seriesReturnId=null;selectBook(updated);
+};
+$('detail-separate-volume').onclick=()=>{
+ const book=detailBook;
+ if(!book||!seriesRecords.some(s=>s.id===book.seriesId))return;
+ const updated={...book,showSeparately:!book.showSeparately,updatedAt:new Date().toISOString()};
+ if(!persist(books.map(b=>b.id===book.id?updated:b)))return;
+ selectBook(updated);
+};
 function selectBook(b){
  if(!b.seriesId&&b.recordType!=='series')seriesReturnId=null;
  detailBook=b;
@@ -1915,14 +2009,9 @@ function render(refreshPanel=true){
   const b=group.item;
   const card=textNode('button','','card'),art=textNode('div','','card-art');
   if(group.kind==='series'){
-   card.classList.add('series-card');
-   const cover=seriesCover(b);
-   if(cover)art.append(coverNode(cover));
-   else{const fallback=textNode('div','','cover fallback');fallback.style.setProperty('--book-color','#7d8274');fallback.append(textNode('small','RECOTTE SERIES'),textNode('strong',b.title));art.append(fallback)}
-   const count=seriesMembers(b).length;
-   const label=textNode('span',count?count+'巻':'シリーズ','series-card-badge');art.append(label);
-   card.setAttribute('aria-label',b.title+'のシリーズ記録を開く');
-   card.type='button';card.append(art);card.onclick=()=>openSeries(b.id);container.append(card);continue;
+   container.append(shelfSeriesExpansion(b));
+   if(expandedShelfSeries.has(b.id))container.append(shelfSeriesVolumeStrip(b));
+   continue;
   }
   card.type='button';card.setAttribute('aria-label',b.title+'の読書記録を開く');
   art.append(bookCover(b));
