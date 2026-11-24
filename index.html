@@ -805,6 +805,8 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .overall-rating-row{justify-content:flex-start;gap:10px}
 #editdialog .overall-rating-row label{flex:0 0 auto;width:auto;white-space:nowrap}
 #editdialog .overall-rating-value{flex:0 0 auto;min-width:105px}
+#detaildialog .detail-book-metadata{margin:3px 0 0;font-size:11px;line-height:1.6;color:#89857d;overflow-wrap:anywhere}
+#detaildialog .detail-book-metadata[hidden]{display:none!important}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -826,7 +828,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  <div class="detail-book">
   <div class="detail-book-info">
    <div id="detail-cover" class="detail-cover"></div>
-   <div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-categories" class="muted"></p><p id="detail-status" class="detail-status" hidden></p></div>
+   <div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-publisher-categories" class="detail-book-metadata" hidden></p><p id="detail-status" class="detail-status" hidden></p></div>
    <div id="detail-keywords" class="detail-keywords"></div>
   </div>
   <section class="detail-note-section">
@@ -1110,7 +1112,9 @@ function selectBook(b){
  $('detail-cover').replaceChildren(bookCover(b));
  $('detail-title').textContent=b.title;
  $('detail-author').textContent=b.author||'著者未登録';
- $('detail-categories').textContent=(Array.isArray(b.categories)?b.categories:[]).join(' / ');
+ const bookMetadata=[typeof b.publisher==='string'?b.publisher.trim():'',...(Array.isArray(b.categories)?b.categories.filter(x=>typeof x==='string'&&x.trim()):[])];
+ $('detail-publisher-categories').textContent=bookMetadata.filter(Boolean).join(' · ');
+ $('detail-publisher-categories').hidden=!bookMetadata.some(Boolean);
  $('detail-status').textContent='';
  $('detail-date').textContent='';
  fillDetails(b);
