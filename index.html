@@ -1103,7 +1103,7 @@ function drawRadar(items,host){
  const polygon=document.createElementNS(ns,'polygon');polygon.setAttribute('points',pts(1));polygon.setAttribute('fill','#a7b8c544');polygon.setAttribute('stroke','#718ca1');polygon.setAttribute('stroke-width','2');svg.append(polygon);host.append(svg)
 }
 function readingDateSortValue(value){
- const parts=String(value||'').match(/^(\\d{4})(?:-(\\d{1,2}))?(?:-(\\d{1,2}))?$/);
+ const parts=String(value||'').match(/^(\d{4})(?:-(\d{1,2}))?(?:-(\d{1,2}))?$/);
  return parts?Number(parts[1])*10000+Number(parts[2]||0)*100+Number(parts[3]||0):0;
 }
 function fillDetails(book){
