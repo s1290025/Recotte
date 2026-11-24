@@ -908,7 +908,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #home-page .facet-panel[hidden],#home-page .active-filters[hidden]{display:none!important}
 #home-page .facet-panel-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px;font-size:13px}
 #home-page #facet-clear-current{font-size:11px;color:#756b5d;background:transparent;border:0;text-decoration:underline;padding:4px}
-#home-page .facet-options{display:flex;flex-wrap:wrap;gap:8px 15px;max-height:220px;overflow-y:auto}
+#home-page .facet-options{display:flex;flex-wrap:wrap;gap:8px 15px;max-height:none;overflow:visible}
 #home-page .facet-option{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;background:#fffdf8;border:1px solid #ebe4d9;border-radius:5px;font-size:12px;cursor:pointer}
 #home-page .facet-option:has(input:checked){background:#efe8d9;border-color:#c1b19b}
 #home-page .facet-option input{accent-color:#87755e}
@@ -1418,11 +1418,7 @@ function renderShelfFacets(source){
   for(const value of choices){
    const option=document.createElement('label');option.className='facet-option';
    const checkbox=document.createElement('input');checkbox.type='checkbox';checkbox.checked=shelfFacets[key].has(value);
-   checkbox.onchange=()=>{
-    if(checkbox.checked)shelfFacets[key].add(value);else shelfFacets[key].delete(value);
-    // Preserve the checkbox and recalculate the book list immediately.
-    render(false);
-   };
+   checkbox.dataset.facet=key;checkbox.dataset.value=value;
    const name=document.createElement('span');name.textContent=key==='rating'&&value==='総合'?'総合評価':value;
    option.append(checkbox,name);box.append(option);
   }
@@ -1453,6 +1449,15 @@ function renderShelfFacets(source){
  if(!openShelfFacet){panel.querySelector('.rating-range')?.remove()}
  refreshActiveFilterChips(source);
 }
+// A single stable listener keeps the filter selection and book results in sync.
+$('facet-options').addEventListener('change',event=>{
+ const box=event.target.closest('input[type="checkbox"][data-facet]');
+ if(!box)return;
+ const selected=shelfFacets[box.dataset.facet];
+ if(!selected)return;
+ if(box.checked)selected.add(box.dataset.value);else selected.delete(box.dataset.value);
+ render(false);
+});
 $('tabs').addEventListener('click',e=>{
  const button=e.target.closest('[data-facet]');if(!button)return;
  openShelfFacet=openShelfFacet===button.dataset.facet?null:button.dataset.facet;render()
