@@ -2315,7 +2315,7 @@ function googleSearchURL(q,startIndex=0){
  return 'https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(query)+'&maxResults='+CATALOG_PAGE_SIZE+'&startIndex='+startIndex+'&printType=books&orderBy=relevance';
 }
 // Probe missing volumes individually rather than relying on broad relevance ranking.
-const SERIES_PROBE_PER_BATCH=28,SERIES_PROBE_MAX_VOLUME=120,SERIES_PROBE_EXTRA=5;
+const SERIES_PROBE_PER_BATCH=15,SERIES_PROBE_MAX_VOLUME=120,SERIES_PROBE_EXTRA=5;
 function seriesSearchTarget(q,items){
  if(catalogContext){
   const base=catalogContextBase();
@@ -2330,7 +2330,9 @@ function seriesSearchTarget(q,items){
  }
  const needle=catalogSeriesKey(q);
  const candidates=[...counts.values()].filter(x=>x.volumes.size>=2).sort((a,b)=>{
-  const matchA=Number(catalogSeriesKey(a.base)===needle),matchB=Number(catalogSeriesKey(b.base)===needle);
+  const aKey=catalogSeriesKey(a.base),bKey=catalogSeriesKey(b.base);
+  const matchA=Number(aKey===needle)*4+Number(needle.includes(aKey)||aKey.includes(needle))*2;
+  const matchB=Number(bKey===needle)*4+Number(needle.includes(bKey)||bKey.includes(needle))*2;
   return matchB-matchA||b.volumes.size-a.volumes.size;
  });
  return candidates[0]?.base||'';
@@ -2353,7 +2355,7 @@ function seriesConfirmedVolumes(items,base){
  return map;
 }
 async function probeSeriesVolume(base,number,apiKey,signal){
- const terms=[base+' '+number+'巻',base+' '+number];
+ const terms=[base+' '+number+'巻',base+' 第'+number+'巻',base+' '+number];
  const results=[],seen=new Set();
  for(const term of terms){
   const data=await requestBookJSON(googleSearchURL(term),signal,apiKey);
@@ -2369,7 +2371,7 @@ async function probeSeriesVolume(base,number,apiKey,signal){
 async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
  const apiKey=getGoogleAPIKey();if(!apiKey){$('google-settings').open=true;throw new Error('検索設定でGoogle Books APIキーを設定してください。')}
  const key=q.normalize('NFKC').trim(),cached=bookSearchCache.get(key);
- if(!loadMore&&cached&&Date.now()-cached.time<600000&&cached.result.auditFinished)return cached.result;
+ if(!loadMore&&cached&&Date.now()-cached.time<600000&&cached.result.auditFinished&&!cached.result.pageHasMore)return cached.result;
  const previous=(loadMore||cached&&Date.now()-cached.time<600000)?cached?.result:null;
  const found=previous?[...previous.items]:[],seen=new Set(found.map(item=>item.volumeId||item.isbn||item.title+'|'+item.author));
  let offset=previous?.nextIndex||0;
@@ -2414,7 +2416,7 @@ async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
   const batch=outstanding.slice(0,SERIES_PROBE_PER_BATCH);
   for(let i=0;i<batch.length;i++){
    const number=batch[i];
-   if(onProgress&&i%3===0)onProgress('巻数を確認しています（'+number+'巻）…');
+   if(onProgress)onProgress('巻数を確認しています（'+(i+1)+' / '+batch.length+'、'+number+'巻）…');
    try{
     const candidates=await probeSeriesVolume(target,number,apiKey,signal);
     for(const item of candidates)addItem(item);
@@ -2590,7 +2592,7 @@ function renderCatalogResults(){
  const valid=new Map();
  for(const [key,group] of groups){
   const authors=[...new Set(group.map(item=>String(item.book.author||'').normalize('NFKC').trim()).filter(Boolean))];
-  if(group.length>=2&&new Set(group.map(item=>item.series.volume)).size>=2&&authors.length<=1)valid.set(key,group);
+  if(group.length>=2&&new Set(group.map(item=>item.series.volume)).size>=2)valid.set(key,group);
  }
  const displayed=new Set();
  for(const item of parsed){
@@ -2600,7 +2602,8 @@ function renderCatalogResults(){
   displayed.add(key);
   const section=document.createElement('details');section.className='catalog-series-group';
   const header=document.createElement('summary');
-  const sorted=[...group].sort((a,b)=>a.series.volume-b.series.volume);
+  const deduplicated=seriesConfirmedVolumes(group.map(entry=>entry.book),group[0].series.base);
+  const sorted=[...deduplicated].sort((a,b)=>a[0]-b[0]).map(([volume,book])=>({book,series:{...seriesFromCatalogTitle(book.title),volume}}));
   const representative=sorted[0];
   const info=textNode('span','','catalog-series-info');
   info.append(textNode('strong',representative.series.base),textNode('small','シリーズ全体または巻を選択','muted'));
@@ -2622,15 +2625,29 @@ $('catalog-load-more').onclick=async()=>{
  const button=$('catalog-load-more');button.disabled=true;button.textContent='追加の巻を探しています…';
  const controller=new AbortController();searchController?.abort();searchController=controller;
  try{
-  const result=await searchBookCatalog(query,controller.signal,true);
+  const result=await searchBookCatalog(query,controller.signal,true,message=>{$('searchmessage').textContent=message});
   if(controller.signal.aborted)return;
-  currentCatalogResults=result.items.map(v=>({id:v.volumeId||crypto.randomUUID(),title:v.title,author:v.author,status:'wish',date:'',note:'',cover:v.cover,coverCandidates:v.coverCandidates,isbn:v.isbn,itemUrl:v.itemUrl,source:v.source,volumeId:v.volumeId,categories:v.categories,pageCount:v.pageCount,language:v.language,publisher:v.publisher,published:v.published}));
+  currentCatalogResults=catalogSearchItems(result);
   renderCatalogResults();
   button.hidden=!result.hasMore;
-  $('searchmessage').textContent='Google Books · 検索結果を追加しました。'+(result.warning?' '+result.warning:'');
+  $('searchmessage').textContent='Google Books · 検索結果を追加しました。'+catalogSearchFeedback(result)+(result.warning?' '+result.warning:'');
  }catch(error){if(!controller.signal.aborted)$('searchmessage').textContent=error.message||'追加の検索結果を取得できませんでした。'}
- finally{button.disabled=false;button.textContent='さらに検索結果を読み込む'}
+ finally{button.disabled=false;if(button.textContent==='追加の巻を探しています…')button.textContent='さらに検索結果を読み込む'}
 };
+
+function catalogSearchFeedback(result){
+ const audit=result.audit;
+ if(!audit)return '';
+ const found=seriesConfirmedVolumes(result.items,audit.base);
+ const missing=result.missingVolumes||[];
+ let message=' '+audit.base+'：'+found.size+'巻を確認';
+ if(missing.length)message+='。見つからない巻：'+missing.slice(0,16).join('、')+(missing.length>16?'ほか':'');
+ if(!result.auditFinished)message+='。続きの巻数も確認できます';
+ return message+'。';
+}
+function catalogSearchItems(result){
+ return result.items.map(v=>({id:v.volumeId||crypto.randomUUID(),title:v.title,author:v.author,status:'wish',date:'',note:'',cover:v.cover,coverCandidates:v.coverCandidates,isbn:v.isbn,itemUrl:v.itemUrl,source:v.source,volumeId:v.volumeId,categories:v.categories,pageCount:v.pageCount,language:v.language,publisher:v.publisher,published:v.published}));
+}
 
 refreshGoogleSettings();
 $('searchform').onsubmit=async e=>{
@@ -2639,11 +2656,12 @@ $('searchform').onsubmit=async e=>{
  lastBookSearchAt=Date.now();searchController?.abort();const controller=new AbortController();searchController=controller;
  $('searchbutton').disabled=true;currentCatalogResults=[];$('results').replaceChildren();$('search-group-control').hidden=true;$('catalog-load-more').hidden=true;$('searchmessage').textContent='検索しています…';
  try{
-  const result=await searchBookCatalog(q,controller.signal);if(controller.signal.aborted)return;
+  const result=await searchBookCatalog(q,controller.signal,false,message=>{$('searchmessage').textContent=message});if(controller.signal.aborted)return;
   const {items,source}=result;
-  $('searchmessage').textContent=items.length?(catalogContext?'Google Books · シリーズや巻を選択してください。':source+' · 本を選んで読書状況を登録してください。')+(result.warning?' '+result.warning:''):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
+  $('searchmessage').textContent=items.length?(catalogContext?'Google Books · シリーズや巻を選択してください。':source+' · 本を選んで読書状況を登録してください。')+catalogSearchFeedback(result)+(result.warning?' '+result.warning:''):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
   $('catalog-load-more').hidden=!result.hasMore;
-  currentCatalogResults=items.map(v=>({id:crypto.randomUUID(),title:v.title,author:v.author,status:'wish',date:'',note:'',cover:v.cover,coverCandidates:v.coverCandidates,isbn:v.isbn,itemUrl:v.itemUrl,source:v.source,volumeId:v.volumeId,categories:v.categories,pageCount:v.pageCount,language:v.language,publisher:v.publisher,published:v.published}));
+  $('catalog-load-more').textContent=result.audit&&!result.auditFinished?'未確認の巻をさらに探す':'さらに検索結果を読み込む';
+  currentCatalogResults=catalogSearchItems(result);
   renderCatalogResults();
  }catch(error){if(!controller.signal.aborted)$('searchmessage').textContent=error.message||'検索できませんでした。もう一度お試しください。'}
  finally{if(searchController===controller)$('searchbutton').disabled=false}
