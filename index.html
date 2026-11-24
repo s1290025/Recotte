@@ -1106,7 +1106,43 @@ $('action-reread').onclick=()=>{$('reading-action').close();startReadDate(choice
 $('choice-wish').onclick=()=>{const b=choiceBook;if(!b)return;$('reading-choice').close();if(books.some(x=>x.id===b.id)||!b.title.trim()){openEditor({...b,status:'wish'})}else{const saved={...b,status:'wish',updatedAt:new Date().toISOString()};if(persist([...books,saved]))notify('読みたい本に追加しました。')}};
 $('choice-done').onclick=()=>{$('reading-choice').close();startReadDate(choiceBook,'first')};
 $('today-choice').onclick=()=>setDateFieldsToday($('choice-date-fields'));
-$('reading-date-form').onsubmit=e=>{e.preventDefault();const date=getDateFields($('choice-date-fields'));if(date===null)return;choiceDate=date;$('reading-date').close();$('choice-elements').value=[...new Set([...(choiceBook.keywords?.elements||[]),...(choiceBook.keywords?.moods||[]),...(choiceBook.keywords?.likes||[])])].join('、');$('reading-elements').showModal()};
+// Preserve a valid reading date and elements even if the onboarding dialogs are dismissed.
+const READING_DRAFT_KEY='recotte.reading.draft.v1';
+let readingDraftTimer=null;
+function saveReadingStep(stage,redraw=false){
+ if(!choiceBook)return;
+ const b=choiceBook;
+ const date=stage==='date'?editorDateValue($('choice-date-fields')):choiceDate;
+ const keywords=stage==='elements'?splitKeywords($('choice-elements').value):[...new Set([...(b.keywords?.elements||[]),...(b.keywords?.moods||[]),...(b.keywords?.likes||[])])];
+ const draft={book:b,date,mode:choiceMode,keywords,stage};
+ try{localStorage.setItem(READING_DRAFT_KEY,JSON.stringify(draft))}catch{}
+ if(!date||!b.title?.trim())return;
+ const history=Array.isArray(b.readHistory)?[...b.readHistory]:(b.date?[{date:b.date}]:[]);
+ history.push({date});
+ const readEntries=historicalEntries(b);
+ if(choiceMode==='reread')readEntries.push({date:history.length>1?history[history.length-2].date:'',note:b.note||'',noteMarks:b.noteMarks||''});
+ const next={...b,status:'done',readHistory:history,date:/^\d{4}-\d{2}-\d{2}$/.test(date)?date:b.date||'',readEntries,keywords:{elements:keywords,moods:[],likes:[]},...(choiceMode==='reread'?{note:'',noteMarks:''}:{ }),updatedAt:new Date().toISOString()};
+ try{
+  const nextBooks=[...books.filter(book=>book.id!==next.id),next];
+  localStorage.setItem(KEY,JSON.stringify(nextBooks));books=nextBooks;
+  if(detailBook?.id===next.id)detailBook=next;
+  if(redraw){filter='done';refreshIndex();render()}
+ }catch{notify('記録を保存できませんでした。')}
+}
+$('reading-date').addEventListener('close',()=>{if(choiceBook)saveReadingStep('date',true)});
+$('reading-elements').addEventListener('close',()=>{if(choiceBook)saveReadingStep('elements',true)});
+$('choice-date-fields').addEventListener('change',()=>{clearTimeout(readingDraftTimer);readingDraftTimer=setTimeout(()=>{if($('reading-date').open)saveReadingStep('date')},450)});
+$('choice-elements').addEventListener('input',()=>{clearTimeout(readingDraftTimer);readingDraftTimer=setTimeout(()=>{if($('reading-elements').open)saveReadingStep('elements')},450)});
+window.addEventListener('pagehide',()=>{
+ if($('reading-date').open)saveReadingStep('date');
+ if($('reading-elements').open)saveReadingStep('elements');
+});
+document.addEventListener('visibilitychange',()=>{
+ if(document.visibilityState!=='hidden')return;
+ if($('reading-date').open)saveReadingStep('date');
+ if($('reading-elements').open)saveReadingStep('elements');
+});
+$('reading-date-form').onsubmit=e=>{e.preventDefault();const date=getDateFields($('choice-date-fields'));if(date===null)return;choiceDate=date;saveReadingStep('date');$('reading-date').close();$('choice-elements').value=[...new Set([...(choiceBook.keywords?.elements||[]),...(choiceBook.keywords?.moods||[]),...(choiceBook.keywords?.likes||[])])].join('、');$('reading-elements').showModal()};
 function finishElements(skip=false){
  const b=choiceBook;if(!b)return;
  const words=skip?[...new Set([...(b.keywords?.elements||[]),...(b.keywords?.moods||[]),...(b.keywords?.likes||[])])]:splitKeywords($('choice-elements').value);
