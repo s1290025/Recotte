@@ -1321,7 +1321,7 @@ $('kw-elements').addEventListener('blur',()=>{if($('kw-elements').value.trim()){
 function updateReadFields(){const active=$('status').value!=='wish',series=editing?.recordType==='series';$('read-fields').hidden=false;document.querySelector('.record-writing').hidden=false;document.querySelector('.current-session').hidden=!active&&!series;$('date-records').hidden=!active&&!series;$('editor-elements').hidden=false}
 $('status').addEventListener('change',updateReadFields);
 const localToday=()=>{const d=new Date();return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')};
-function dateParts(date){const match=String(date||'').match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);return match?{year:match[1],month:match[2]||'',day:match[3]||''}:{year:String(new Date().getFullYear()),month:'',day:''}}
+function dateParts(date){const match=String(date||'').match(/^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/);return match?{year:match[1],month:match[2]||'',day:match[3]||''}:{year:'',month:'',day:''}}
 function buildDateFields(host,date=''){
  const parts=dateParts(date);
  host.classList.add('date-parts');host.replaceChildren();
@@ -1336,10 +1336,10 @@ function buildDateFields(host,date=''){
  const month=document.createElement('select');month.id='date-m-'+crypto.randomUUID();month.className='field date-month';month.add(new Option('選択しない',''));for(let i=1;i<=12;i++)month.add(new Option(i+'月',String(i).padStart(2,'0')));month.value=parts.month;field(monthBox,'月',month);
  const day=document.createElement('select');day.id='date-d-'+crypto.randomUUID();day.className='field date-day';field(dayBox,'日',day);
  const fillDays=()=>{const selected=day.value||parts.day;day.replaceChildren(new Option('選択しない',''));const y=Number(year.value),m=Number(month.value);day.disabled=!month.value;if(!month.value)return;const count=Number.isInteger(y)&&y>0?new Date(y,m,0).getDate():31;for(let i=1;i<=count;i++)day.add(new Option(i+'日',String(i).padStart(2,'0')));if([...day.options].some(x=>x.value===selected))day.value=selected};
- month.addEventListener('change',()=>{parts.day='';day.value='';fillDays()});year.addEventListener('change',fillDays);fillDays();
+ month.addEventListener('change',()=>{parts.day='';day.value='';fillDays()});year.addEventListener('change',()=>{year.setCustomValidity('');fillDays()});fillDays();
  return {year,month,day};
 }
-function getDateFields(host){const y=host.querySelector('.date-year'),m=host.querySelector('.date-month'),d=host.querySelector('.date-day');const value=Number(y.value);if(!Number.isInteger(value)||value<1000||value>9999){y.reportValidity();y.focus();return null}return String(value).padStart(4,'0')+(m.value?'-'+m.value+(d.value?'-'+d.value:''):'')}
+function getDateFields(host){const y=host.querySelector('.date-year'),m=host.querySelector('.date-month'),d=host.querySelector('.date-day');const value=Number(y.value);if(!y.value||!Number.isInteger(value)||value<1000||value>9999){y.setCustomValidity('年を選択してください。');y.reportValidity();y.focus();return null}y.setCustomValidity('');return String(value).padStart(4,'0')+(m.value?'-'+m.value+(d.value?'-'+d.value:''):'')}
 function setDateFieldsToday(host){const today=dateParts(localToday());host.querySelector('.date-year').value=today.year;host.querySelector('.date-month').value=today.month;host.querySelector('.date-day').disabled=false;host.querySelector('.date-month').dispatchEvent(new Event('change'));host.querySelector('.date-day').value=today.day}
 function addReadHistoryRow(date=''){
  const row=document.createElement('div');row.className='history-row';
@@ -1367,7 +1367,7 @@ function setReaction(value){selectedReaction=value;document.querySelectorAll('#r
 document.querySelectorAll('#reaction-picks button').forEach(b=>b.onclick=()=>setReaction(selectedReaction===b.dataset.reaction?null:b.dataset.reaction));
 let choiceBook=null,choiceMode='first',choiceDate='';
 function startReadingChoice(b){choiceBook={...b};$('choice-book-title').textContent=b.title||'手動で登録する';if($('searchdialog').open)$('searchdialog').close();$('reading-choice').showModal()}
-function startReadDate(b,mode='first'){choiceBook={...b};choiceMode=mode;buildDateFields($('choice-date-fields'),localToday());$('reading-date').showModal()}
+function startReadDate(b,mode='first'){choiceBook={...b};choiceMode=mode;choiceDate='';buildDateFields($('choice-date-fields'));$('reading-date').showModal()}
 function startReadingAction(b){choiceBook={...b};$('reading-action').showModal()}
 $('action-edit').onclick=()=>{$('reading-action').close();openEditor(choiceBook)};
 $('action-reread').onclick=()=>{$('reading-action').close();startReadDate(choiceBook,'reread')};
@@ -2003,7 +2003,7 @@ function openEditor(b=null){
  $('read-history').replaceChildren();
  const history=Array.isArray(editing.readHistory)?editing.readHistory:(editing.date?[{date:editing.date}]:[]);
  if(history.length)addReadHistoryRow(history[history.length-1].date||'');
- else if(editing.status!=='wish')addReadHistoryRow(localToday());
+ else if(editing.status!=='wish'||editing.recordType==='series')addReadHistoryRow();
  const currentDate=history.length?history[history.length-1].date||'':'';
  document.querySelector('.current-session').style.order=String(-readingDateSortValue(currentDate));
  editing.readEntries=historicalEntries(editing);
@@ -2095,6 +2095,10 @@ $('editform').onsubmit=e=>{
  e.preventDefault();
  const title=$('title').value.trim();
  if(!title){$('title').setCustomValidity('タイトルを入力してください。');$('title').reportValidity();return}
+ if($('status').value!=='wish'){
+  const current=$('read-history').lastElementChild?.querySelector('.date-parts');
+  if(!current||getDateFields(current)===null){if(!current){addReadHistoryRow();getDateFields($('read-history').lastElementChild.querySelector('.date-parts'))}return}
+ }
  const b=saveEditorProgress(true);if(!b)return;
  editorClosingSaved=true;$('editdialog').close();
  const reread=rereadAfterSave;rereadAfterSave=false;
