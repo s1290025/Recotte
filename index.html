@@ -978,7 +978,7 @@ function addReadHistoryRow(date=''){
 $('today-edit').onclick=()=>{const row=$('read-history').lastElementChild||addReadHistoryRow(localToday());setDateFieldsToday(row.querySelector('.date-parts'))};
 function addCustomRatingRow(value={name:'',value:''}){
  const row=document.createElement('div');row.className='custom-rating-row';
- const name=document.createElement('input');name.className='field custom-rating-name';name.placeholder='項目（例：怖さ）';name.maxLength=60;name.value=value.name||'';name.setAttribute('aria-label','評価項目');
+ const name=document.createElement('input');name.className='field custom-rating-name';name.placeholder='項目名';name.maxLength=60;name.value=value.name||'';name.setAttribute('aria-label','評価項目');
  const rating=document.createElement('select');rating.className='field custom-rating-value';rating.setAttribute('aria-label','評価値');
  rating.add(new Option('未評価',''));
  for(let i=.5;i<=5;i+=.5)rating.add(new Option(i.toFixed(1)+' / 5',String(i)));
@@ -1219,7 +1219,9 @@ function openEditor(b=null){
  editorElements=[...new Set([...(editing.keywords?.elements||[]),...(editing.keywords?.moods||[]),...(editing.keywords?.likes||[])])];$('kw-elements').value='';drawElementChips();
  setReaction(editing.reaction||null);
  $('custom-rating-fields').replaceChildren();
- for(const row of editing.customRatings||[])addCustomRatingRow(row);
+ const savedRatings=Array.isArray(editing.customRatings)?editing.customRatings:[];
+ if(savedRatings.length){for(const row of savedRatings)addCustomRatingRow(row)}
+ else if(editing.status!=='wish'){for(const name of ['ストーリー','キャラクター','世界観'])addCustomRatingRow({name,value:''})}
  $('read-history').replaceChildren();
  const history=Array.isArray(editing.readHistory)?editing.readHistory:(editing.date?[{date:editing.date}]:[]);
  if(history.length)addReadHistoryRow(history[history.length-1].date||'');
