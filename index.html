@@ -1384,7 +1384,7 @@ function saveReadingStep(stage,redraw=false){
  const keywords=stage==='elements'?splitKeywords($('choice-elements').value):[...new Set([...(b.keywords?.elements||[]),...(b.keywords?.moods||[]),...(b.keywords?.likes||[])])];
  const draft={book:b,date,mode:choiceMode,keywords,stage};
  try{localStorage.setItem(READING_DRAFT_KEY,JSON.stringify(draft))}catch{}
- if(!date||!b.title?.trim())return;
+ if(!date||!b.title?.trim()||b.recordType==='series')return;
  const history=Array.isArray(b.readHistory)?[...b.readHistory]:(b.date?[{date:b.date}]:[]);
  history.push({date});
  const readEntries=historicalEntries(b);
@@ -1422,7 +1422,10 @@ function finishElements(skip=false){
  $('reading-elements').close();
  // A completed date/element step is already a valid reading record:
  // persist it before opening the optional memo editor.
- if(choiceMode==='first'&&revised.title?.trim()){
+ if(revised.recordType==='series'){
+  // Series rereads remain in seriesRecords, never in the individual books store.
+  openEditor(revised);
+ }else if(choiceMode==='first'&&revised.title?.trim()){
   const saved={...revised,author:typeof revised.author==='string'?revised.author:'',note:typeof revised.note==='string'?revised.note:'',cover:typeof revised.cover==='string'?revised.cover:'',updatedAt:new Date().toISOString()};
   const previousFilter=filter;
   filter='done';
@@ -2014,7 +2017,7 @@ function openEditor(b=null){
  $('volume-cover-field').hidden=catalogLocked||(!editing.seriesId&&!editing.suggestedSeriesName);
  $('volume-cover-url').value=editing.seriesId||editing.suggestedSeriesName?editing.cover||'':'';
  $('api-book-metadata').textContent=[(editing.categories||[]).join(' / '),editing.publisher,editing.published,editing.pageCount?editing.pageCount+'ページ':''].filter(Boolean).join(' · ');
- updateEditorNoteHeading();updateReadFields();$('reread-action').hidden=editing.recordType==='series'||editing.status==='wish'||!books.some(x=>x.id===editing.id);if($('searchdialog').open)$('searchdialog').close();$('editdialog').showModal();
+ updateEditorNoteHeading();updateReadFields();$('reread-action').hidden=editing.status==='wish'||!(editing.recordType==='series'?seriesRecords.some(x=>x.id===editing.id):books.some(x=>x.id===editing.id));if($('searchdialog').open)$('searchdialog').close();$('editdialog').showModal();
 }
 
 $('add').onclick=()=>{closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>startReadingChoice({id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''});$('filter').oninput=render;
