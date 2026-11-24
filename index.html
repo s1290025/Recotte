@@ -2430,7 +2430,8 @@ async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
   const after=seriesConfirmedVolumes(found,target);
   const nextLimit=Math.min(SERIES_PROBE_MAX_VOLUME,Math.max(1,...after.keys())+SERIES_PROBE_EXTRA);
   missingVolumes=[];
-  for(let n=1;n<=nextLimit;n++)if(!after.has(n)&&checked.has(n))missingVolumes.push(n);
+  const confirmedMax=Math.max(0,...after.keys());
+  for(let n=1;n<=confirmedMax;n++)if(!after.has(n)&&checked.has(n))missingVolumes.push(n);
   const pending=Array.from({length:nextLimit},(_,i)=>i+1).some(n=>!after.has(n)&&!checked.has(n));
   auditFinished=!pending;
   audit.checked=[...checked].sort((a,b)=>a-b);
@@ -2451,7 +2452,8 @@ function seriesFromCatalogTitle(title){
   /^(.+?)\s*第\s*(\d{1,3})\s*(?:巻|冊|集)(?:\s*[:：\-－].*)?$/,
   /^(.+?)\s+vol(?:ume)?\.?\s*(\d{1,3})(?:\s*[:：\-－].*)?$/i,
   /^(.+?)\s*(\d{1,3})\s*(?:巻|冊|集)(?:\s*[:：\-－].*)?$/,
-  /^(.+?)\s+(\d{1,3})(?:\s*[:：\-－].*)?$/
+  /^(.+?)\\s+(\\d{1,3})(?:\\s*[:：\\-－].*)?$/,
+  /^(.+?)\\s+(?:第\\s*)?(\\d{1,3})\\s*(?:巻|冊|集)?\\s*[（(][^）)]{1,80}[）)]$/
  ];
  for(const pattern of patterns){
   const found=name.match(pattern);
@@ -2641,7 +2643,7 @@ function catalogSearchFeedback(result){
  const found=seriesConfirmedVolumes(result.items,audit.base);
  const missing=result.missingVolumes||[];
  let message=' '+audit.base+'：'+found.size+'巻を確認';
- if(missing.length)message+='。見つからない巻：'+missing.slice(0,16).join('、')+(missing.length>16?'ほか':'');
+ if(missing.length)message+='。未発見の巻：'+missing.slice(0,16).join('、')+(missing.length>16?'ほか':'');
  if(!result.auditFinished)message+='。続きの巻数も確認できます';
  return message+'。';
 }
