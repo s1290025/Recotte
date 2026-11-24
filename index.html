@@ -2057,7 +2057,7 @@ function openEditor(b=null){
  updateEditorNoteHeading();updateReadFields();$('reread-action').hidden=editing.status==='wish'||!(editing.recordType==='series'?seriesRecords.some(x=>x.id===editing.id):books.some(x=>x.id===editing.id));if($('searchdialog').open)$('searchdialog').close();$('editdialog').showModal();
 }
 
-$('add').onclick=()=>{closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>startReadingChoice({id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''});$('filter').oninput=render;
+$('add').onclick=()=>{catalogContext=null;$('search-context-hint').hidden=true;closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>startReadingChoice({id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''});$('filter').oninput=render;
 $('toggle-search').onclick=()=>{closeMobileMenu();const input=$('filter'),open=input.hidden;input.hidden=!open;$('toggle-search').setAttribute('aria-expanded',String(open));if(open)input.focus();else{input.value='';render()}};
 $('filter').addEventListener('keydown',e=>{if(e.key==='Escape'){$('toggle-search').click();$('toggle-search').focus()}});
 
@@ -2257,12 +2257,96 @@ function seriesFromCatalogTitle(title){
  }
  return null;
 }
+
+/* The detail-page plus buttons reuse Google Books search without losing existing records. */
+let catalogContext=null;
+function catalogSeriesKey(title){return String(title||'').normalize('NFKC').replace(/[\\s・･、。]+/g,'').toLocaleLowerCase()}
+function catalogContextBase(){
+ if(!catalogContext)return '';
+ if(catalogContext.kind==='series')return seriesRecords.find(x=>x.id===catalogContext.id)?.title||'';
+ const b=books.find(x=>x.id===catalogContext.id),series=seriesRecords.find(x=>x.id===b?.seriesId);
+ return series?.title||seriesFromCatalogTitle(b?.title)?.base||b?.title||'';
+}
+function openDetailCatalog(kind){
+ const b=detailBook;if(!b||b.demo)return;
+ catalogContext={kind,id:b.id};
+ const base=catalogContextBase();
+ if(!base){catalogContext=null;return}
+ $('query').value=base;
+ $('search-context-hint').hidden=false;
+ $('search-context-hint').textContent=kind==='series'?'このシリーズの巻をGoogle Booksから探します。':'シリーズ全体、またはほかの巻を選択してください。';
+ $('search-group-toggle').checked=true;
+ $('results').replaceChildren();
+ $('catalog-load-more').hidden=true;
+ $('searchdialog').showModal();
+ $('searchform').requestSubmit();
+}
+$('detail-add-volume').onclick=()=>openDetailCatalog('series');
+$('detail-add-series').onclick=()=>openDetailCatalog('volume');
+$('searchdialog').addEventListener('close',()=>{
+ catalogContext=null;$('search-context-hint').hidden=true;
+});
+function getOrCreateCatalogSeries(base,representative,sourceVolume=null){
+ let series=seriesRecords.find(x=>catalogSeriesKey(x.title)===catalogSeriesKey(base));
+ if(!series){
+  series={id:crypto.randomUUID(),recordType:'series',title:base,author:representative?.author||sourceVolume?.author||'',cover:representative?.cover||sourceVolume?.cover||'',
+   source:representative?.source==='Google Books'?'Google Books':'',status:'wish',note:'',elements:[],customRatings:[],readHistory:[],readEntries:[],displayMode:'grouped'};
+  if(!persistSeries([...seriesRecords,series]))return null;
+ }
+ if(sourceVolume&&sourceVolume.seriesId!==series.id){
+  const updated={...sourceVolume,seriesId:series.id,volumeNumber:sourceVolume.volumeNumber||seriesFromCatalogTitle(sourceVolume.title)?.volume||null};
+  if(!persist(books.map(b=>b.id===updated.id?updated:b)))return null;
+  if(detailBook?.id===updated.id)selectBook(updated);
+ }
+ return series;
+}
+function catalogContextSelectSeries(base,book){
+ const context=catalogContext;if(!context){startCatalogSeriesRegistration(base,book);return}
+ if(catalogSeriesKey(base)!==catalogSeriesKey(catalogContextBase())){notify('同じシリーズを選択してください。');return}
+ let series;
+ if(context.kind==='series')series=seriesRecords.find(x=>x.id===context.id);
+ else{
+  const original=books.find(x=>x.id===context.id);
+  if(!original){notify('元の本が見つかりません。');return}
+  series=getOrCreateCatalogSeries(base,book,original);
+ }
+ if(!series)return;
+ if($('searchdialog').open)$('searchdialog').close();
+ openSeries(series.id);
+}
+function catalogContextSelectVolume(book){
+ const context=catalogContext;if(!context)return false;
+ const parsed=seriesFromCatalogTitle(book.title),expected=catalogContextBase();
+ if(!parsed||catalogSeriesKey(parsed.base)!==catalogSeriesKey(expected)){notify('このシリーズの巻を選択してください。');return true}
+ const source=context.kind==='volume'?books.find(x=>x.id===context.id):null;
+ const series=context.kind==='series'?seriesRecords.find(x=>x.id===context.id):getOrCreateCatalogSeries(parsed.base,book,source);
+ if(!series)return true;
+ let existing=books.find(b=>b.seriesId===series.id&&(
+  book.volumeId&&b.volumeId===book.volumeId||
+  book.isbn&&b.isbn===book.isbn||
+  Number(b.volumeNumber)>0&&Number(b.volumeNumber)===parsed.volume
+ ));
+ if(!existing)existing=books.find(b=>book.volumeId&&b.volumeId===book.volumeId||book.isbn&&b.isbn===book.isbn);
+ if(existing){
+  if(existing.seriesId!==series.id){
+   existing={...existing,seriesId:series.id,volumeNumber:existing.volumeNumber||parsed.volume};
+   if(!persist(books.map(b=>b.id===existing.id?existing:b)))return true;
+  }
+  if($('searchdialog').open)$('searchdialog').close();
+  seriesReturnId=series.id;selectBook(existing);return true;
+ }
+ const selected={...book,seriesId:series.id,volumeNumber:parsed.volume,suggestedSeriesName:''};
+ catalogContext=null;
+ startReadingChoice(selected);
+ return true;
+}
+
 function catalogResultNode(book,volume=null){
  const button=textNode('button','','result');button.type='button';
  const info=textNode('span','');
  info.append(textNode('strong',book.title),textNode('div',[volume?volume+'巻':'',book.author,book.publisher,book.published].filter(Boolean).join(' / '),'muted'));
  button.append(coverNode(coverURLs(book)),info);
- button.onclick=()=>{const parsed=seriesFromCatalogTitle(book.title);const existing=parsed&&seriesRecords.find(s=>s.title.normalize('NFKC').trim()===parsed.base.normalize('NFKC').trim());startReadingChoice({...book,seriesId:existing?.id||null,suggestedSeriesName:parsed&&!existing?parsed.base:'',volumeNumber:parsed?.volume||null})};
+ button.onclick=()=>{if(catalogContextSelectVolume(book))return;const parsed=seriesFromCatalogTitle(book.title);const existing=parsed&&seriesRecords.find(s=>s.title.normalize('NFKC').trim()===parsed.base.normalize('NFKC').trim());startReadingChoice({...book,seriesId:existing?.id||null,suggestedSeriesName:parsed&&!existing?parsed.base:'',volumeNumber:parsed?.volume||null})};
  return button;
 }
 function startCatalogSeriesRegistration(title,volumeOne){
@@ -2276,6 +2360,16 @@ function renderCatalogResults(){
  const list=$('results');list.replaceChildren();
  const items=currentCatalogResults;
  $('search-group-control').hidden=items.length===0;
+ if(catalogContext?.kind==='volume'){
+  const base=catalogContextBase(),representative=items.find(b=>seriesFromCatalogTitle(b.title)&&catalogSeriesKey(seriesFromCatalogTitle(b.title).base)===catalogSeriesKey(base));
+  if(seriesFromCatalogTitle(books.find(b=>b.id===catalogContext.id)?.title)){
+   const whole=document.createElement('button');whole.type='button';whole.className='result catalog-whole-series';
+   const info=textNode('span','');info.append(textNode('strong','シリーズ全体を選ぶ'),textNode('div',base,'muted'));
+   whole.append(bookCover(representative||books.find(b=>b.id===catalogContext.id)),info);
+   whole.onclick=()=>catalogContextSelectSeries(base,representative);
+   list.append(whole);
+  }
+ }
  if(!$('search-group-toggle').checked){
   for(const book of items)list.append(catalogResultNode(book));
   return;
@@ -2310,7 +2404,7 @@ function renderCatalogResults(){
   const wholeInfo=textNode('span','');
   wholeInfo.append(textNode('strong','シリーズ全体を選ぶ'),textNode('div',representative.series.base,'muted'));
   whole.append(coverNode(coverURLs(representative.book)),wholeInfo);
-  whole.onclick=()=>startCatalogSeriesRegistration(representative.series.base,representative.book);
+  whole.onclick=()=>catalogContextSelectSeries(representative.series.base,representative.book);
   listWrap.append(whole);
   for(const entry of sorted)listWrap.append(catalogResultNode(entry.book,entry.series.volume));
   section.append(header,listWrap);list.append(section);
@@ -2341,7 +2435,7 @@ $('searchform').onsubmit=async e=>{
  try{
   const result=await searchBookCatalog(q,controller.signal);if(controller.signal.aborted)return;
   const {items,source}=result;
-  $('searchmessage').textContent=items.length?(source+' · 本を選んで読書状況を登録してください。'+(result.warning?' '+result.warning:'')):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
+  $('searchmessage').textContent=items.length?(catalogContext?'Google Books · シリーズや巻を選択してください。':source+' · 本を選んで読書状況を登録してください。')+(result.warning?' '+result.warning:''):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
   $('catalog-load-more').hidden=!result.hasMore;
   currentCatalogResults=items.map(v=>({id:crypto.randomUUID(),title:v.title,author:v.author,status:'wish',date:'',note:'',cover:v.cover,coverCandidates:v.coverCandidates,isbn:v.isbn,itemUrl:v.itemUrl,source:v.source,volumeId:v.volumeId,categories:v.categories,pageCount:v.pageCount,language:v.language,publisher:v.publisher,published:v.published}));
   renderCatalogResults();
