@@ -1095,7 +1095,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <select class="field" id="editor-series-select"></select>
     <div id="editor-series-new-wrap" hidden><label for="editor-series-new-name">シリーズ名</label><input class="field" id="editor-series-new-name" maxlength="200"></div>
     <div id="editor-volume-number-wrap" hidden><label for="editor-volume-number">巻数</label><input class="field" id="editor-volume-number" min="1" max="999" step="1" type="number"></div>
-    <label class="editor-inline-check"><input id="editor-volume-separate" type="checkbox"> この巻のみ別で表示する</label>
+    <label class="editor-inline-check"><input id="editor-group-series" type="checkbox"> シリーズでまとめる</label><label class="editor-inline-check"><input id="editor-volume-separate" type="checkbox"> この巻のみ別で表示する</label>
     <label class="editor-inline-check"><input id="editor-series-note-check" type="checkbox"> シリーズ全体の感想も書く</label>
     <div id="editor-series-note-wrap" hidden>
      <label for="editor-series-note">シリーズ全体の感想・メモ</label>
@@ -1909,17 +1909,21 @@ function syncEditorSeriesChoice(){
  $('editor-series-new-wrap').hidden=choice!=='__new';
  $('editor-volume-number-wrap').hidden=!assigned;
  $('editor-volume-separate').disabled=!assigned;
+ $('editor-group-series').disabled=!assigned;
  $('editor-series-note-check').disabled=!assigned;
  $('editor-open-series').hidden=!choice||choice==='__new';
  $('volume-cover-field').hidden=!assigned;
  if(assigned)$('volume-cover-url').value=editing.cover||'';
  const series=seriesRecords.find(s=>s.id===choice);
+ $('editor-group-series').checked=series?.displayMode!=='volumes';
+ $('editor-volume-separate').disabled=!assigned||!$('editor-group-series').checked;
  $('editor-series-note').value=series?.note||'';
  $('editor-series-rating').value=series?.rating==null?'':String(series.rating);
  $('editor-series-note-check').checked=false;
  $('editor-series-note-wrap').hidden=true;
 }
 $('editor-series-select').onchange=syncEditorSeriesChoice;
+$('editor-group-series').onchange=()=>{$('editor-volume-separate').disabled=!$('editor-group-series').checked;queueEditorAutosave()};
 $('editor-series-note-check').onchange=()=>$('editor-series-note-wrap').hidden=!$('editor-series-note-check').checked;
 $('editor-add-volume').onclick=()=>{
  if(!editing||editing.recordType!=='series')return;
@@ -1967,6 +1971,11 @@ function saveInlineSeries(snapshot){
  const num=Number($('editor-volume-number').value);
  snapshot.volumeNumber=Number.isInteger(num)&&num>0?num:null;
  snapshot.showSeparately=$('editor-volume-separate').checked;
+ const grouping=seriesRecords.find(s=>s.id===id);
+ if(grouping&&grouping.displayMode!==($('editor-group-series').checked?'grouped':'volumes')){
+  const updated=seriesRecords.map(s=>s.id===id?{...s,displayMode:$('editor-group-series').checked?'grouped':'volumes'}:s);
+  localStorage.setItem(SERIES_KEY,JSON.stringify(updated));seriesRecords=updated;
+ }
  if($('editor-series-note-check').checked){
   const original=seriesRecords.find(x=>x.id===id);
   if(original){
