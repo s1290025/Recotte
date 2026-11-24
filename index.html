@@ -946,6 +946,41 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #home-page .rating-metric-selectors{display:flex;align-items:center;gap:11px;padding:0 0 2px 25px}
 #home-page .rating-metric-selectors select{width:100px;min-width:0;background:#fffdf9}
 @media(max-width:520px){#home-page .rating-metric-selectors select{width:90px}}
+
+/* Series are grouped on the shelf and have their own independent overall notes. */
+#home-page .home-actions .series-create-icon{font-size:12px;font-weight:600;letter-spacing:-.04em;border:1px solid #d3cbbd;border-radius:10px;background:#faf7ef;color:#62574c}
+#home-page .series-card .card-art{position:relative}
+#home-page .series-card-badge{position:absolute;right:6px;bottom:7px;z-index:1;font-size:11px;line-height:1.2;background:#f8f3e9ed;color:#605548;border:1px solid #c6b9a5;border-radius:5px;padding:4px 6px}
+#series-page{max-width:1050px;margin:0 auto;padding:18px 4px 80px}
+#series-page[hidden]{display:none!important}
+#series-page .series-head{display:grid;grid-template-columns:minmax(130px,220px) 1fr;gap:clamp(18px,4vw,44px);align-items:start}
+#series-page .series-cover .cover{width:100%;aspect-ratio:2/3;object-fit:cover}
+#series-page .series-head-text{min-width:0}
+#series-page .series-kicker{font-size:11px;letter-spacing:.14em;color:#8a7d6c}
+#series-page #series-page-title{font-size:clamp(21px,3vw,31px);margin:9px 0;overflow-wrap:anywhere}
+#series-page .series-overview{border-top:1px solid #e4ded4;margin:28px 0 25px;padding-top:22px}
+#series-page .series-overview h3,#series-page .series-volume-title h3{font-size:16px;margin:0 0 12px}
+#series-page #series-overview-note{white-space:pre-wrap;line-height:1.9}
+#series-page .series-volume-title{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between;align-items:center;border-top:1px solid #e4ded4;padding-top:22px}
+#series-page .series-volume-actions{display:flex;flex-wrap:wrap;gap:7px}
+#series-page .series-volume-actions button{background:#f5f0e7;border:1px solid #d8cdbe;border-radius:6px;padding:9px 11px;font-size:12px;color:#51483d}
+#series-page .series-volume-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:14px;margin-top:17px}
+#series-page .series-volume-item{background:transparent;border:0;text-align:left;padding:0;color:inherit;min-width:0}
+#series-page .series-volume-item .cover{width:100%;aspect-ratio:2/3;object-fit:cover}
+#series-page .series-volume-item .volume-caption{font-size:12px;line-height:1.45;padding-top:6px}
+#series-page .series-volume-item .volume-state{font-size:11px;color:#837969}
+#series-page .series-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+#series-page .series-chips span{font-size:11px;background:#f2eee6;border-radius:5px;padding:5px 8px}
+.series-dialog{width:min(560px,calc(100vw - 24px));max-height:90dvh;overflow-y:auto;border:1px solid #dcd4c8;border-radius:12px;padding:20px;background:#fffefa}
+.series-dialog form{display:flex;flex-direction:column;gap:9px}
+.series-dialog form label{font-size:13px;margin-top:7px}
+.series-dialog .field{box-sizing:border-box;width:100%}
+.series-form-actions{display:flex;justify-content:flex-end;gap:9px;flex-wrap:wrap;margin-top:15px}
+.series-form-actions button{border:1px solid #d4c9bb;border-radius:6px;padding:10px 13px}
+.series-form-actions .primary{background:#746958;color:white}
+.series-link-list{max-height:47dvh;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.series-link-list label{padding:10px;border-bottom:1px solid #eee7db;display:flex;align-items:center;gap:9px;font-size:13px}
+@media(max-width:700px){#series-page{padding:15px 8px 60px}#series-page .series-head{grid-template-columns:110px 1fr;gap:14px}}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -960,8 +995,31 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
   <div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div>
   <div id="books" class="grid cards" aria-label="本の表紙一覧"></div>
   </div>
-  <div class="home-actions" id="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
+  <div class="home-actions" id="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="series-create-icon" id="series-create" type="button" aria-label="シリーズを登録" title="シリーズを登録">本+</button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
 </section>
+<section id="series-page" class="book-page" aria-labelledby="series-page-title" hidden>
+ <div class="series-head"><div id="series-cover" class="series-cover"></div><div class="series-head-text"><div class="series-kicker">SERIES</div><h2 id="series-page-title"></h2><p id="series-author" class="muted"></p><p id="series-progress" class="muted"></p><div id="series-rating-display"></div><div id="series-elements-display" class="series-chips"></div></div></div>
+ <section class="series-overview"><h3>シリーズ全体の感想</h3><p id="series-overview-note"></p></section>
+ <div class="series-volume-title"><h3>各巻の記録</h3><div class="series-volume-actions"><button id="series-add-volume" type="button">巻を追加</button><button id="series-link-volume" type="button">既存の本を追加</button><button id="series-edit" type="button">シリーズを編集</button></div></div>
+ <div id="series-volume-list" class="series-volume-list"></div>
+</section>
+<dialog id="series-editor" class="series-dialog" aria-labelledby="series-editor-title"><div class="dialoghead"><h2 id="series-editor-title">シリーズを登録</h2><button type="button" id="series-editor-close" aria-label="閉じる">×</button></div>
+ <form id="series-form"><label for="series-name">シリーズ名</label><input class="field" id="series-name" required maxlength="200" placeholder="シリーズ名を入力">
+ <label for="series-author-input">著者（任意）</label><input class="field" id="series-author-input" maxlength="200">
+ <label for="series-status">読書状況</label><select class="field" id="series-status"><option value="wish">読みたい</option><option value="done">読んだ</option></select>
+ <label for="series-cover-input">シリーズ表紙のURL（任意）</label><input class="field" id="series-cover-input" type="url" placeholder="https://">
+ <label for="series-elements-input">作品の要素（任意）</label><input class="field" id="series-elements-input" placeholder="要素を入力（、で区切る）">
+ <label for="series-rating-input">シリーズ全体の総合評価</label><select class="field" id="series-rating-input"><option value="">未評価</option></select>
+ <label for="series-note-input">シリーズ全体の感想・メモ</label><textarea id="series-note-input" class="field" rows="5" placeholder="シリーズを通して感じたこと"></textarea>
+ <div class="series-form-actions"><button type="button" id="series-remove" class="danger" hidden>シリーズを解除</button><button type="submit" class="primary">保存する</button></div></form>
+</dialog>
+<dialog id="series-volume-dialog" class="series-dialog" aria-labelledby="series-volume-dialog-title"><div class="dialoghead"><h2 id="series-volume-dialog-title">巻を追加</h2><button type="button" id="series-volume-close" aria-label="閉じる">×</button></div><form id="series-volume-form">
+ <label for="series-volume-number">巻数</label><input id="series-volume-number" class="field" type="number" min="1" step="1" required>
+ <label for="series-volume-name">タイトル</label><input id="series-volume-name" class="field" maxlength="250" required>
+ <label for="series-volume-status">読書状況</label><select id="series-volume-status" class="field"><option value="wish">読みたい</option><option value="done">読んだ</option></select>
+ <div class="series-form-actions"><button type="button" id="series-volume-cancel">閉じる</button><button type="submit" class="primary">追加する</button></div></form>
+</dialog>
+<dialog id="series-link-dialog" class="series-dialog" aria-labelledby="series-link-title"><div class="dialoghead"><h2 id="series-link-title">既存の本を追加</h2><button type="button" id="series-link-close" aria-label="閉じる">×</button></div><p class="muted">追加したい本を選んでください。現在の記録や感想はそのまま残ります。</p><div id="series-link-list" class="series-link-list"></div><div class="series-form-actions"><button type="button" id="series-link-cancel">閉じる</button><button type="button" id="series-link-save" class="primary">選んだ本を追加</button></div></dialog>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
  <div class="detail-main">
  <div class="detail-book">
@@ -1023,6 +1081,9 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 'use strict';
 const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読んだ',paused:'中断'};
 let books=[],filter='wish',editing=null,searchController=null,view='timeline',showDemo=true,selectedTags=new Set();
+const SERIES_KEY='recotte.series.v1';
+let seriesRecords=[],activeSeries=null,editingSeriesId=null,seriesReturnId=null;
+try{const data=JSON.parse(localStorage.getItem(SERIES_KEY)||'[]');if(Array.isArray(data))seriesRecords=data.filter(x=>x&&typeof x.id==='string'&&typeof x.title==='string')}catch{}
 const shelfFacets={publisher:new Set(),genre:new Set(),element:new Set(),rating:new Set()};
 const ratingRanges=new Map();
 function metricRange(metric){if(!ratingRanges.has(metric))ratingRanges.set(metric,{min:null,max:null});return ratingRanges.get(metric)}
@@ -1042,6 +1103,28 @@ function notify(s){$('message').textContent=s;clearTimeout(notify.timer);notify.
 function validBook(b){return b&&typeof b.id==='string'&&typeof b.title==='string'&&b.title.trim()&&names[b.status]&&['author','note','date','cover'].every(k=>typeof b[k]==='string')&&(!b.date||/^\d{4}-\d{2}-\d{2}$/.test(b.date))}
 try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(data)||!data.every(validBook))throw Error();books=data}catch{notify('保存した記録を読み込めませんでした。読み込み機能からバックアップを復元できます。')}
 function persist(next){try{localStorage.setItem(KEY,JSON.stringify(next));books=next;render();return true}catch{notify('保存できませんでした。ブラウザの保存設定や空き容量をご確認ください。');return false}}
+function seriesMembers(series){return books.filter(b=>b.seriesId===series.id).sort((a,b)=>(Number(a.volumeNumber)||99999)-(Number(b.volumeNumber)||99999)||String(a.title).localeCompare(String(b.title),'ja'))}
+function seriesStatus(series){const members=seriesMembers(series);return members.some(b=>b.status!=='wish')?'done':members.length&&members.every(b=>b.status==='wish')?'wish':series.status||'wish'}
+function seriesCover(series){return series.cover||seriesMembers(series).find(b=>b.cover)?.cover||''}
+function persistSeries(next){try{localStorage.setItem(SERIES_KEY,JSON.stringify(next));seriesRecords=next;render();return true}catch{notify('シリーズを保存できませんでした。');return false}}
+function shelfSeriesGroups(visible){
+ const groups=[],seen=new Set();
+ for(const book of visible){
+  if(book.seriesId){
+   const series=seriesRecords.find(x=>x.id===book.seriesId);
+   if(series){if(!seen.has(series.id)){groups.push({kind:'series',item:series});seen.add(series.id)}continue}
+  }
+  groups.push({kind:'book',item:book});
+ }
+ for(const series of seriesRecords){
+  if(seen.has(series.id)||seriesMembers(series).length)continue;
+  if((filter==='wish'?seriesStatus(series)==='wish':seriesStatus(series)!=='wish')&&matchesShelfFacets(series)&&!selectedTags.size){
+   const q=$('filter').value.trim().toLocaleLowerCase();
+   if((series.title+' '+(series.author||'')+' '+(series.note||'')).toLocaleLowerCase().includes(q)){groups.push({kind:'series',item:series});seen.add(series.id)}
+  }
+ }
+ return groups;
+}
 function coverNode(url){
  const candidates=[...new Set((Array.isArray(url)?url:[url]).filter(u=>typeof u==='string'&&/^https:\/\//.test(u)))];
  if(!candidates.length){const p=document.createElement('div');p.className='cover';p.textContent='Recotte!';return p}
@@ -1502,15 +1585,27 @@ function render(refreshPanel=true){
   const searchOk=String(b.title||'')+' '+String(b.author||'')+' '+String(b.note||'');
   return statusOk&&facetsOk&&tagsOk&&searchOk.toLocaleLowerCase().includes(q);
  }).sort((a,b)=>Number(!!b.pinned)-Number(!!a.pinned)||shelfSortBooks(a,b));
- $('shelf-result-count').textContent=visible.length+'冊';
- if(!visible.length){
+ const shelfGroups=shelfSeriesGroups(visible);
+ $('shelf-result-count').textContent=shelfGroups.length+'件（'+visible.length+'冊）';
+ if(!shelfGroups.length){
   const e=textNode('div','','empty');
   if(source.length)e.append(textNode('h2','該当する本がありません'),textNode('p','インデックスや検索条件を変えてみてください。','muted'));
   else {const hint=textNode('p','','empty-add-hint'),icon=textNode('button','＋','primary empty-add-icon');icon.type='button';icon.setAttribute('aria-label','本を登録');icon.onclick=()=>$('add').click();hint.append(icon,document.createTextNode('を押して本を記録'));e.append(hint)}
   container.append(e);return;
  }
- for(const b of visible){
+ for(const group of shelfGroups){
+  const b=group.item;
   const card=textNode('button','','card'),art=textNode('div','','card-art');
+  if(group.kind==='series'){
+   card.classList.add('series-card');
+   const cover=seriesCover(b);
+   if(cover)art.append(coverNode(cover));
+   else{const fallback=textNode('div','','cover fallback');fallback.style.setProperty('--book-color','#7d8274');fallback.append(textNode('small','RECOTTE SERIES'),textNode('strong',b.title));art.append(fallback)}
+   const count=seriesMembers(b).length;
+   const label=textNode('span',count?count+'巻':'シリーズ','series-card-badge');art.append(label);
+   card.setAttribute('aria-label',b.title+'のシリーズ記録を開く');
+   card.append(art);card.onclick=()=>openSeries(b.id);container.append(card);continue;
+  }
   card.type='button';card.setAttribute('aria-label',b.title+'の読書記録を開く');
   art.append(bookCover(b));
   if(b.reaction){
