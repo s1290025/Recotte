@@ -1019,6 +1019,15 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #detaildialog .series-volume-item .cover{width:100%;aspect-ratio:2/3;object-fit:cover}
 #detaildialog .volume-caption{font-size:12px;line-height:1.5;padding-top:6px}
 #detaildialog .volume-state{font-size:11px;color:#837969}
+
+/* In the record editor: elements -> personal rating scales -> reading note. */
+#editdialog .record-writing>#editor-elements{order:0;margin:0 0 19px;padding:0 0 18px;border-top:0;border-bottom:1px solid #e9e6df}
+#editdialog .record-writing>#read-fields{order:1;margin:0 0 21px;padding:0 0 20px;border:0;border-bottom:1px solid #e9e6df}
+#editdialog .record-writing>.reading-session{order:2}
+#editdialog .record-writing>#past-records{order:3}
+#editdialog .record-writing>#editor-elements[hidden]{display:none!important}
+#editdialog .record-writing>#read-fields .custom-rating-head{margin:0 0 12px}
+#editdialog .record-writing>#editor-elements>label{display:block;margin:0 0 10px;font-size:14px;font-weight:600}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1099,10 +1108,11 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
     <div class="editor-status-internal" hidden><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select></div>
  
-    <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="要素を入力" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
-    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div class="overall-rating-row"><label for="overall-rating-value">総合評価</label><select id="overall-rating-value" class="overall-rating-value" aria-label="総合評価"></select><div class="shared-reaction"><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
+    <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div>
    </div>
    <div class="record-writing">
+    <div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="要素を入力" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
+    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div class="overall-rating-row"><label for="overall-rating-value">総合評価</label><select id="overall-rating-value" class="overall-rating-value" aria-label="総合評価"></select><div class="shared-reaction"><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
     <div class="reading-session current-session">
     <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div></div>
     <div class="current-memo-panel">
