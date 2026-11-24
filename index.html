@@ -2180,7 +2180,7 @@ function renderCatalogResults(){
   const sorted=[...group].sort((a,b)=>a.series.volume-b.series.volume);
   const representative=sorted[0];
   const info=textNode('span','','catalog-series-info');
-  info.append(textNode('strong',representative.series.base),textNode('small',group.length+'件の巻が見つかりました。シリーズ全体または巻を選択','muted'));
+  info.append(textNode('strong',representative.series.base),textNode('small','シリーズ全体または巻を選択','muted'));
   header.append(coverNode(coverURLs(representative.book)),info);
   const listWrap=textNode('div','','catalog-volume-list');
   const whole=textNode('button','','result catalog-whole-series');whole.type='button';
