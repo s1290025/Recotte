@@ -1491,7 +1491,7 @@ function startReadDate(b,mode='first'){choiceBook={...b};choiceMode=mode;choiceD
 function startReadingAction(b){choiceBook={...b};$('reading-action').showModal()}
 $('action-edit').onclick=()=>{$('reading-action').close();openEditor(choiceBook)};
 $('action-reread').onclick=()=>{$('reading-action').close();startReadDate(choiceBook,'reread')};
-$('choice-wish').onclick=()=>{const b=choiceBook;if(!b)return;$('reading-choice').close();if(b.recordType==='series'||b.suggestedSeriesName||b.seriesId||books.some(x=>x.id===b.id)||!b.title.trim()){openEditor({...b,status:'wish'})}else{const saved={...b,status:'wish',updatedAt:new Date().toISOString()};if(persist([...books,saved]))notify('読みたい本に追加しました。')}};
+$('choice-wish').onclick=()=>{const b=choiceBook;if(!b)return;$('reading-choice').close();if(b.recordType==='series'||!b.title.trim()){openEditor({...b,status:'wish'});return}const existing=books.find(x=>x.id===b.id);if(existing&&existing.status!=='wish'){openEditor(existing);return}const saved={...existing,...b,status:'wish',updatedAt:new Date().toISOString()};try{saveInlineSeries(saved);if(persist([...books.filter(x=>x.id!==saved.id),saved])){if(saved.seriesId){seriesReturnId=saved.seriesId;selectBook(saved)}notify('読みたい本に追加しました。')}}catch{notify('保存できませんでした。')}};
 $('choice-done').onclick=()=>{$('reading-choice').close();if(choiceBook?.recordType==='series')openEditor({...choiceBook,status:'done'});else startReadDate(choiceBook,'first')};
 $('today-choice').onclick=()=>setDateFieldsToday($('choice-date-fields'));
 // Preserve a valid reading date and elements even if the onboarding dialogs are dismissed.
@@ -1549,8 +1549,10 @@ function finishElements(skip=false){
   const saved={...revised,author:typeof revised.author==='string'?revised.author:'',note:typeof revised.note==='string'?revised.note:'',cover:typeof revised.cover==='string'?revised.cover:'',updatedAt:new Date().toISOString()};
   const previousFilter=filter;
   filter='done';
+  try{saveInlineSeries(saved)}catch{filter=previousFilter;notify('保存できませんでした。');return}
   if(!persist([...books.filter(x=>x.id!==saved.id),saved])){filter=previousFilter;return}
-  if(detailBook&&detailBook.id===saved.id)selectBook(saved);
+  if(saved.seriesId){seriesReturnId=saved.seriesId;selectBook(saved)}
+  else if(detailBook&&detailBook.id===saved.id)selectBook(saved);
   else refreshIndex();
   openEditor(saved);
  }else{
@@ -2109,7 +2111,7 @@ function saveInlineSeries(snapshot){
    let series=seriesRecords.find(x=>x.title.normalize('NFKC')===title.normalize('NFKC'));
    if(!series){
     series={id:crypto.randomUUID(),title,author:snapshot.author||'',status:snapshot.status,
-     cover:snapshot.cover||'',note:'',rating:null,elements:[],displayMode:'grouped'};
+     cover:snapshot.cover||'',publisher:snapshot.publisher||'',categories:snapshot.categories||[],note:'',rating:null,elements:[],displayMode:'grouped'};
     localStorage.setItem(SERIES_KEY,JSON.stringify([...seriesRecords,series]));seriesRecords=[...seriesRecords,series];
    }
    snapshot.seriesId=series.id;
@@ -2255,6 +2257,7 @@ $('editform').onsubmit=e=>{
  editorClosingSaved=true;$('editdialog').close();
  const reread=rereadAfterSave;rereadAfterSave=false;
  if(b.recordType==='series'){openSeries(b.id)}
+ else if(b.seriesId){seriesReturnId=b.seriesId;selectBook(b)}
  else if(detailBook&&detailBook.id===b.id)selectBook(b);
  else{filter=b.status==='wish'?'wish':'done';refreshIndex();render()}
  if(reread)startReadDate(b,'reread');else notify('記録を保存しました。');
@@ -2314,8 +2317,8 @@ function googleSearchURL(q,startIndex=0){
  const query=isISBN?'isbn:'+digits:value;
  return 'https://www.googleapis.com/books/v1/volumes?q='+encodeURIComponent(query)+'&maxResults='+CATALOG_PAGE_SIZE+'&startIndex='+startIndex+'&printType=books&orderBy=relevance';
 }
-// Probe missing volumes individually rather than relying on broad relevance ranking.
-const SERIES_PROBE_PER_BATCH=15,SERIES_PROBE_MAX_VOLUME=120,SERIES_PROBE_EXTRA=5;
+// Search by series metadata rather than probing individual volume numbers.
+const SERIES_QUERY_PAGE_BATCH=6;
 function seriesSearchTarget(q,items){
  if(catalogContext){
   const base=catalogContextBase();
@@ -2337,6 +2340,7 @@ function seriesSearchTarget(q,items){
  });
  return candidates[0]?.base||'';
 }
+function seriesAuthorsCompatible(a,b){const x=catalogSeriesKey(a),y=catalogSeriesKey(b);return !x||!y||x.includes(y)||y.includes(x)||String(a).split('、').some(v=>String(b).split('、').some(w=>catalogSeriesKey(v)===catalogSeriesKey(w)))}
 function seriesCandidateRank(book,author){
  const parsed=seriesFromCatalogTitle(book.title);
  const candidateAuthor=catalogSeriesKey(book.author||''),referenceAuthor=catalogSeriesKey(author||'');
@@ -2348,29 +2352,31 @@ function seriesConfirmedVolumes(items,base){
  const map=new Map(),key=catalogSeriesKey(base),reference=items.find(b=>catalogSeriesKey(seriesFromCatalogTitle(b.title)?.base)===key)?.author||'';
  for(const item of items){
   const parsed=seriesFromCatalogTitle(item.title);
-  if(!parsed||catalogSeriesKey(parsed.base)!==key)continue;
+  if(!parsed||catalogSeriesKey(parsed.base)!==key||!seriesAuthorsCompatible(item.author,reference))continue;
   const prior=map.get(parsed.volume);
   if(!prior||seriesCandidateRank(item,reference)>seriesCandidateRank(prior,reference))map.set(parsed.volume,item);
  }
  return map;
 }
-async function probeSeriesVolume(base,number,apiKey,signal){
- const terms=[base+' '+number+'巻',base+' 第'+number+'巻',base+' '+number];
- const results=[],seen=new Set();
- for(const term of terms){
-  const data=await requestBookJSON(googleSearchURL(term),signal,apiKey);
-  for(const raw of data.items||[]){
-   const item=normalizeGoogleBook(raw),parsed=seriesFromCatalogTitle(item.title);
-   if(!parsed||parsed.volume!==number||catalogSeriesKey(parsed.base)!==catalogSeriesKey(base))continue;
-   if(!seen.has(item.volumeId)){seen.add(item.volumeId);results.push(item)}
-  }
-  if(results.length)break;
- }
- return results;
+function seriesMetadataQueries(base,reference){
+ const quote=value=>'"'+String(value||'').replace(/["\\]/g,' ').trim()+'"';
+ const title='intitle:'+quote(base);
+ const author=String(reference?.author||'').split('、')[0].trim();
+ const publisher=String(reference?.publisher||'').trim();
+ const category=(reference?.categories||[]).find(x=>typeof x==='string'&&x.trim());
+ return [...new Set([title,...(author?[title+' inauthor:'+quote(author)]:[]),...(publisher?[title+' inpublisher:'+quote(publisher)]:[]),...(category?[title+' subject:'+quote(category)]:[]),...(author&&publisher?[title+' inauthor:'+quote(author)+' inpublisher:'+quote(publisher)]:[])])];
+}
+function seriesSearchReference(base,items){
+ const key=catalogSeriesKey(base);
+ const context=catalogContext?.kind==='volume'?books.find(b=>b.id===catalogContext.id):catalogContext?.kind==='series'?seriesRecords.find(b=>b.id===catalogContext.id):null;
+ const candidates=[...(context?.recordType==='series'?seriesMembers(context):[]),...items.filter(b=>catalogSeriesKey(seriesFromCatalogTitle(b.title)?.base)===key)];
+ const ranked=candidates.sort((a,b)=>Number(!!b.author)+Number(!!b.publisher)+Number(!!b.categories?.length)-Number(!!a.author)-Number(!!a.publisher)-Number(!!a.categories?.length));
+ const best=ranked[0]||{};
+ return {...best,...(context?.author?{author:context.author}:{}),...(context?.publisher?{publisher:context.publisher}:{}),...(context?.categories?.length?{categories:context.categories}:{})};
 }
 async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
  const apiKey=getGoogleAPIKey();if(!apiKey){$('google-settings').open=true;throw new Error('検索設定でGoogle Books APIキーを設定してください。')}
- const key=q.normalize('NFKC').trim(),cached=bookSearchCache.get(key);
+ const key=q.normalize('NFKC').trim()+'|'+(catalogContext?catalogContext.kind+':'+catalogContext.id:'general'),cached=bookSearchCache.get(key);
  if(!loadMore&&cached&&Date.now()-cached.time<600000&&cached.result.auditFinished&&!cached.result.pageHasMore)return cached.result;
  const previous=(loadMore||cached&&Date.now()-cached.time<600000)?cached?.result:null;
  const found=previous?[...previous.items]:[],seen=new Set(found.map(item=>item.volumeId||item.isbn||item.title+'|'+item.author));
@@ -2381,9 +2387,9 @@ async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
   const id=item.volumeId||item.isbn||item.title+'|'+item.author;
   if(!seen.has(id)){seen.add(id);found.push(item)}
  };
- // Broad search remains paginated; individual numbered searches fill the gaps.
+ // Start with a broad page, then refine recognized series by metadata.
  if(pageHasMore){
-  for(let page=0;page<CATALOG_PAGES_PER_BATCH&&offset<=CATALOG_MAX_OFFSET;page++){
+  for(let page=0;page<(catalogContext||previous?.audit?1:2)&&offset<=CATALOG_MAX_OFFSET;page++){
    let data;
    try{data=await requestBookJSON(googleSearchURL(q,offset),signal,apiKey)}
    catch(error){
@@ -2397,45 +2403,37 @@ async function searchBookCatalog(q,signal,loadMore=false,onProgress=null){
    totalItems=Number(data.totalItems)||totalItems;
    for(const raw of pageItems)addItem(normalizeGoogleBook(raw));
    completed++;offset+=CATALOG_PAGE_SIZE;
-   if(pageItems.length<CATALOG_PAGE_SIZE||totalItems&&offset>=totalItems){pageHasMore=false;break}
+   if(pageItems.length<CATALOG_PAGE_SIZE){pageHasMore=false;break}
+   if(seriesSearchTarget(q,found))break;
   }
   if(offset>CATALOG_MAX_OFFSET)pageHasMore=false;
  }
  const target=seriesSearchTarget(q,found);
  const prevAudit=previous?.audit;
- const audit=target&&(!prevAudit||catalogSeriesKey(prevAudit.base)===catalogSeriesKey(target))
-  ?{base:target,checked:[...(prevAudit?.checked||[])]}:target?{base:target,checked:[]}:null;
+ const reference=target?seriesSearchReference(target,found):null;
+ const audit=target?{base:target,queries:seriesMetadataQueries(target,reference).map(term=>{
+   const old=prevAudit?.base===target?prevAudit.queries?.find(x=>x.term===term):null;
+   return old?{...old}:{term,offset:0,done:false};
+ })}:null;
  let auditFinished=true,missingVolumes=[],checkedVolumes=0;
  if(audit){
-  const checked=new Set(audit.checked),before=seriesConfirmedVolumes(found,target);
-  const highestKnown=Math.max(0,...before.keys());
-  // Check holes up to the highest known volume, then several numbers beyond it.
-  const limit=Math.min(SERIES_PROBE_MAX_VOLUME,Math.max(1,highestKnown+SERIES_PROBE_EXTRA));
-  const outstanding=[];
-  for(let number=1;number<=limit;number++)if(!before.has(number)&&!checked.has(number))outstanding.push(number);
-  const batch=outstanding.slice(0,SERIES_PROBE_PER_BATCH);
-  for(let i=0;i<batch.length;i++){
-   const number=batch[i];
-   if(onProgress)onProgress('巻数を確認しています（'+(i+1)+' / '+batch.length+'、'+number+'巻）…');
-   try{
-    const candidates=await probeSeriesVolume(target,number,apiKey,signal);
-    for(const item of candidates)addItem(item);
-    checked.add(number);
-   }catch(error){
-    if(signal.aborted)throw error;
-    warning='一部の巻数を確認できませんでした。追加検索で再試行できます。';
-    break;
+  const pending=audit.queries.filter(x=>!x.done).slice(0,SERIES_QUERY_PAGE_BATCH);
+  if(pending.length&&onProgress)onProgress('タイトル・著者・出版社・ジャンルからシリーズを探しています…');
+  const outcomes=await Promise.allSettled(pending.map(async entry=>{
+   const data=await requestBookJSON(googleSearchURL(entry.term,entry.offset),signal,apiKey);
+   const raw=data.items||[];
+   for(const value of raw){
+    const item=normalizeGoogleBook(value),parsed=seriesFromCatalogTitle(item.title);
+    if(!parsed||catalogSeriesKey(parsed.base)!==catalogSeriesKey(target))continue;
+    if(!seriesAuthorsCompatible(item.author,reference?.author))continue;
+    addItem(item);
    }
-  }
-  const after=seriesConfirmedVolumes(found,target);
-  const nextLimit=Math.min(SERIES_PROBE_MAX_VOLUME,Math.max(1,...after.keys())+SERIES_PROBE_EXTRA);
-  missingVolumes=[];
-  const confirmedMax=Math.max(0,...after.keys());
-  for(let n=1;n<=confirmedMax;n++)if(!after.has(n)&&checked.has(n))missingVolumes.push(n);
-  const pending=Array.from({length:nextLimit},(_,i)=>i+1).some(n=>!after.has(n)&&!checked.has(n));
-  auditFinished=!pending;
-  audit.checked=[...checked].sort((a,b)=>a-b);
-  checkedVolumes=checked.size;
+   entry.offset+=CATALOG_PAGE_SIZE;
+   entry.done=raw.length<CATALOG_PAGE_SIZE||entry.offset>CATALOG_MAX_OFFSET;
+  }));
+  if(signal.aborted)throw new DOMException('Aborted','AbortError');
+  if(outcomes.some(x=>x.status==='rejected'))warning='一部の詳細検索を取得できませんでした。追加検索で再試行できます。';
+  auditFinished=audit.queries.every(x=>x.done);
  }
  const result={items:found,source:'Google Books',nextIndex:offset,pageHasMore,
   hasMore:pageHasMore||!auditFinished,totalItems,warning,
@@ -2498,7 +2496,7 @@ function getOrCreateCatalogSeries(base,representative,sourceVolume=null){
  let series=seriesRecords.find(x=>catalogSeriesKey(x.title)===catalogSeriesKey(base));
  if(!series){
   series={id:crypto.randomUUID(),recordType:'series',title:base,author:representative?.author||sourceVolume?.author||'',cover:representative?.cover||sourceVolume?.cover||'',
-   source:representative?.source==='Google Books'?'Google Books':'',status:'wish',note:'',elements:[],customRatings:[],readHistory:[],readEntries:[],displayMode:'grouped'};
+   publisher:representative?.publisher||sourceVolume?.publisher||'',categories:representative?.categories||sourceVolume?.categories||[],source:representative?.source==='Google Books'?'Google Books':'',status:'wish',note:'',elements:[],customRatings:[],readHistory:[],readEntries:[],displayMode:'grouped'};
   if(!persistSeries([...seriesRecords,series]))return null;
  }
  if(sourceVolume&&sourceVolume.seriesId!==series.id){
@@ -2561,7 +2559,7 @@ function startCatalogSeriesRegistration(title,volumeOne){
  const existing=seriesRecords.find(series=>series.title.normalize('NFKC').trim()===title.normalize('NFKC').trim());
  const series=existing?seriesEditorBook(existing):{
   id:crypto.randomUUID(),recordType:'series',title,author:volumeOne.author||'',status:'wish',
-  date:'',note:'',cover:volumeOne.cover||'',source:'Google Books',elements:[],customRatings:[],readHistory:[],readEntries:[],displayMode:'grouped'};
+  date:'',note:'',cover:volumeOne.cover||'',publisher:volumeOne.publisher||'',categories:volumeOne.categories||[],source:'Google Books',elements:[],customRatings:[],readHistory:[],readEntries:[],displayMode:'grouped'};
  startReadingChoice(series);
 }
 function renderCatalogResults(){
@@ -2644,7 +2642,7 @@ function catalogSearchFeedback(result){
  const missing=result.missingVolumes||[];
  let message=' '+audit.base+'：'+found.size+'巻を確認';
  if(missing.length)message+='。未発見の巻：'+missing.slice(0,16).join('、')+(missing.length>16?'ほか':'');
- if(!result.auditFinished)message+='。続きの巻数も確認できます';
+ if(!result.auditFinished)message+='。詳細検索の続きを読み込めます';
  return message+'。';
 }
 function catalogSearchItems(result){
@@ -2662,7 +2660,7 @@ $('searchform').onsubmit=async e=>{
   const {items,source}=result;
   $('searchmessage').textContent=items.length?(catalogContext?'Google Books · シリーズや巻を選択してください。':source+' · 本を選んで読書状況を登録してください。')+catalogSearchFeedback(result)+(result.warning?' '+result.warning:''):'見つかりませんでした。別のキーワードや手動登録をお試しください。';
   $('catalog-load-more').hidden=!result.hasMore;
-  $('catalog-load-more').textContent=result.audit&&!result.auditFinished?'未確認の巻をさらに探す':'さらに検索結果を読み込む';
+  $('catalog-load-more').textContent=result.audit&&!result.auditFinished?'さらにシリーズを探す':'さらに検索結果を読み込む';
   currentCatalogResults=catalogSearchItems(result);
   renderCatalogResults();
  }catch(error){if(!controller.signal.aborted)$('searchmessage').textContent=error.message||'検索できませんでした。もう一度お試しください。'}
