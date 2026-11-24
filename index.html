@@ -862,7 +862,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
     <div class="editor-status-internal" hidden><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select></div>
  
-    <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="例：ダークファンタジー、伏線、政治劇" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
+    <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="要素を入力" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
    </div>
    <div class="record-writing">
     <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div class="overall-rating-row"><label for="overall-rating-value">総合評価</label><select id="overall-rating-value" class="overall-rating-value" aria-label="総合評価"></select></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button></div>
@@ -1087,11 +1087,7 @@ function fillDetails(book){
   const date=textNode('div','読んだ日　'+(entry.date||pastDates[i]?.date||'未登録'),'detail-session-date');card.append(date);
   const heading=textNode('div','','detail-note-heading');
   heading.append(textNode('h3','感想・メモ'));
-  const reaction=textNode('span','', 'detail-previous-reaction');
-  const reactionButton=document.querySelector('#reaction-picks [data-reaction="'+entry.reaction+'"]');
-  if(reactionButton)for(const node of reactionButton.childNodes)reaction.append(node.cloneNode(true));
-  reaction.title={heart:'大好き',good:'よかった',triangle:'自分には合わなかった'}[entry.reaction]||'';
-  heading.append(reaction);card.append(heading);
+  card.append(heading);
   const memo=textNode('div','','detail-note');
   writeNoteMarkup(memo,entry.note||'',entry.noteMarks);
   if(!entry.note)memo.classList.add('is-empty');
@@ -1187,39 +1183,17 @@ function drawPastRecords(entries){
   const heading=document.createElement('h4');heading.textContent='以前の記録 '+(index+1);section.append(heading);
   const dateLabel=document.createElement('label');dateLabel.textContent='読んだ日';section.append(dateLabel);
   const dateWrap=document.createElement('div');buildDateFields(dateWrap,entry.date||'');section.append(dateWrap);
-  const reactionLabel=document.createElement('label');reactionLabel.textContent='読後の気持ち';section.append(reactionLabel);
-  const reaction=document.createElement('select');reaction.className='field past-reaction';
-  [['','付けない'],['heart','大好き'],['good','よかった'],['triangle','自分には合わなかった']].forEach(([value,label])=>reaction.add(new Option(label,value)));
-  reaction.value=entry.reaction||'';section.append(reaction);
   const memoLabel=document.createElement('label');memoLabel.textContent='感想・メモ';section.append(memoLabel);
   const note=document.createElement('textarea');note.className='field past-note';note.rows=5;note.value=entry.note||'';section.append(note);
-  const scoresTitle=document.createElement('p');scoresTitle.className='muted';scoresTitle.textContent='以前のカスタム評価';section.append(scoresTitle);
-  const scores=document.createElement('div');scores.className='past-score-list';section.append(scores);
-  for(const score of entry.customRatings||[]){
-   const line=document.createElement('div');line.className='past-score-row';
-   const name=document.createElement('input');name.className='field past-score-name';name.value=score.name||'';name.setAttribute('aria-label','評価項目');
-   const value=document.createElement('select');value.className='field past-score-value';value.add(new Option('未評価',''));
-   for(let i=.5;i<=5;i+=.5)value.add(new Option(i.toFixed(1)+' / 5',String(i)));
-   value.value=String(score.value??'');
-   const del=document.createElement('button');del.type='button';del.textContent='×';del.setAttribute('aria-label','評価を削除');del.onclick=()=>line.remove();
-   line.append(name,value,del);scores.append(line)
-  }
-  const add=document.createElement('button');add.type='button';add.textContent='＋ 評価項目を追加';add.onclick=()=>{
-   const line=document.createElement('div');line.className='past-score-row';
-   const name=document.createElement('input');name.className='field past-score-name';name.placeholder='項目名';name.setAttribute('aria-label','評価項目');
-   const value=document.createElement('select');value.className='field past-score-value';value.add(new Option('未評価',''));
-   for(let i=.5;i<=5;i+=.5)value.add(new Option(i.toFixed(1)+' / 5',String(i)));
-   const del=document.createElement('button');del.type='button';del.textContent='×';del.onclick=()=>line.remove();line.append(name,value,del);scores.append(line)
-  };section.append(add);wrap.append(section);
+  wrap.append(section);
  })
 }
 function collectPastRecords(){
  const entries=[];
  for(const section of $('past-record-list').children){
   const date=getDateFields(section.querySelector('.date-parts'));if(date===null)return null;
-  const customRatings=[...section.querySelectorAll('.past-score-row')].map(row=>({name:row.querySelector('.past-score-name').value.trim(),value:row.querySelector('.past-score-value').value})).filter(row=>row.name&&row.value!=='').map(row=>({name:row.name,value:Number(row.value)}));
   const previous=editing.readEntries?.[entries.length]||{};
-  entries.push({...previous,date,note:section.querySelector('.past-note').value, reaction:section.querySelector('.past-reaction').value||null,customRatings,noteMarks:section.querySelector('.past-note').value===String(previous.note||'')?previous.noteMarks||'':''});
+  entries.push({...previous,date,note:section.querySelector('.past-note').value,noteMarks:section.querySelector('.past-note').value===String(previous.note||'')?previous.noteMarks||'':''});
  }
  return entries;
 }
