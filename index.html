@@ -2362,7 +2362,9 @@ function renderCatalogResults(){
  $('search-group-control').hidden=items.length===0;
  if(catalogContext?.kind==='volume'){
   const base=catalogContextBase(),representative=items.find(b=>seriesFromCatalogTitle(b.title)&&catalogSeriesKey(seriesFromCatalogTitle(b.title).base)===catalogSeriesKey(base));
-  if(seriesFromCatalogTitle(books.find(b=>b.id===catalogContext.id)?.title)){
+  const matching=items.filter(b=>{const p=seriesFromCatalogTitle(b.title);return p&&catalogSeriesKey(p.base)===catalogSeriesKey(base)});
+  const willShowGroupedSeries=$('search-group-toggle').checked&&new Set(matching.map(b=>seriesFromCatalogTitle(b.title).volume)).size>=2&&new Set(matching.map(b=>String(b.author||'').normalize('NFKC').trim()).filter(Boolean)).size<=1;
+  if(seriesFromCatalogTitle(books.find(b=>b.id===catalogContext.id)?.title)&&!willShowGroupedSeries){
    const whole=document.createElement('button');whole.type='button';whole.className='result catalog-whole-series';
    const info=textNode('span','');info.append(textNode('strong','シリーズ全体を選ぶ'),textNode('div',base,'muted'));
    whole.append(bookCover(representative||books.find(b=>b.id===catalogContext.id)),info);
