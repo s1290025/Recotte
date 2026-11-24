@@ -1177,21 +1177,51 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 .app-header .header-navigation{display:flex;flex-direction:column;align-items:center;gap:0}
 .app-header:has(#detail-home:not([hidden])){height:96px;min-height:96px}
 .app-header .header-navigation:has(#detail-home[hidden]):has(#detail-back[hidden]){display:none}
+
+/* Keep shelf actions together and align the two detail navigation rails. */
+#home-page{display:block;max-width:none}
+#home-page .home-actions,body.mobile-menu-open #home-page:not([hidden]) .home-actions{display:flex;position:static;flex-direction:row;align-items:center;justify-content:flex-end;gap:8px;width:auto;min-width:0;padding:0;margin:0;align-self:center;border:0;background:transparent;box-shadow:none}
+#home-page .shelf-controls{align-items:center;flex-wrap:wrap}
+#home-page .shelf-controls .book-index{align-self:end}
+#home-page .shelf-sort-label{padding:0;margin-left:auto}
+#home-page .home-actions button{flex:0 0 40px;width:40px;height:40px}
+.app-header{height:22px;min-height:22px}
+.app-header .mobile-menu-toggle{display:none}
+#detaildialog.book-page{grid-template-columns:56px minmax(0,940px) 56px;column-gap:16px;padding-top:0;align-items:start}
+#detaildialog .detail-main{grid-column:2;grid-row:1}
+#detaildialog .detail-rail-left,#detaildialog .detail-rail-right{display:flex;position:sticky;top:14px;grid-row:1;width:56px;align-items:center;padding:0;margin:0;gap:8px;align-self:start}
+#detaildialog .detail-rail-left{grid-column:1}
+#detaildialog .detail-rail-right{grid-column:3}
+#detaildialog .header-navigation{display:flex;flex-direction:column;gap:8px}
+#detaildialog #detail-home,#detaildialog #detail-back,#detaildialog #detail-pin,#detaildialog #detail-edit{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;padding:0;margin:0;border:0;background:transparent;color:#171717;border-radius:7px}
+#detaildialog #detail-home[hidden],#detaildialog #detail-back[hidden],#detaildialog #detail-edit[hidden]{display:none!important}
+#detaildialog #detail-back{font-family:Arial,sans-serif;font-size:30px;line-height:1;font-weight:400}
+#detaildialog #detail-pin[aria-pressed="true"]{color:#b17d3b;background:#fcf4e8}
+#detaildialog #detail-home:hover,#detaildialog #detail-back:hover,#detaildialog #detail-edit:hover{background:#f5f5f5}
+@media(max-width:700px){
+ #home-page .shelf-controls .book-index{flex-basis:100%}
+ #home-page .shelf-sort-label{margin-left:auto}
+ #detaildialog.book-page{display:grid;grid-template-columns:36px minmax(0,1fr) 36px;column-gap:4px;padding:0 4px 24px}
+ #detaildialog .detail-main{padding:0}
+ #detaildialog .detail-rail-left,#detaildialog .detail-rail-right{position:sticky;top:8px;left:auto;right:auto;width:36px;min-width:0;border:0;background:transparent;box-shadow:none}
+ #detaildialog #detail-home,#detaildialog #detail-back,#detaildialog #detail-pin,#detaildialog #detail-edit{width:36px;height:40px;flex-basis:40px}
+}
+#home-page[hidden],#detaildialog[hidden]{display:none!important}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
- <div class="header-navigation"><button type="button" id="detail-home" class="header-back" aria-label="ホーム" title="ホーム" hidden><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/></svg></button><button type="button" id="detail-back" class="header-back" aria-label="戻る" title="戻る" hidden>〈</button></div>
+ 
  <button type="button" id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="操作メニューを開く" aria-controls="home-actions detail-actions-rail" aria-expanded="false" title="メニュー"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 </header>
 <main>
 <section id="home-page" aria-label="本の一覧">
   <div class="home-content">
-  <div class="shelf-controls"><nav class="book-index" id="tabs" aria-label="読書状況と絞り込み"><button type="button" data-status="done" aria-pressed="false">読んだ</button><button type="button" data-status="wish" class="active" aria-pressed="true">読みたい</button><span class="index-divider" aria-hidden="true"></span><button type="button" data-facet="publisher" aria-expanded="false" aria-controls="facet-panel">出版社</button><button type="button" data-facet="genre" aria-expanded="false" aria-controls="facet-panel">ジャンル</button><button type="button" data-facet="element" aria-expanded="false" aria-controls="facet-panel">要素</button><button type="button" data-facet="rating" aria-expanded="false" aria-controls="facet-panel">☆</button></nav><label class="shelf-sort-label" for="shelf-sort"><span class="sr-only">並べ替え</span><select id="shelf-sort" aria-label="本の並べ替え"><option value="updated-desc">更新した順</option><option value="updated-asc">更新が古い順</option><option value="added-desc">登録した順</option><option value="added-asc">登録が古い順</option><option value="read-desc">最近読んだ順</option><option value="read-asc">昔読んだ順</option><option value="title-asc">タイトル順</option><option value="rating-desc">評価が高い順</option><option value="rating-asc">評価が低い順</option><option value="memo-desc">感想が長い順</option><option value="memo-asc">感想が短い順</option><option value="reads-desc">読んだ回数順</option></select></label></div><section id="facet-panel" class="facet-panel" hidden aria-label="絞り込み項目"><div class="facet-panel-heading"><button id="facet-clear-current" type="button">この分類を解除</button></div><div id="facet-options" class="facet-options"></div></section><div id="active-filters" class="active-filters" hidden></div><div id="shelf-result-count" class="shelf-result-count" aria-live="polite"></div>
+  <div class="shelf-controls"><nav class="book-index" id="tabs" aria-label="読書状況と絞り込み"><button type="button" data-status="done" aria-pressed="false">読んだ</button><button type="button" data-status="wish" class="active" aria-pressed="true">読みたい</button><span class="index-divider" aria-hidden="true"></span><button type="button" data-facet="publisher" aria-expanded="false" aria-controls="facet-panel">出版社</button><button type="button" data-facet="genre" aria-expanded="false" aria-controls="facet-panel">ジャンル</button><button type="button" data-facet="element" aria-expanded="false" aria-controls="facet-panel">要素</button><button type="button" data-facet="rating" aria-expanded="false" aria-controls="facet-panel">☆</button></nav><label class="shelf-sort-label" for="shelf-sort"><span class="sr-only">並べ替え</span><select id="shelf-sort" aria-label="本の並べ替え"><option value="updated-desc">更新した順</option><option value="updated-asc">更新が古い順</option><option value="added-desc">登録した順</option><option value="added-asc">登録が古い順</option><option value="read-desc">最近読んだ順</option><option value="read-asc">昔読んだ順</option><option value="title-asc">タイトル順</option><option value="rating-desc">評価が高い順</option><option value="rating-asc">評価が低い順</option><option value="memo-desc">感想が長い順</option><option value="memo-asc">感想が短い順</option><option value="reads-desc">読んだ回数順</option></select></label><div class="home-actions" id="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div></div><section id="facet-panel" class="facet-panel" hidden aria-label="絞り込み項目"><div class="facet-panel-heading"><button id="facet-clear-current" type="button">この分類を解除</button></div><div id="facet-options" class="facet-options"></div></section><div id="active-filters" class="active-filters" hidden></div><div id="shelf-result-count" class="shelf-result-count" aria-live="polite"></div>
   <input id="filter" hidden type="search" placeholder="タイトル・著者・感想から検索" aria-label="記録した本や感想を検索">
   <div class="demo-bar" id="demo-bar"><span id="demo-label"></span><button id="demo-toggle" type="button"></button></div>
   <div id="books" class="grid cards" aria-label="本の表紙一覧"></div>
   </div>
-  <div class="home-actions" id="home-actions" aria-label="本の操作"><button id="toggle-search" class="icon-button" type="button" aria-label="記録した本や感想を検索" title="記録を検索" aria-expanded="false" aria-controls="filter"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg></button><button class="primary" id="add" aria-label="本を登録" title="本を登録">＋</button></div>
+  
 </section>
 <section id="series-page" class="book-page" aria-labelledby="series-page-title" hidden>
  <div class="series-head"><div id="series-cover" class="series-cover"></div><div class="series-head-text"><div class="series-kicker">SERIES</div><h2 id="series-page-title"></h2><p id="series-author" class="muted"></p><p id="series-progress" class="muted"></p><div id="series-rating-display"></div><div id="series-elements-display" class="series-chips"></div></div></div>
@@ -1217,6 +1247,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 </dialog>
 <dialog id="series-link-dialog" class="series-dialog" aria-labelledby="series-link-title"><div class="dialoghead"><h2 id="series-link-title">既存の本を追加</h2><button type="button" id="series-link-close" aria-label="閉じる">×</button></div><p class="muted">追加したい本を選んでください。現在の記録や感想はそのまま残ります。</p><div id="series-link-list" class="series-link-list"></div><div class="series-form-actions"><button type="button" id="series-link-cancel">閉じる</button><button type="button" id="series-link-save" class="primary">選んだ本を追加</button></div></dialog>
 <section id="detaildialog" class="book-page" aria-labelledby="detail-title" hidden>
+ <aside class="detail-rail detail-rail-left" aria-label="移動"><div class="header-navigation"><button type="button" id="detail-home" class="header-back" aria-label="ホーム" title="ホーム" hidden><svg viewBox="0 0 24 24" width="25" height="25" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7M5 9v11h5v-6h4v6h5V9"/></svg></button><button type="button" id="detail-back" class="header-back" aria-label="戻る" title="戻る" hidden>＜</button></div></aside>
  <div class="detail-main">
  <div class="detail-book">
   <div class="detail-book-info">
