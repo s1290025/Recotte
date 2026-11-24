@@ -1034,6 +1034,10 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 @media(max-width:700px){
  #editdialog .record-book-info>#edit-cover-preview{width:100px;margin:24px auto 12px}
 }
+/* API-provided bibliographic fields are presented as non-editable reference data. */
+#editdialog .record-book-info input[readonly]{background:#f5f2ec;color:#5d554c;border-color:#ded7ca;cursor:default}
+#editdialog .record-book-info .api-fields-readonly{font-size:12px;line-height:1.6;color:#766b5e;margin:7px 0 10px}
+#editdialog .record-book-info .api-fields-readonly[hidden]{display:none!important}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1109,7 +1113,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
   <div class="record-editor">
    <div class="record-book-info">
     <label for="title">タイトル（必須）</label><input class="field" id="title" required maxlength="300">
-    <label for="author">著者</label><input class="field" id="author" maxlength="300"><div id="api-book-metadata" class="api-book-metadata"></div>
+    <label for="author">著者</label><input class="field" id="author" maxlength="300"><p id="api-fields-readonly" class="api-fields-readonly" hidden>Google Booksから取得した書誌情報は変更できません。</p><div id="api-book-metadata" class="api-book-metadata"></div>
     <div class="editor-status-internal" hidden><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select></div>
  
     <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div>
@@ -1917,6 +1921,12 @@ function openEditor(b=null){
  $('source-book').hidden=!(typeof editing.itemUrl==='string'&&editing.itemUrl.startsWith('https://'));
  if(!$('source-book').hidden){$('source-book').href=editing.itemUrl;$('source-book').textContent=editing.source==='Google Books'?'Google Booksで見る':'書籍情報を見る'}
  for(const k of ['title','author','status'])$(k).value=editing[k]||'';
+ const catalogLocked=editing.source==='Google Books'||!!editing.volumeId;
+ for(const k of ['title','author']){
+  $(k).readOnly=catalogLocked;
+  $(k).setAttribute('aria-readonly',String(catalogLocked));
+ }
+ $('api-fields-readonly').hidden=!catalogLocked;
  $('tags').value=(Array.isArray(editing.tags)?editing.tags:[]).map(t=>'#'+t).join(' ');
  $('note').replaceChildren();writeNoteMarkup($('note'),editing.note||'',editing.noteMarks);
  editorElements=[...new Set([...(editing.keywords?.elements||[]),...(editing.keywords?.moods||[]),...(editing.keywords?.likes||[])])];$('kw-elements').value='';drawElementChips();
@@ -1948,7 +1958,7 @@ function openEditor(b=null){
  $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id)&&!seriesRecords.some(x=>x.id===editing.id));
  $('edittitle').textContent=editing.recordType==='series'?'シリーズの記録':books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
  $('edit-cover-preview').replaceChildren(bookCover(editing));
- $('volume-cover-field').hidden=!editing.seriesId&&!editing.suggestedSeriesName;
+ $('volume-cover-field').hidden=catalogLocked||(!editing.seriesId&&!editing.suggestedSeriesName);
  $('volume-cover-url').value=editing.seriesId||editing.suggestedSeriesName?editing.cover||'':'';
  $('api-book-metadata').textContent=[(editing.categories||[]).join(' / '),editing.publisher,editing.published,editing.pageCount?editing.pageCount+'ページ':''].filter(Boolean).join(' · ');
  updateEditorNoteHeading();updateReadFields();$('reread-action').hidden=editing.recordType==='series'||editing.status==='wish'||!books.some(x=>x.id===editing.id);if($('searchdialog').open)$('searchdialog').close();$('editdialog').showModal();
@@ -1989,7 +1999,7 @@ function editorSnapshot(){
  for(let i=0;i<readEntries.length&&i<readHistory.length-1;i++)readHistory[i]={...readHistory[i],date:readEntries[i].date};
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
- return {...editing,title,author:$('author').value.trim(),cover:editing.seriesId?$('volume-cover-url').value.trim():editing.cover||'',status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'&&editing.recordType!=='series'?(editing.note||''):plain,noteMarks:status==='wish'&&editing.recordType!=='series'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
+ return {...editing,title:editing.source==='Google Books'||editing.volumeId?editing.title:title,author:editing.source==='Google Books'||editing.volumeId?editing.author:$('author').value.trim(),cover:editing.source==='Google Books'||editing.volumeId?editing.cover||'':editing.seriesId?$('volume-cover-url').value.trim():editing.cover||'',status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'&&editing.recordType!=='series'?(editing.note||''):plain,noteMarks:status==='wish'&&editing.recordType!=='series'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
 }
 function writeEditorSnapshot(next,redraw=false){
  try{
@@ -2136,7 +2146,7 @@ function startCatalogSeriesRegistration(title,volumeOne){
  const existing=seriesRecords.find(series=>series.title.normalize('NFKC').trim()===title.normalize('NFKC').trim());
  const series=existing?seriesEditorBook(existing):{
   id:crypto.randomUUID(),recordType:'series',title,author:volumeOne.author||'',status:'wish',
-  date:'',note:'',cover:volumeOne.cover||'',elements:[],customRatings:[],readHistory:[],readEntries:[],displayMode:'grouped'};
+  date:'',note:'',cover:volumeOne.cover||'',source:'Google Books',elements:[],customRatings:[],readHistory:[],readEntries:[],displayMode:'grouped'};
  startReadingChoice(series);
 }
 function renderCatalogResults(){
