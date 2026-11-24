@@ -1058,14 +1058,14 @@ function drawRadar(items,host){
 }
 function fillDetails(book){
  const wrap=$('detail-keywords');wrap.replaceChildren();
- const group=textNode('section','','keyword-group');group.append(textNode('h4','作品の要素'));
+ const group=textNode('section','','keyword-group');
  const chips=textNode('div','','keyword-chips');
  const all=[...(book.keywords?.elements||[]),...(book.keywords?.moods||[]),...(book.keywords?.likes||[])];
  for(const word of new Set(all))chips.append(textNode('span',word));
  if(!chips.childNodes.length)chips.append(textNode('span','未登録','muted'));
  group.append(chips);wrap.append(group);
  wrap.hidden=!all.some(word=>typeof word==='string'&&word.trim());
- const ratings=$('detail-rating');ratings.replaceChildren(textNode('h3','自分のものさし'));
+ const ratings=$('detail-rating');ratings.replaceChildren();
  const custom=(book.customRatings||[]).filter(x=>x.name&&Number(x.value)>0);
  if(custom.length>=3)drawRadar(custom,ratings);
  for(const item of custom){const label=item.name==='総合'||item.name==='総合評価'?'':item.name+'　';const line=textNode('p',label,'custom-display');line.append(ratingStars(item.value));ratings.append(line)}
