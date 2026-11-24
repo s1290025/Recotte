@@ -817,6 +817,36 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #detaildialog .detail-book-info{border-bottom:0!important}
 #editdialog .editor-elements{border-top:0;padding-top:0}
 @media(max-width:700px){#editdialog .record-book-info{border-bottom:1px solid #eee}}
+
+/* Journal detail: book-wide metadata at left, date labels outside each memo card. */
+@media(min-width:701px){
+ #detaildialog .detail-book-info #detail-rating{margin-top:18px}
+ #editdialog .record-book-info #read-fields{margin-top:20px}
+}
+#detaildialog .detail-note-section{display:flex;flex-direction:column}
+#detaildialog #detail-previous-reads{display:contents}
+#detaildialog .detail-session-block{display:flex;flex-direction:column;min-width:0;margin:0 0 22px}
+#detaildialog .detail-session-block .detail-session-date{display:block;width:100%;text-align:left;align-self:flex-start;margin:0 0 9px;padding:0;border:0}
+#detaildialog .detail-session-block .detail-reading-session{margin:0;border:1px solid #e9e5de;padding:19px 20px 22px}
+#detaildialog .detail-book-info #detail-rating{border-bottom:0;margin-bottom:8px;padding:0}
+#detaildialog .detail-book-info #detail-reaction{margin:6px 0 0}
+#editdialog .record-writing{display:flex;flex-direction:column}
+#editdialog #past-records{display:contents}
+#editdialog #past-records[hidden]{display:none!important}
+#editdialog #past-records>h3,#editdialog #past-records>.muted{display:none}
+#editdialog #past-record-list{display:contents}
+#editdialog .record-writing>.reading-session{padding:0;margin:0 0 22px;border:0;background:none}
+#editdialog .reading-session .date-records{margin:0 0 10px;border:0;padding:0;text-align:left}
+#editdialog .reading-session .current-memo-panel,#editdialog .past-memo-panel{padding:19px 20px 22px;border:1px solid #e9e5de;border-radius:9px;background:#fff}
+#editdialog .past-record-entry{padding:0;border:0;background:none;margin:0 0 22px}
+#editdialog .past-record-entry>label{margin:0 0 6px;text-align:left}
+#editdialog .past-record-entry>.date-parts{margin:0 0 10px}
+#editdialog .past-record-entry .past-memo-panel>label{margin:0 0 10px}
+#editdialog .record-book-info #read-fields{padding-top:16px;border-top:1px solid #e9e6df;margin-bottom:0}
+@media(max-width:700px){
+ #detaildialog .detail-session-block .detail-reading-session{padding:15px 14px}
+ #editdialog .reading-session .current-memo-panel,#editdialog .past-memo-panel{padding:15px 14px}
+}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -840,13 +870,15 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
    <div id="detail-cover" class="detail-cover"></div>
    <div class="detail-heading"><h2 id="detail-title"></h2><p id="detail-author" class="muted"></p><p id="detail-publisher-categories" class="detail-book-metadata" hidden></p><p id="detail-status" class="detail-status" hidden></p></div>
    <div id="detail-keywords" class="detail-keywords"></div>
+   <div id="detail-rating" class="detail-rating"></div><div id="detail-reaction" class="detail-shared-reaction"></div>
   </div>
   <section class="detail-note-section">
-   <div id="detail-rating" class="detail-rating"></div><div id="detail-reaction" class="detail-shared-reaction"></div>
-   <div class="detail-reading-session">
+   <div id="detail-current-reading" class="detail-session-block">
     <button id="detail-date" type="button" class="detail-session-date" title="読んだ日を編集"></button>
-    <div class="detail-note-heading"><h3>感想・メモ</h3></div>
-    <div id="detail-note" class="detail-note"></div>
+    <div class="detail-reading-session">
+     <div class="detail-note-heading"><h3>感想・メモ</h3></div>
+     <div id="detail-note" class="detail-note"></div>
+    </div>
    </div>
    <div id="detail-previous-reads" class="detail-previous-reads"></div>
   </section>
@@ -872,14 +904,15 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <div class="editor-status-internal" hidden><label for="status">読書状況</label><select class="field" id="status"><option value="wish">読みたい</option><option value="reading">読書中</option><option value="done">読んだ</option><option value="paused">中断</option></select></div>
  
     <div class="legacy-tags" hidden><label for="tags">以前のタグ</label><input class="field" id="tags" maxlength="500"></div><div id="editor-elements" class="editor-elements" hidden><label for="kw-elements">作品の要素</label><div id="element-chips" class="element-chips" aria-live="polite"></div><input class="field" id="kw-elements" placeholder="要素を入力" autocomplete="off"><p class="element-help">「、」「。」「,」またはEnterで要素を区切れます。クリックして編集できます。</p></div>
+    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div class="overall-rating-row"><label for="overall-rating-value">総合評価</label><select id="overall-rating-value" class="overall-rating-value" aria-label="総合評価"></select></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button><div class="shared-reaction"><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div></div>
    </div>
    <div class="record-writing">
-    <div id="read-fields" class="read-fields"><div class="custom-rating-head"><h3>自分のものさし</h3><span class="muted">任意</span></div><div class="overall-rating-row"><label for="overall-rating-value">総合評価</label><select id="overall-rating-value" class="overall-rating-value" aria-label="総合評価"></select></div><div id="custom-rating-fields"></div><button type="button" id="add-custom-rating">＋ カスタム評価を追加</button><div class="shared-reaction"><div class="reaction-picks" id="reaction-picks" role="group" aria-label="読んだ感想のリアクション"><button type="button" data-reaction="heart" aria-pressed="false" title="大好き" aria-label="大好き">♡</button><button type="button" data-reaction="good" aria-pressed="false" title="よかった" aria-label="よかった"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 10v11H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3Zm0 0 4-8c2-1 3 1 3 3l-1 5h6a3 3 0 0 1 3 4l-2 6a3 3 0 0 1-3 2H7"/></svg></button><button type="button" data-reaction="triangle" aria-pressed="false" title="自分には合わなかった" aria-label="自分には合わなかった">△</button></div></div></div>
     <div class="reading-session current-session">
-      
     <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div></div>
+    <div class="current-memo-panel">
     <div class="note-heading"><div class="note-title-tools"><label for="note">感想・メモ</label><button type="button" id="mark-selection" class="mark-icon-button" title="選択した文章にマーカーを付ける・外す" aria-label="選択した文章にマーカーを付ける・外す"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 4 4"/><path d="m21 3-8 8-4-4 8-8z" transform="translate(-1 3)"/><path d="M3 21h12"/><path d="m6 18 4-4"/></svg></button></div></div>
     <div id="note" class="note-editor" contenteditable="true" role="textbox" aria-label="感想・メモ" aria-multiline="true" data-placeholder="心に残ったことを、自由に書いてください。"></div>
+    </div>
     </div>
     <section id="past-records" class="past-records" hidden><h3>以前の読書記録</h3><p class="muted">再読前の感想・評価も編集できます。</p><div id="past-record-list"></div></section>
    </div>
@@ -993,6 +1026,7 @@ function addReadHistoryRow(date=''){
  const row=document.createElement('div');row.className='history-row';
  const fields=document.createElement('div');buildDateFields(fields,date);
  const del=document.createElement('button');del.type='button';del.textContent='×';del.setAttribute('aria-label','日付を削除');del.onclick=()=>row.remove();
+ fields.addEventListener('change',()=>{const date=getDateFields(fields.querySelector('.date-parts'));if(date!==null)document.querySelector('.current-session').style.order=String(-readingDateSortValue(date))});
  row.append(fields,del);$('read-history').append(row);return row;
 }
 $('today-edit').onclick=()=>{const row=$('read-history').lastElementChild||addReadHistoryRow(localToday());setDateFieldsToday(row.querySelector('.date-parts'))};
@@ -1068,6 +1102,10 @@ function drawRadar(items,host){
  for(let i=0;i<n;i++){const a=2*Math.PI*i/n-Math.PI/2;const line=document.createElementNS(ns,'line');line.setAttribute('x1',cx);line.setAttribute('y1',cy);line.setAttribute('x2',cx+r*Math.cos(a));line.setAttribute('y2',cy+r*Math.sin(a));line.setAttribute('stroke','#ddd');svg.append(line);const label=document.createElementNS(ns,'text');label.setAttribute('x',cx+(r+26)*Math.cos(a));label.setAttribute('y',cy+(r+26)*Math.sin(a));label.setAttribute('font-size','11');label.setAttribute('text-anchor','middle');label.textContent=items[i].name.slice(0,10);svg.append(label)}
  const polygon=document.createElementNS(ns,'polygon');polygon.setAttribute('points',pts(1));polygon.setAttribute('fill','#a7b8c544');polygon.setAttribute('stroke','#718ca1');polygon.setAttribute('stroke-width','2');svg.append(polygon);host.append(svg)
 }
+function readingDateSortValue(value){
+ const parts=String(value||'').match(/^(\\d{4})(?:-(\\d{1,2}))?(?:-(\\d{1,2}))?$/);
+ return parts?Number(parts[1])*10000+Number(parts[2]||0)*100+Number(parts[3]||0):0;
+}
 function fillDetails(book){
  const wrap=$('detail-keywords');wrap.replaceChildren();
  const group=textNode('section','','keyword-group');
@@ -1086,21 +1124,24 @@ function fillDetails(book){
  const history=Array.isArray(book.readHistory)?book.readHistory:[],dates=history.map(x=>x.date).filter(Boolean);
  if(!dates.length&&book.date)dates.push(book.date);
  $('detail-date').textContent=dates.length?'読んだ日　'+dates[dates.length-1]:'読んだ日を追加';
+ $('detail-current-reading').style.order=String(-readingDateSortValue(dates[dates.length-1]||''));
  const reactionMark=$('detail-reaction');reactionMark.replaceChildren();const reactionButton=document.querySelector('#reaction-picks [data-reaction="'+book.reaction+'"]');if(reactionButton)for(const node of reactionButton.childNodes)reactionMark.append(node.cloneNode(true));
  $('detail-reaction').title={heart:'大好き',good:'よかった',triangle:'自分には合わなかった'}[book.reaction]||'';
  const prev=$('detail-previous-reads');prev.replaceChildren();
  const pastDates=(Array.isArray(book.readHistory)?book.readHistory:(book.date?[{date:book.date}]:[])).slice(0,-1);
  const previous=historicalEntries(book);
  previous.forEach((entry,i)=>{
-  const card=textNode('section','','detail-reading-session previous-entry');
-  const date=textNode('div','読んだ日　'+(entry.date||pastDates[i]?.date||'未登録'),'detail-session-date');card.append(date);
+  const block=textNode('section','','detail-session-block previous-entry');
+  const date=textNode('div','読んだ日　'+(entry.date||pastDates[i]?.date||'未登録'),'detail-session-date');block.append(date);
+  block.style.order=String(-readingDateSortValue(entry.date||pastDates[i]?.date||''));
+  const card=textNode('div','','detail-reading-session');block.append(card);
   const heading=textNode('div','','detail-note-heading');
   heading.append(textNode('h3','感想・メモ'));
   card.append(heading);
   const memo=textNode('div','','detail-note');
   writeNoteMarkup(memo,entry.note||'',entry.noteMarks);
   if(!entry.note)memo.classList.add('is-empty');
-  card.append(memo);prev.append(card);
+  card.append(memo);prev.append(block);
  });
  const note=$('detail-note');note.replaceChildren();writeNoteMarkup(note,book.note||'まだ感想・メモはありません。',book.noteMarks);
  $('detail-pin').hidden=!!book.demo;$('detail-pin').setAttribute('aria-pressed',String(!!book.pinned));$('detail-pin').title=book.pinned?'ピン止めを解除':'ピン止め';
@@ -1189,12 +1230,15 @@ function drawPastRecords(entries){
  $('past-records').hidden=!list.length;
  list.forEach((entry,index)=>{
   const section=document.createElement('section');section.className='past-record-entry';
-  const heading=document.createElement('h4');heading.textContent='以前の記録 '+(index+1);section.append(heading);
+  section.style.order=String(-readingDateSortValue(entry.date));
+
   const dateLabel=document.createElement('label');dateLabel.textContent='読んだ日';section.append(dateLabel);
   const dateWrap=document.createElement('div');buildDateFields(dateWrap,entry.date||'');section.append(dateWrap);
-  const memoLabel=document.createElement('label');memoLabel.textContent='感想・メモ';section.append(memoLabel);
-  const note=document.createElement('textarea');note.className='field past-note';note.rows=5;note.value=entry.note||'';section.append(note);
-  wrap.append(section);
+  dateWrap.addEventListener('change',()=>{const date=getDateFields(dateWrap.querySelector('.date-parts'));if(date!==null)section.style.order=String(-readingDateSortValue(date))});
+  const memoPanel=document.createElement('div');memoPanel.className='past-memo-panel';
+  const memoLabel=document.createElement('label');memoLabel.textContent='感想・メモ';memoPanel.append(memoLabel);
+  const note=document.createElement('textarea');note.className='field past-note';note.rows=5;note.value=entry.note||'';memoPanel.append(note);
+  section.append(memoPanel);wrap.append(section);
  })
 }
 function collectPastRecords(){
@@ -1236,6 +1280,8 @@ function openEditor(b=null){
  const history=Array.isArray(editing.readHistory)?editing.readHistory:(editing.date?[{date:editing.date}]:[]);
  if(history.length)addReadHistoryRow(history[history.length-1].date||'');
  else if(editing.status!=='wish')addReadHistoryRow(localToday());
+ const currentDate=history.length?history[history.length-1].date||'':'';
+ document.querySelector('.current-session').style.order=String(-readingDateSortValue(currentDate));
  editing.readEntries=historicalEntries(editing);
  drawPastRecords(editing.readEntries);
  $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));
