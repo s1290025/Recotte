@@ -1269,6 +1269,17 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .mark-icon-button{color:#777}
 #editdialog .mark-icon-button:hover,#editdialog .mark-icon-button:focus-visible{background:#fff7d2}
 @media(max-width:700px){#editdialog .past-record-entry .past-note,#editdialog .reading-session .note-editor{min-height:37dvh}}
+
+/* Mobile shelf: independent toolbar above attached bookmark tabs. */
+@media(max-width:700px){
+ #home-page .shelf-controls{display:flex;flex-wrap:wrap;align-items:flex-end;gap:6px;margin-bottom:10px}
+ #home-page .shelf-controls .book-index{order:3;flex:1 0 100%;padding-top:6px;margin:0;align-self:flex-end;justify-content:flex-start}
+ #home-page .shelf-sort-label{order:1;margin-left:auto;align-self:center}
+ #home-page .home-actions,body.mobile-menu-open #home-page:not([hidden]) .home-actions{order:2;align-self:center}
+ #home-page #shelf-sort,#home-page .home-actions #toggle-search,#home-page .home-actions #add{border-radius:7px;background:#fff}
+ #home-page .shelf-controls .book-index button{margin-bottom:0;border-bottom:0}
+ #home-page .shelf-controls .book-index button.active{margin-bottom:-1px;border-bottom:1px solid #fff}
+}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
