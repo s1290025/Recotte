@@ -1958,7 +1958,8 @@ function saveInlineSeries(snapshot){
   const title=$('editor-series-new-name').value.trim();
   if(!title)return false;
   const known=seriesRecords.find(s=>s.title.normalize('NFKC')===title.normalize('NFKC'));
-  id=known?.id||snapshot.seriesId&&seriesRecords.some(s=>s.id===snapshot.seriesId)?known?.id||snapshot.seriesId:crypto.randomUUID();
+  const previouslyCreated=seriesRecords.find(s=>s.id===snapshot.seriesId&&s.title.normalize('NFKC')===title.normalize('NFKC'));
+  id=known?.id||previouslyCreated?.id||crypto.randomUUID();
   // Only create the new series once, even when autosave runs repeatedly.
   if(!seriesRecords.some(s=>s.id===id)){
    const series={id,title,author:snapshot.author||'',status:snapshot.status,cover:snapshot.cover||'',
