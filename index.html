@@ -1010,6 +1010,15 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .editor-series-head button{font-size:12px;border:1px solid #cabfae;background:#fffcf6;border-radius:7px;padding:8px 11px;color:#584b3e}
 #editdialog .editor-series-panel .editor-inline-check{display:flex;align-items:center;gap:8px;font-size:13px;margin:12px 0}
 #editdialog .editor-series-panel .muted{font-size:12px;margin:9px 0 0}
+
+/* Consistent detail layout for both single books and series. */
+#detaildialog .detail-series-volumes{border-top:1px solid #e4ded4;margin-top:26px;padding-top:22px}
+#detaildialog .detail-series-volumes h3{font-size:16px;margin:0 0 14px}
+#detaildialog .series-volume-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:14px}
+#detaildialog .series-volume-item{text-align:left;border:0;background:transparent;color:inherit;padding:0;min-width:0;cursor:pointer}
+#detaildialog .series-volume-item .cover{width:100%;aspect-ratio:2/3;object-fit:cover}
+#detaildialog .volume-caption{font-size:12px;line-height:1.5;padding-top:6px}
+#detaildialog .volume-state{font-size:11px;color:#837969}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1062,11 +1071,12 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
    <div id="detail-current-reading" class="detail-session-block">
     <button id="detail-date" type="button" class="detail-session-date" title="読んだ日を編集"></button>
     <div class="detail-reading-session">
-     <div class="detail-note-heading"><h3>感想・メモ</h3></div>
+     <div class="detail-note-heading"><h3 id="detail-current-note-heading">感想・メモ</h3></div>
      <div id="detail-note" class="detail-note"></div>
     </div>
    </div>
    <div id="detail-previous-reads" class="detail-previous-reads"></div>
+   <section id="detail-series-volumes" class="detail-series-volumes" hidden><h3>各巻の記録</h3><div id="detail-series-volume-list" class="series-volume-list"></div></section>
   </section>
  </div>
  <div class="detail-actions"><a id="detail-source" class="muted" hidden target="_blank" rel="noopener noreferrer">書籍情報を見る</a></div>
@@ -1081,22 +1091,6 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 <dialog id="editdialog" aria-labelledby="edittitle">
  <div class="dialoghead"><h2 id="edittitle">本の記録</h2><div class="editor-header-actions"><div id="reread-action" class="reread-action" hidden><button type="button" id="editor-reread" title="今の記録を保存して、もう一度読んだ日付を追加">＋ もう一回読んだ</button></div><button type="button" id="edit-close-save" aria-label="記録を保存して閉じる" title="保存して閉じる">×</button></div></div>
  <form id="editform">
-  <section id="editor-series-panel" class="editor-series-panel" hidden>
-   <div id="editor-series-only" hidden>
-    <div class="editor-series-head"><strong>シリーズの記録</strong></div>
-    <label for="editor-display-mode">本棚での表示</label>
-    <select id="editor-display-mode" class="field"><option value="grouped">シリーズでまとめる</option><option value="volumes">巻ごとに表示する</option></select>
-    <p class="muted">シリーズ全体の感想や評価は、下の通常の記録欄に入力できます。</p>
-   </div>
-   <div id="editor-volume-only" hidden>
-    <div class="editor-series-head"><strong>シリーズについて</strong><button type="button" id="editor-open-series" hidden>シリーズの記録を見る</button></div>
-    <label for="editor-series-select">所属するシリーズ</label>
-    <select class="field" id="editor-series-select"></select>
-    <div id="editor-series-new-wrap" hidden><label for="editor-series-new-name">シリーズ名</label><input class="field" id="editor-series-new-name" maxlength="200"></div>
-    <div id="editor-volume-number-wrap" hidden><label for="editor-volume-number">巻数</label><input class="field" id="editor-volume-number" min="1" max="999" step="1" type="number"></div>
-    <label class="editor-inline-check"><input id="editor-group-series" type="checkbox"> シリーズでまとめる</label><label class="editor-inline-check"><input id="editor-volume-separate" type="checkbox"> この巻のみ別で表示する</label>
-   </div>
-  </section>
   <div class="record-editor">
    <div class="record-book-info">
     <div id="edit-cover-preview" class="edit-cover-preview" aria-label="本の表紙"></div><div id="volume-cover-field" hidden><label for="volume-cover-url">この巻の表紙URL（任意）</label><input id="volume-cover-url" class="field" type="url" placeholder="https://"></div>
@@ -1424,7 +1418,8 @@ function fillDetails(book){
  ratings.hidden=!custom.length&&book.rating==null;
  const history=Array.isArray(book.readHistory)?book.readHistory:[],dates=history.map(x=>x.date).filter(Boolean);
  if(!dates.length&&book.date)dates.push(book.date);
- $('detail-date').textContent=dates.length?'読んだ日　'+dates[dates.length-1]:'読んだ日を追加';
+ $('detail-date').textContent=book.recordType==='series'?'':dates.length?'読んだ日　'+dates[dates.length-1]:'読んだ日を追加';
+ $('detail-date').hidden=book.recordType==='series';
  $('detail-current-reading').style.order=String(-readingDateSortValue(dates[dates.length-1]||''));
  const reactionMark=$('detail-reaction');reactionMark.replaceChildren();const reactionButton=document.querySelector('#reaction-picks [data-reaction="'+book.reaction+'"]');if(reactionButton)for(const node of reactionButton.childNodes)reactionMark.append(node.cloneNode(true));
  $('detail-reaction').title={heart:'大好き',good:'よかった',triangle:'自分には合わなかった'}[book.reaction]||'';
@@ -1448,7 +1443,7 @@ function fillDetails(book){
  const note=$('detail-note');note.replaceChildren();writeNoteMarkup(note,book.note||'まだ感想・メモはありません。',book.noteMarks);
  $('detail-pin').hidden=!!book.demo;$('detail-pin').setAttribute('aria-pressed',String(!!book.pinned));$('detail-pin').title=book.pinned?'ピン止めを解除':'ピン止め';
 }
-$('detail-pin').onclick=()=>{if(!detailBook||detailBook.demo)return;const updated={...detailBook,pinned:!detailBook.pinned,updatedAt:new Date().toISOString()};if(persist(books.map(x=>x.id===updated.id?updated:x))){detailBook=updated;fillDetails(updated);notify(updated.pinned?'本をピン止めしました。':'ピン止めを解除しました。')}closeMobileMenu()};
+$('detail-pin').onclick=()=>{if(!detailBook||detailBook.demo)return;const updated={...detailBook,pinned:!detailBook.pinned,updatedAt:new Date().toISOString()};const success=detailBook.recordType==='series'?persistSeries(seriesRecords.map(x=>x.id===updated.id?{...x,pinned:updated.pinned,updatedAt:updated.updatedAt}:x)):persist(books.map(x=>x.id===updated.id?updated:x));if(success){detailBook=updated;fillDetails(updated);notify(updated.pinned?'ピン止めしました。':'ピン止めを解除しました。')}closeMobileMenu()};
 
 let detailBook=null;
 function closeMobileMenu(){document.body.classList.remove('mobile-menu-open');$('mobile-menu-toggle').setAttribute('aria-expanded','false');$('mobile-menu-toggle').setAttribute('aria-label','操作メニューを開く')}
@@ -1456,18 +1451,33 @@ $('mobile-menu-toggle').onclick=()=>{const open=document.body.classList.toggle('
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMobileMenu()});
 document.addEventListener('click',e=>{if(document.body.classList.contains('mobile-menu-open')&&!e.target.closest('#mobile-menu-toggle,#home-actions,#detail-actions-rail'))closeMobileMenu()});
 $('detail-back').onclick=()=>{
- $('detaildialog').hidden=true;
- detailBook=null;
- if(!$('series-page').hidden){$('series-page').hidden=true}
+ $('detaildialog').hidden=true;detailBook=null;
  if(seriesReturnId&&seriesRecords.some(s=>s.id===seriesReturnId)){const id=seriesReturnId;seriesReturnId=null;openSeries(id)}
  else{$('home-page').hidden=false;$('detail-back').hidden=true;activeSeries=null}
  closeMobileMenu();window.scrollTo({top:0,behavior:'instant'});
 };
+function renderDetailSeriesVolumes(book){
+ const section=$('detail-series-volumes'),list=$('detail-series-volume-list');
+ list.replaceChildren();section.hidden=book.recordType!=='series';
+ if(section.hidden)return;
+ const series=seriesRecords.find(x=>x.id===book.id);
+ if(!series)return;
+ const members=seriesMembers(series);
+ if(!members.length){section.append();list.append(textNode('p','まだ巻ごとの記録はありません。','muted'));return}
+ for(const volume of members){
+  const button=textNode('button','','series-volume-item');button.type='button';
+  button.append(bookCover(volume),
+   textNode('div',(volume.volumeNumber?volume.volumeNumber+'巻 · ':'')+volume.title,'volume-caption'),
+   textNode('div',volume.status==='wish'?'未読':'読了','volume-state'));
+  button.onclick=()=>{seriesReturnId=series.id;selectBook(volume)};
+  list.append(button);
+ }
+}
 function selectBook(b){
- if(!b.seriesId)seriesReturnId=null;
+ if(!b.seriesId&&b.recordType!=='series')seriesReturnId=null;
  detailBook=b;
  $('series-page').hidden=true;
- $('detail-cover').replaceChildren(bookCover(b));
+ $('detail-cover').replaceChildren(b.recordType==='series'&&seriesCover(b)?coverNode(seriesCover(b)):bookCover(b));
  $('detail-title').textContent=b.title;
  $('detail-author').textContent=b.author||'著者未登録';
  const bookMetadata=[typeof b.publisher==='string'?b.publisher.trim():'',...(Array.isArray(b.categories)?b.categories.filter(x=>typeof x==='string'&&x.trim()):[])];
@@ -1476,8 +1486,10 @@ function selectBook(b){
  $('detail-status').textContent='';
  $('detail-date').textContent='';
  fillDetails(b);
+ renderDetailSeriesVolumes(b);
  $('detail-note').classList.toggle('is-empty',!b.note);
 
+ $('detail-current-note-heading').textContent=b.recordType==='series'?'シリーズ全体の感想・メモ':b.seriesId&&Number(b.volumeNumber)>0?b.volumeNumber+'巻の感想・メモ':'感想・メモ';
  const source=$('detail-source');
  const hasSource=typeof b.itemUrl==='string'&&b.itemUrl.startsWith('https://');
  source.hidden=!hasSource;
@@ -1494,42 +1506,19 @@ $('detail-edit').onclick=()=>{
  if(!detailBook||detailBook.demo)return;
  const b=detailBook;
  closeMobileMenu();
- if(b.status==='wish')startReadDate(b,'first');else openEditor(b);
+ if(b.recordType==='series')openEditor(seriesEditorBook(seriesRecords.find(x=>x.id===b.id)||b));else if(b.status==='wish')startReadDate(b,'first');else openEditor(b);
 };
 
 /* Series and volumes are independent records; books keep only seriesId/volumeNumber. */
 function openSeries(id){
- const series=seriesRecords.find(item=>item.id===id);
- if(!series)return;
- activeSeries=series.id;
- $('home-page').hidden=true;$('detaildialog').hidden=true;$('series-page').hidden=false;
- $('detail-back').hidden=false;
- renderSeriesPage();
- closeMobileMenu();
- window.scrollTo({top:0,behavior:'instant'});
+ const series=seriesRecords.find(x=>x.id===id);if(!series)return;
+ activeSeries=id;seriesReturnId=null;
+ selectBook(seriesEditorBook(series));
 }
 function renderSeriesPage(){
- const series=seriesRecords.find(item=>item.id===activeSeries);if(!series)return;
- $('series-page-title').textContent=series.title;
- $('series-author').textContent=series.author||'';
- const members=seriesMembers(series),done=members.filter(b=>b.status!=='wish').length;
- $('series-progress').textContent=members.length?done+' / '+members.length+'巻 読了':(series.status==='wish'?'読みたいシリーズ':'シリーズの記録');
- const cover=seriesCover(series),coverBox=$('series-cover');coverBox.replaceChildren();
- if(cover)coverBox.append(coverNode(cover));
- else{const fallback=textNode('div','','cover fallback');fallback.style.setProperty('--book-color','#7d8274');fallback.append(textNode('small','RECOTTE SERIES'),textNode('strong',series.title));coverBox.append(fallback)}
- $('series-overview-note').textContent=series.note||'まだ感想・メモはありません。';
- const ratings=$('series-rating-display');ratings.replaceChildren();
- if(series.rating!==''&&series.rating!=null)ratings.append(textNode('span','総合評価　'+Number(series.rating).toFixed(1)+' / 5'));
- const elements=$('series-elements-display');elements.replaceChildren();
- for(const word of series.elements||[])elements.append(textNode('span',word));
- const list=$('series-volume-list');list.replaceChildren();
- if(!members.length)list.append(textNode('p','まだ巻が登録されていません。右上の「巻を追加」または「既存の本を追加」から登録できます。','muted'));
- for(const b of members){
-  const btn=textNode('button','','series-volume-item');btn.type='button';
-  btn.append(bookCover(b),textNode('div',(b.volumeNumber?b.volumeNumber+'巻 · ':'')+b.title,'volume-caption'),textNode('div',b.status==='wish'?'未読':'読了','volume-state'));
-  btn.onclick=()=>{seriesReturnId=series.id;selectBook(b)};
-  list.append(btn);
- }
+ if(!activeSeries)return;
+ const series=seriesRecords.find(x=>x.id===activeSeries);
+ if(series)selectBook(seriesEditorBook(series));
 }
 function openSeriesEditor(id=null){
  const series=seriesRecords.find(s=>s.id===id);
@@ -1871,103 +1860,35 @@ function collectPastRecords(){
  return entries;
 }
 
-/* Common editor: individual volumes and series use the same record fields and save control. */
+/* The editor uses one shared book form for both volumes and complete series. */
 function updateEditorNoteHeading(){
- const heading=$('editor-note-heading');if(!heading)return;
- let label='感想・メモ';
- if(editing?.recordType==='series')label='シリーズ全体の感想・メモ';
- else{
-  const volume=Number($('editor-volume-number')?.value||editing?.volumeNumber);
-  const isVolume=!!$('editor-series-select')?.value||!!editing?.seriesId||!!editing?.suggestedSeriesName;
-  if(isVolume&&Number.isInteger(volume)&&volume>0)label=volume+'巻の感想・メモ';
- }
- heading.textContent=label;
- $('note').setAttribute('aria-label',label);
+ const heading=$('editor-note-heading');
+ if(!heading)return;
+ const number=Number(editing?.volumeNumber);
+ const name=editing?.recordType==='series'?'シリーズ全体の感想・メモ':
+   editing?.seriesId||editing?.suggestedSeriesName?Number.isInteger(number)&&number>0?number+'巻の感想・メモ':'感想・メモ':'感想・メモ';
+ heading.textContent=name;$('note').setAttribute('aria-label',name);
 }
-$('editor-volume-number').addEventListener('input',updateEditorNoteHeading);
-function syncEditorSeries(){
- const isSeries=editing?.recordType==='series';
- $('editor-series-panel').hidden=false;
- $('editor-series-only').hidden=!isSeries;
- $('editor-volume-only').hidden=isSeries;
- if(isSeries){
-  $('editor-display-mode').value=editing.displayMode||'grouped';
-  $('volume-cover-field').hidden=true;
-  updateEditorNoteHeading();
-  return;
- }
- const choice=$('editor-series-select'),selected=editing.seriesId||'';
- choice.replaceChildren(new Option('シリーズに所属しない',''));
- for(const series of seriesRecords)choice.add(new Option(series.title,series.id));
- choice.add(new Option('新しくシリーズを作る','__new'));
- choice.value=selected&&seriesRecords.some(s=>s.id===selected)?selected:editing.suggestedSeriesName?'__new':'';
- $('editor-series-new-name').value=editing.suggestedSeriesName||'';
- $('editor-volume-number').value=editing.volumeNumber||'';
- $('editor-volume-separate').checked=!!editing.showSeparately;
- syncEditorSeriesChoice();
- updateEditorNoteHeading();
-}
-function syncEditorSeriesChoice(){
- if(!editing||editing.recordType==='series')return;
- const choice=$('editor-series-select').value;
- const assigned=!!choice;
- $('editor-series-new-wrap').hidden=choice!=='__new';
- $('editor-volume-number-wrap').hidden=!assigned;
- $('editor-volume-separate').disabled=!assigned;
- $('editor-group-series').disabled=!assigned;
- $('editor-open-series').hidden=!choice||choice==='__new';
- $('volume-cover-field').hidden=!assigned;
- if(assigned)$('volume-cover-url').value=editing.cover||'';
- const series=seriesRecords.find(s=>s.id===choice);
- $('editor-group-series').checked=series?.displayMode!=='volumes';
- $('editor-volume-separate').disabled=!assigned||!$('editor-group-series').checked;
- updateEditorNoteHeading();
-}
-$('editor-series-select').onchange=syncEditorSeriesChoice;
-$('editor-group-series').onchange=()=>{$('editor-volume-separate').disabled=!$('editor-group-series').checked;queueEditorAutosave()};
-$('editor-open-series').onclick=()=>{
- const id=$('editor-series-select').value;
- if(!seriesRecords.some(s=>s.id===id))return;
- const saved=saveEditorProgress(true);if(!saved)return;
- editorClosingSaved=true;$('editdialog').close();
- openEditor(seriesEditorBook(seriesRecords.find(s=>s.id===id)));
-};
 function saveInlineSeries(snapshot){
  if(snapshot.recordType==='series'){
-  const existing=seriesRecords.find(s=>s.id===snapshot.id);
-  const overall=snapshot.customRatings?.find(x=>x.name==='総合'||x.name==='総合評価');
+  const existing=seriesRecords.find(x=>x.id===snapshot.id);
+  const rating=snapshot.customRatings?.find(x=>x.name==='総合'||x.name==='総合評価');
   const series={...existing,...snapshot,recordType:'series',elements:snapshot.keywords?.elements||[],
-   rating:overall?Number(overall.value):null,displayMode:$('editor-display-mode').value};
-  if(!series.title)return true;
-  const updated=[...seriesRecords.filter(s=>s.id!==series.id),series];
-  localStorage.setItem(SERIES_KEY,JSON.stringify(updated));seriesRecords=updated;
-  return true;
+   rating:rating?Number(rating.value):null,displayMode:existing?.displayMode||snapshot.displayMode||'grouped'};
+  localStorage.setItem(SERIES_KEY,JSON.stringify([...seriesRecords.filter(x=>x.id!==series.id),series]));
+  seriesRecords=[...seriesRecords.filter(x=>x.id!==series.id),series];return true;
  }
- const choice=$('editor-series-select').value;
- if(!choice){snapshot.seriesId=null;snapshot.volumeNumber=null;snapshot.showSeparately=false;return true}
- let id=choice;
- if(choice==='__new'){
-  const title=$('editor-series-new-name').value.trim();
-  if(!title)return false;
-  const known=seriesRecords.find(s=>s.title.normalize('NFKC')===title.normalize('NFKC'));
-  const previouslyCreated=seriesRecords.find(s=>s.id===snapshot.seriesId&&s.title.normalize('NFKC')===title.normalize('NFKC'));
-  id=known?.id||previouslyCreated?.id||crypto.randomUUID();
-  // Only create the new series once, even when autosave runs repeatedly.
-  if(!seriesRecords.some(s=>s.id===id)){
-   const series={id,title,author:snapshot.author||'',status:snapshot.status,cover:snapshot.cover||'',
-    note:'',rating:null,elements:[],displayMode:'grouped',updatedAt:new Date().toISOString()};
-   const updated=[...seriesRecords,series];
-   localStorage.setItem(SERIES_KEY,JSON.stringify(updated));seriesRecords=updated;
+ if(snapshot.suggestedSeriesName&&!snapshot.seriesId){
+  const title=snapshot.suggestedSeriesName.trim();
+  if(title){
+   let series=seriesRecords.find(x=>x.title.normalize('NFKC')===title.normalize('NFKC'));
+   if(!series){
+    series={id:crypto.randomUUID(),title,author:snapshot.author||'',status:snapshot.status,
+     cover:snapshot.cover||'',note:'',rating:null,elements:[],displayMode:'grouped'};
+    localStorage.setItem(SERIES_KEY,JSON.stringify([...seriesRecords,series]));seriesRecords=[...seriesRecords,series];
+   }
+   snapshot.seriesId=series.id;
   }
- }
- snapshot.seriesId=id;
- const num=Number($('editor-volume-number').value);
- snapshot.volumeNumber=Number.isInteger(num)&&num>0?num:null;
- snapshot.showSeparately=$('editor-volume-separate').checked;
- const grouping=seriesRecords.find(s=>s.id===id);
- if(grouping&&grouping.displayMode!==($('editor-group-series').checked?'grouped':'volumes')){
-  const updated=seriesRecords.map(s=>s.id===id?{...s,displayMode:$('editor-group-series').checked?'grouped':'volumes'}:s);
-  localStorage.setItem(SERIES_KEY,JSON.stringify(updated));seriesRecords=updated;
  }
  return true;
 }
@@ -2011,10 +1932,10 @@ function openEditor(b=null){
  $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id)&&!seriesRecords.some(x=>x.id===editing.id));
  $('edittitle').textContent=editing.recordType==='series'?'シリーズの記録':books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
  $('edit-cover-preview').replaceChildren(bookCover(editing));
- $('volume-cover-field').hidden=!editing.seriesId;
- $('volume-cover-url').value=editing.seriesId?editing.cover||'':'';
+ $('volume-cover-field').hidden=!editing.seriesId&&!editing.suggestedSeriesName;
+ $('volume-cover-url').value=editing.seriesId||editing.suggestedSeriesName?editing.cover||'':'';
  $('api-book-metadata').textContent=[(editing.categories||[]).join(' / '),editing.publisher,editing.published,editing.pageCount?editing.pageCount+'ページ':''].filter(Boolean).join(' · ');
- syncEditorSeries();updateReadFields();$('reread-action').hidden=editing.recordType==='series'||editing.status==='wish'||!books.some(x=>x.id===editing.id);if($('searchdialog').open)$('searchdialog').close();$('editdialog').showModal();
+ updateEditorNoteHeading();updateReadFields();$('reread-action').hidden=editing.recordType==='series'||editing.status==='wish'||!books.some(x=>x.id===editing.id);if($('searchdialog').open)$('searchdialog').close();$('editdialog').showModal();
 }
 
 $('add').onclick=()=>{closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>startReadingChoice({id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''});$('filter').oninput=render;
@@ -2052,7 +1973,7 @@ function editorSnapshot(){
  for(let i=0;i<readEntries.length&&i<readHistory.length-1;i++)readHistory[i]={...readHistory[i],date:readEntries[i].date};
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
- return {...editing,title,author:$('author').value.trim(),cover:editing.recordType==='series'?editing.cover||'':$('editor-series-select').value?$('volume-cover-url').value.trim():editing.cover||'',status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'&&editing.recordType!=='series'?(editing.note||''):plain,noteMarks:status==='wish'&&editing.recordType!=='series'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
+ return {...editing,title,author:$('author').value.trim(),cover:editing.seriesId?$('volume-cover-url').value.trim():editing.cover||'',status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'&&editing.recordType!=='series'?(editing.note||''):plain,noteMarks:status==='wish'&&editing.recordType!=='series'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
 }
 function writeEditorSnapshot(next,redraw=false){
  try{
@@ -2086,7 +2007,7 @@ $('editform').addEventListener('input',queueEditorAutosave);
 $('editform').addEventListener('change',queueEditorAutosave);
 $('editdialog').addEventListener('close',()=>{
  clearTimeout(editorAutosaveTimer);
- if(!editorClosingSaved){saveEditorProgress(true);if(detailBook&&books.some(b=>b.id===detailBook.id))selectBook(books.find(b=>b.id===detailBook.id))}
+ if(!editorClosingSaved){saveEditorProgress(true);if(detailBook){const updated=detailBook.recordType==='series'?seriesRecords.find(s=>s.id===detailBook.id):books.find(b=>b.id===detailBook.id);if(updated)selectBook(detailBook.recordType==='series'?seriesEditorBook(updated):updated)}}
  editorClosingSaved=false;
 });
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&$('editdialog').open)saveEditorProgress()});
