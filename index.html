@@ -1260,6 +1260,15 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #detaildialog .detail-book{gap:30px}
  #detaildialog .detail-note-section{padding-top:26px}
 }
+
+/* Identical memo editors for the latest and earlier readings. */
+#editdialog .past-record-entry .date-records{margin:0 0 10px;padding:0;border:0;text-align:left}
+#editdialog .past-record-entry .note-title-tools label{margin:0;font-size:inherit;color:inherit}
+#editdialog .past-record-entry .past-note,#editdialog .reading-session .note-editor{min-height:310px;line-height:2;font-size:16px;padding:4px 2px}
+#editdialog .past-record-entry .note-heading,#editdialog .reading-session .note-heading{margin-bottom:8px}
+#editdialog .mark-icon-button{color:#81704b}
+#editdialog .mark-icon-button:hover,#editdialog .mark-icon-button:focus-visible{background:#fff7d2}
+@media(max-width:700px){#editdialog .past-record-entry .past-note,#editdialog .reading-session .note-editor{min-height:37dvh}}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -1351,7 +1360,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
     <div class="reading-session current-session">
     <div id="date-records" class="date-records"><div class="date-record-head"><span>読んだ日</span><button type="button" id="today-edit">今日を入力</button></div><div id="read-history"></div></div>
     <div class="current-memo-panel">
-    <div class="note-heading"><div class="note-title-tools"><label for="note" id="editor-note-heading">感想・メモ</label><button type="button" id="mark-selection" class="mark-icon-button" title="選択した文章にマーカーを付ける・外す" aria-label="選択した文章にマーカーを付ける・外す"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11 4 4"/><path d="m21 3-8 8-4-4 8-8z" transform="translate(-1 3)"/><path d="M3 21h12"/><path d="m6 18 4-4"/></svg></button></div></div>
+    <div class="note-heading"><div class="note-title-tools"><label for="note" id="editor-note-heading">感想・メモ</label><button type="button" id="mark-selection" class="mark-icon-button" title="選択した文章にマーカーを付ける・外す" aria-label="選択した文章にマーカーを付ける・外す"><svg width="23" height="23" viewBox="0 0 24 24" fill="none" stroke="#81704b" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 3l8 8-8 8-8-8z" fill="#fff0a3"/><path d="m5 11-2 6 4 2 6-2" fill="#f4d45f"/><path d="m3 17-1 4 5-2" fill="#d9b343"/><path d="M3 22h17" stroke="#e7bd3e" stroke-width="2.5"/></svg></button></div></div>
     <div id="note" class="note-editor" contenteditable="true" role="textbox" aria-label="感想・メモ" aria-multiline="true" data-placeholder="心に残ったことを、自由に書いてください。"></div>
     </div>
     </div>
@@ -1648,9 +1657,29 @@ $('reading-elements-form').onsubmit=e=>{e.preventDefault();finishElements(false)
 $('skip-elements').onclick=()=>finishElements(true);
 function writeNoteMarkup(el,plain,markup){if(markup){const template=document.createElement('template');template.innerHTML=markup;const safe=(node)=>{if(node.nodeType===Node.TEXT_NODE)return document.createTextNode(node.textContent);if(node.nodeType!==Node.ELEMENT_NODE)return document.createDocumentFragment();const allowed=node.tagName==='MARK'||node.tagName==='BR'||node.tagName==='DIV';const out=allowed?document.createElement(node.tagName.toLowerCase()):document.createDocumentFragment();for(const child of node.childNodes)out.append(safe(child));return out};el.replaceChildren(...[...template.content.childNodes].map(safe))}else el.textContent=plain}
 function readNoteMarkup(el){const clone=el.cloneNode(true);clone.querySelectorAll('*').forEach(n=>{if(!['MARK','BR','DIV'].includes(n.tagName))n.replaceWith(...n.childNodes)});return clone.innerHTML.slice(0,100000)}
-function markSelected(remove=false){const host=$('note'),selection=window.getSelection();if(!selection||!selection.rangeCount||selection.isCollapsed)return;const range=selection.getRangeAt(0);if(!host.contains(range.commonAncestorContainer))return;if(remove){const mark=range.startContainer.parentElement?.closest('mark');if(mark&&host.contains(mark))mark.replaceWith(...mark.childNodes);selection.removeAllRanges();return}const mark=document.createElement('mark');try{range.surroundContents(mark)}catch{const contents=range.extractContents();mark.append(contents);range.insertNode(mark)}selection.removeAllRanges()}
-$('mark-selection').addEventListener('mousedown',e=>e.preventDefault());
-$('mark-selection').onclick=()=>{const sel=window.getSelection();if(!sel||sel.isCollapsed||!sel.rangeCount)return;const host=$('note');const range=sel.getRangeAt(0);if(!host.contains(range.commonAncestorContainer))return;const marked=range.startContainer.parentElement?.closest('mark');markSelected(!!(marked&&host.contains(marked)))};
+function bindNoteMarker(button,host){
+ let remembered=null;
+ const remember=()=>{const sel=window.getSelection();if(sel?.rangeCount&&!sel.isCollapsed&&host.contains(sel.getRangeAt(0).commonAncestorContainer))remembered=sel.getRangeAt(0).cloneRange()};
+ host.addEventListener('pointerup',remember);
+ host.addEventListener('keyup',remember);
+ host.addEventListener('blur',remember);
+ button.addEventListener('pointerdown',e=>{remember();e.preventDefault()});
+ button.onclick=()=>{
+  const sel=window.getSelection();if(!sel)return;
+  const live=sel.rangeCount&&!sel.isCollapsed&&host.contains(sel.getRangeAt(0).commonAncestorContainer)?sel.getRangeAt(0):null;
+  const range=live||remembered;
+  if(!range||range.collapsed||!host.contains(range.commonAncestorContainer))return;
+  const node=range.startContainer.nodeType===Node.ELEMENT_NODE?range.startContainer:range.startContainer.parentElement;
+  const marked=node?.closest('mark');
+  if(marked&&host.contains(marked)&&marked.contains(range.endContainer))marked.replaceWith(...marked.childNodes);
+  else{
+   const mark=document.createElement('mark');
+   try{range.surroundContents(mark)}catch{mark.append(range.extractContents());range.insertNode(mark)}
+  }
+  remembered=null;sel.removeAllRanges();host.dispatchEvent(new Event('input',{bubbles:true}));
+ };
+}
+bindNoteMarker($('mark-selection'),$('note'));
 function ratingStars(value){
  const n=Number(value);
  const span=document.createElement('span');
@@ -1715,7 +1744,7 @@ function fillDetails(book){
   block.style.order=String(-readingDateSortValue(entry.date||pastDates[i]?.date||''));
   const card=textNode('div','','detail-reading-session');block.append(card);
   const heading=textNode('div','','detail-note-heading');
-  heading.append(textNode('h3','感想・メモ'));
+  heading.append(textNode('h3',recordMemoHeading(book)));
   card.append(heading);
   const memo=textNode('div','','detail-note');
   writeNoteMarkup(memo,entry.note||'',entry.noteMarks);
@@ -1813,7 +1842,7 @@ function selectBook(b){
  renderDetailVolumeSeries(b);
  $('detail-note').classList.toggle('is-empty',!b.note);
 
- $('detail-current-note-heading').textContent=b.recordType==='series'?'シリーズ全体の感想・メモ':b.seriesId&&Number(b.volumeNumber)>0?b.volumeNumber+'巻の感想・メモ':'感想・メモ';
+ $('detail-current-note-heading').textContent=recordMemoHeading(b);
  const source=$('detail-source');
  const hasSource=typeof b.itemUrl==='string'&&b.itemUrl.startsWith('https://');
  source.hidden=!hasSource;
@@ -2159,12 +2188,21 @@ function drawPastRecords(entries){
   const section=document.createElement('section');section.className='past-record-entry';
   section.style.order=String(-readingDateSortValue(entry.date));
 
-  const dateLabel=document.createElement('label');dateLabel.textContent='読んだ日';section.append(dateLabel);
-  const dateWrap=document.createElement('div');buildDateFields(dateWrap,entry.date||'');section.append(dateWrap);
+  const dateHead=textNode('div','','date-record-head');
+  const today=textNode('button','今日を入力');today.type='button';
+  dateHead.append(textNode('span','読んだ日'),today);
+  const dateBlock=textNode('div','','date-records');dateBlock.append(dateHead);
+  const row=textNode('div','','history-row');
+  const dateWrap=document.createElement('div');buildDateFields(dateWrap,entry.date||'');row.append(dateWrap);dateBlock.append(row);section.append(dateBlock);
+  today.onclick=()=>{setDateFieldsToday(dateWrap);dateWrap.dispatchEvent(new Event('change',{bubbles:true}));};
   dateWrap.addEventListener('change',()=>{const fields=dateWrap.querySelector('.date-parts');const year=fields.querySelector('.date-year').value,month=fields.querySelector('.date-month').value,day=fields.querySelector('.date-day').value;section.style.order=String(-readingDateSortValue([year,month,day].filter(Boolean).join('-')));updateEditorReadingSeparators()});
   const memoPanel=document.createElement('div');memoPanel.className='past-memo-panel';
-  const memoLabel=document.createElement('label');memoLabel.textContent='感想・メモ';memoPanel.append(memoLabel);
-  const note=document.createElement('textarea');note.className='field past-note';note.rows=5;note.value=entry.note||'';memoPanel.append(note);
+  const heading=textNode('div','','note-heading'),tools=textNode('div','','note-title-tools');
+  const memoLabel=textNode('label',recordMemoHeading(editing));memoLabel.htmlFor='past-note-'+index;
+  const marker=$('mark-selection').cloneNode(true);marker.removeAttribute('id');
+  tools.append(memoLabel,marker);heading.append(tools);memoPanel.append(heading);
+  const note=document.createElement('div');note.id='past-note-'+index;note.className='note-editor past-note';note.contentEditable='true';note.setAttribute('role','textbox');note.setAttribute('aria-multiline','true');note.setAttribute('aria-label',recordMemoHeading(editing));note.dataset.placeholder=$('note').dataset.placeholder;
+  writeNoteMarkup(note,entry.note||'',entry.noteMarks);memoPanel.append(note);bindNoteMarker(marker,note);
   section.append(memoPanel);wrap.append(section);
  });
  updateEditorReadingSeparators();
@@ -2174,19 +2212,24 @@ function collectPastRecords(){
  for(const section of $('past-record-list').children){
   const date=getDateFields(section.querySelector('.date-parts'));if(date===null)return null;
   const previous=editing.readEntries?.[entries.length]||{};
-  entries.push({...previous,date,note:section.querySelector('.past-note').value,noteMarks:section.querySelector('.past-note').value===String(previous.note||'')?previous.noteMarks||'':''});
+  const note=section.querySelector('.past-note');entries.push({...previous,date,note:note.innerText.trim().slice(0,20000),noteMarks:readNoteMarkup(note)});
  }
  return entries;
 }
 
 /* The editor uses one shared book form for both volumes and complete series. */
+function recordMemoHeading(book){
+ const number=Number(book?.volumeNumber);
+ return book?.recordType==='series'?'シリーズの感想・メモ':
+  (book?.seriesId||book?.suggestedSeriesName)&&Number.isInteger(number)&&number>0?number+'巻の感想・メモ':'感想・メモ';
+}
 function updateEditorNoteHeading(){
- const heading=$('editor-note-heading');
- if(!heading)return;
- const number=Number(editing?.volumeNumber);
- const name=editing?.recordType==='series'?'シリーズ全体の感想・メモ':
-   editing?.seriesId||editing?.suggestedSeriesName?Number.isInteger(number)&&number>0?number+'巻の感想・メモ':'感想・メモ':'感想・メモ';
- heading.textContent=name;$('note').setAttribute('aria-label',name);
+ const name=recordMemoHeading(editing);
+ $('editor-note-heading').textContent=name;$('note').setAttribute('aria-label',name);
+ for(const section of $('past-record-list').children){
+  section.querySelector('.note-title-tools label').textContent=name;
+  section.querySelector('.past-note').setAttribute('aria-label',name);
+ }
 }
 function saveInlineSeries(snapshot){
  if(snapshot.recordType==='series'){
@@ -2292,8 +2335,8 @@ function editorSnapshot(){
  for(const section of $('past-record-list').children){
   const previous=editing.readEntries?.[readEntries.length]||{};
   const date=editorDateValue(section.querySelector('.date-parts'))||previous.date||'';
-  const note=section.querySelector('.past-note').value;
-  readEntries.push({...previous,date,note,noteMarks:note===String(previous.note||'')?previous.noteMarks||'':''});
+  const note=section.querySelector('.past-note');
+  readEntries.push({...previous,date,note:note.innerText.trim().slice(0,20000),noteMarks:readNoteMarkup(note)});
  }
  for(let i=0;i<readEntries.length&&i<readHistory.length-1;i++)readHistory[i]={...readHistory[i],date:readEntries[i].date};
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
