@@ -1885,6 +1885,109 @@ function collectPastRecords(){
  }
  return entries;
 }
+
+/* Common editor: individual volumes and series use the same record fields and save control. */
+let savedSeriesNoteId=null;
+function syncEditorSeries(){
+ const isSeries=editing?.recordType==='series';
+ $('editor-series-panel').hidden=false;
+ $('editor-series-only').hidden=!isSeries;
+ $('editor-volume-only').hidden=isSeries;
+ if(isSeries){
+  $('editor-display-mode').value=editing.displayMode||'grouped';
+  $('volume-cover-field').hidden=true;
+  return;
+ }
+ const choice=$('editor-series-select'),selected=editing.seriesId||'';
+ choice.replaceChildren(new Option('シリーズに所属しない',''));
+ for(const series of seriesRecords)choice.add(new Option(series.title,series.id));
+ choice.add(new Option('新しくシリーズを作る','__new'));
+ choice.value=selected&&seriesRecords.some(s=>s.id===selected)?selected:editing.suggestedSeriesName?'__new':'';
+ $('editor-series-new-name').value=editing.suggestedSeriesName||'';
+ $('editor-volume-number').value=editing.volumeNumber||'';
+ $('editor-volume-separate').checked=!!editing.showSeparately;
+ savedSeriesNoteId=choice.value&&choice.value!=='__new'?choice.value:null;
+ $('editor-series-note-check').checked=false;
+ syncEditorSeriesChoice();
+}
+function syncEditorSeriesChoice(){
+ if(!editing||editing.recordType==='series')return;
+ const choice=$('editor-series-select').value;
+ const assigned=!!choice;
+ $('editor-series-new-wrap').hidden=choice!=='__new';
+ $('editor-volume-number-wrap').hidden=!assigned;
+ $('editor-volume-separate').disabled=!assigned;
+ $('editor-series-note-check').disabled=!assigned;
+ $('editor-open-series').hidden=!choice||choice==='__new';
+ $('volume-cover-field').hidden=!assigned;
+ if(assigned)$('volume-cover-url').value=editing.cover||'';
+ const series=seriesRecords.find(s=>s.id===choice);
+ $('editor-series-note').value=series?.note||'';
+ $('editor-series-rating').value=series?.rating==null?'':String(series.rating);
+ $('editor-series-note-check').checked=false;
+ $('editor-series-note-wrap').hidden=true;
+}
+$('editor-series-select').onchange=syncEditorSeriesChoice;
+$('editor-series-note-check').onchange=()=>$('editor-series-note-wrap').hidden=!$('editor-series-note-check').checked;
+$('editor-add-volume').onclick=()=>{
+ if(!editing||editing.recordType!=='series')return;
+ const saved=saveEditorProgress(true);if(!saved)return;
+ editorClosingSaved=true;$('editdialog').close();
+ const series=seriesRecords.find(s=>s.id===saved.id);
+ if(series)startVolumeEditor(series);
+};
+$('editor-open-series').onclick=()=>{
+ const id=$('editor-series-select').value;
+ if(!seriesRecords.some(s=>s.id===id))return;
+ const saved=saveEditorProgress(true);if(!saved)return;
+ editorClosingSaved=true;$('editdialog').close();
+ openEditor(seriesEditorBook(seriesRecords.find(s=>s.id===id)));
+};
+for(let n=0;n<=5;n+=0.5)$('editor-series-rating').add(new Option(n.toFixed(1),String(n)));
+function saveInlineSeries(snapshot){
+ if(snapshot.recordType==='series'){
+  const existing=seriesRecords.find(s=>s.id===snapshot.id);
+  const overall=snapshot.customRatings?.find(x=>x.name==='総合'||x.name==='総合評価');
+  const series={...existing,...snapshot,recordType:'series',elements:snapshot.keywords?.elements||[],
+   rating:overall?Number(overall.value):null,displayMode:$('editor-display-mode').value};
+  if(!series.title)return true;
+  const updated=[...seriesRecords.filter(s=>s.id!==series.id),series];
+  localStorage.setItem(SERIES_KEY,JSON.stringify(updated));seriesRecords=updated;
+  return true;
+ }
+ const choice=$('editor-series-select').value;
+ if(!choice){snapshot.seriesId=null;snapshot.volumeNumber=null;snapshot.showSeparately=false;return true}
+ let id=choice;
+ if(choice==='__new'){
+  const title=$('editor-series-new-name').value.trim();
+  if(!title)return false;
+  const known=seriesRecords.find(s=>s.title.normalize('NFKC')===title.normalize('NFKC'));
+  id=known?.id||snapshot.seriesId&&seriesRecords.some(s=>s.id===snapshot.seriesId)?known?.id||snapshot.seriesId:crypto.randomUUID();
+  // Only create the new series once, even when autosave runs repeatedly.
+  if(!seriesRecords.some(s=>s.id===id)){
+   const series={id,title,author:snapshot.author||'',status:snapshot.status,cover:snapshot.cover||'',
+    note:'',rating:null,elements:[],displayMode:'grouped',updatedAt:new Date().toISOString()};
+   const updated=[...seriesRecords,series];
+   localStorage.setItem(SERIES_KEY,JSON.stringify(updated));seriesRecords=updated;
+  }
+ }
+ snapshot.seriesId=id;
+ const num=Number($('editor-volume-number').value);
+ snapshot.volumeNumber=Number.isInteger(num)&&num>0?num:null;
+ snapshot.showSeparately=$('editor-volume-separate').checked;
+ if($('editor-series-note-check').checked){
+  const original=seriesRecords.find(x=>x.id===id);
+  if(original){
+   const note=$('editor-series-note').value;
+   const ratingValue=$('editor-series-rating').value;
+   const updated=seriesRecords.map(x=>x.id===id?{...x,note,rating:ratingValue===''?null:Number(ratingValue),
+    updatedAt:new Date().toISOString()}:x);
+   localStorage.setItem(SERIES_KEY,JSON.stringify(updated));seriesRecords=updated;
+  }
+ }
+ return true;
+}
+
 function openEditor(b=null){
  if(!b?.title){try{const draft=JSON.parse(localStorage.getItem(EDITOR_DRAFT_KEY)||'null');if(draft&&!draft.title)b=draft}catch{}}
  editing=b?{...b}:{id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''};
@@ -1921,13 +2024,13 @@ function openEditor(b=null){
  document.querySelector('.current-session').style.order=String(-readingDateSortValue(currentDate));
  editing.readEntries=historicalEntries(editing);
  drawPastRecords(editing.readEntries);
- $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id));
- $('edittitle').textContent=books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
+ $('delete').classList.toggle('hidden',!books.some(x=>x.id===editing.id)&&!seriesRecords.some(x=>x.id===editing.id));
+ $('edittitle').textContent=editing.recordType==='series'?'シリーズの記録':books.some(x=>x.id===editing.id)?'本の記録を編集':'本の記録';
  $('edit-cover-preview').replaceChildren(bookCover(editing));
  $('volume-cover-field').hidden=!editing.seriesId;
  $('volume-cover-url').value=editing.seriesId?editing.cover||'':'';
  $('api-book-metadata').textContent=[(editing.categories||[]).join(' / '),editing.publisher,editing.published,editing.pageCount?editing.pageCount+'ページ':''].filter(Boolean).join(' · ');
- updateReadFields();$('reread-action').hidden=editing.status==='wish'||!books.some(x=>x.id===editing.id);$('searchdialog').close();$('editdialog').showModal();
+ syncEditorSeries();updateReadFields();$('reread-action').hidden=editing.recordType==='series'||editing.status==='wish'||!books.some(x=>x.id===editing.id);if($('searchdialog').open)$('searchdialog').close();$('editdialog').showModal();
 }
 
 $('add').onclick=()=>{closeMobileMenu();$('searchdialog').showModal();$('query').focus()};document.querySelectorAll('[data-close]').forEach(b=>b.onclick=()=>b.closest('dialog').close());$('manual').onclick=()=>startReadingChoice({id:crypto.randomUUID(),title:'',author:'',status:'wish',date:'',note:'',cover:''});$('filter').oninput=render;
@@ -1965,16 +2068,19 @@ function editorSnapshot(){
  for(let i=0;i<readEntries.length&&i<readHistory.length-1;i++)readHistory[i]={...readHistory[i],date:readEntries[i].date};
  const latestFull=[...readHistory].reverse().find(row=>/^\d{4}-\d{2}-\d{2}$/.test(row.date));
  const marks=readNoteMarkup($('note')),plain=$('note').innerText.trim().slice(0,20000);
- return {...editing,title,author:$('author').value.trim(),cover:editing.seriesId?$('volume-cover-url').value.trim():editing.cover||'',status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'?(editing.note||''):plain,noteMarks:status==='wish'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
+ return {...editing,title,author:$('author').value.trim(),cover:editing.recordType==='series'?editing.cover||'':$('editor-series-select').value?$('volume-cover-url').value.trim():editing.cover||'',status,date:latestFull?.date||'',readHistory,readEntries,keywords:{elements:words,moods:[],likes:[]},reaction:selectedReaction,customRatings,note:status==='wish'&&editing.recordType!=='series'?(editing.note||''):plain,noteMarks:status==='wish'&&editing.recordType!=='series'?(editing.noteMarks||''):marks,tags:[...new Set($('tags').value.split(/[\s,、]+/).map(t=>t.replace(/^#+/,'')).filter(Boolean))],updatedAt:new Date().toISOString()};
 }
 function writeEditorSnapshot(next,redraw=false){
  try{
   if(next.title){
-   const newBooks=[...books.filter(x=>x.id!==next.id),next];
-   localStorage.setItem(KEY,JSON.stringify(newBooks));books=newBooks;
+   if(!saveInlineSeries(next))return false;
+   if(next.recordType!=='series'){
+    const newBooks=[...books.filter(x=>x.id!==next.id),next];
+    localStorage.setItem(KEY,JSON.stringify(newBooks));books=newBooks;
+    if(detailBook?.id===next.id)detailBook=next;
+   }
    localStorage.removeItem(EDITOR_DRAFT_KEY);
-   if(detailBook?.id===next.id)detailBook=next;
-   if(redraw)render();
+   if(redraw){render();if(activeSeries&&seriesRecords.some(s=>s.id===activeSeries)&&!$('series-page').hidden)renderSeriesPage()}
   }else{
    localStorage.setItem(EDITOR_DRAFT_KEY,JSON.stringify(next));
   }
