@@ -2295,7 +2295,7 @@ const GOOGLE_SETTINGS_KEY='recotte.googlebooks.v1',bookSearchCache=new Map();
 let lastBookSearchAt=0;
 function getGoogleAPIKey(){try{return String(JSON.parse(localStorage.getItem(GOOGLE_SETTINGS_KEY)||'{}')?.apiKey||'').trim()}catch{return ''}}
 function refreshGoogleSettings(){
- const apiKey=getGoogleAPIKey();$('google-api-key').value=apiKey;$('google-settings').open=!apiKey;$('searchmessage').textContent=apiKey?'見つかりづらい場合は、巻数や詳細なタイトルも入れて検索してみてください。':'検索設定でGoogle Books APIキーを設定してください。';
+ const apiKey=getGoogleAPIKey();$('google-api-key').value=apiKey;$('google-settings').open=!apiKey;$('searchmessage').textContent=apiKey?'見つからない場合は、巻数や詳細なタイトルも入れて検索してみてください。':'検索設定でGoogle Books APIキーを設定してください。';
 }
 $('google-settings-form').onsubmit=e=>{
  e.preventDefault();const apiKey=$('google-api-key').value.trim();if(!apiKey)return;
@@ -2638,7 +2638,7 @@ $('catalog-load-more').onclick=async()=>{
   currentCatalogResults=catalogSearchItems(result);
   renderCatalogResults();
   button.hidden=!result.hasMore;
-  $('searchmessage').textContent='見つかりづらい場合は、巻数や詳細なタイトルも入れて検索してみてください。'+(result.warning?' '+result.warning:'');
+  $('searchmessage').textContent='見つからない場合は、巻数や詳細なタイトルも入れて検索してみてください。'+(result.warning?' '+result.warning:'');
  }catch(error){if(!controller.signal.aborted)$('searchmessage').textContent=error.message||'追加の検索結果を取得できませんでした。'}
  finally{button.disabled=false;if(button.textContent==='追加の巻を探しています…')button.textContent='さらに検索結果を読み込む'}
 };
@@ -2666,7 +2666,7 @@ $('searchform').onsubmit=async e=>{
  try{
   const result=await searchBookCatalog(q,controller.signal,false,message=>{$('searchmessage').textContent=message});if(controller.signal.aborted)return;
   const {items,source}=result;
-  $('searchmessage').textContent=(items.length?'':'見つかりませんでした。')+'見つかりづらい場合は、巻数や詳細なタイトルも入れて検索してみてください。'+(result.warning?' '+result.warning:'');
+  $('searchmessage').textContent=(items.length?'':'見つかりませんでした。')+'見つからない場合は、巻数や詳細なタイトルも入れて検索してみてください。'+(result.warning?' '+result.warning:'');
   $('catalog-load-more').hidden=!result.hasMore;
   $('catalog-load-more').textContent=result.audit&&!result.auditFinished?'さらにシリーズを探す':'さらに検索結果を読み込む';
   currentCatalogResults=catalogSearchItems(result);
