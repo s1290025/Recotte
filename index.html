@@ -862,6 +862,18 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #books .card-reaction{position:absolute;top:7px;left:7px;z-index:2;display:flex;align-items:center;justify-content:center;width:29px;height:29px;border-radius:8px;background:#fffdf5e8;color:#9c705a;font-size:23px;line-height:1;box-shadow:0 1px 4px #0002;pointer-events:none}
 #books .card-reaction svg{width:19px;height:19px;display:block}
 #books .card-pin{z-index:3}
+
+/* Detail title centered, reaction on left, and undressed latest reading. */
+#detaildialog .detail-title-row{position:relative;display:flex;align-items:center;justify-content:center;width:100%;min-width:0}
+#detaildialog .detail-title-row h2{width:100%;min-width:0;text-align:center;margin:0;overflow-wrap:anywhere}
+#detaildialog .detail-title-row #detail-reaction{position:absolute;left:0;top:50%;transform:translateY(-50%);margin:0;z-index:1}
+#detaildialog #detail-current-reading{align-items:stretch;text-align:left}
+#detaildialog #detail-current-reading>.detail-session-date{display:block;width:100%;margin-left:0;text-align:left}
+#detaildialog #detail-current-reading>.detail-reading-session{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:0!important}
+#editdialog .current-session{align-items:stretch;text-align:left}
+#editdialog .current-session .date-records{text-align:left}
+#editdialog .current-session .current-memo-panel{border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:0!important}
+#books .card-reaction{top:auto;left:auto;bottom:7px;right:7px}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -883,7 +895,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  <div class="detail-book">
   <div class="detail-book-info">
    <div id="detail-cover" class="detail-cover"></div>
-   <div class="detail-heading"><div class="detail-title-row"><h2 id="detail-title"></h2><div id="detail-reaction" class="detail-title-reaction"></div></div><p id="detail-author" class="muted"></p><p id="detail-publisher-categories" class="detail-book-metadata" hidden></p><p id="detail-status" class="detail-status" hidden></p></div>
+   <div class="detail-heading"><div class="detail-title-row"><div id="detail-reaction" class="detail-title-reaction"></div><h2 id="detail-title"></h2></div><p id="detail-author" class="muted"></p><p id="detail-publisher-categories" class="detail-book-metadata" hidden></p><p id="detail-status" class="detail-status" hidden></p></div>
    <div id="detail-keywords" class="detail-keywords"></div>
    <div id="detail-rating" class="detail-rating"></div>
   </div>
