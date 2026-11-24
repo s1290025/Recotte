@@ -1232,7 +1232,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 }
 
 /* Give the shelf breathing room and make the personal rating controls readable. */
-#home-page{padding-top:22px}
+#home-page{padding-top:30px}
 #editdialog .record-book-info>#read-fields .custom-rating-head h3{font-size:16px}
 #editdialog .record-book-info>#read-fields .custom-rating-head .muted{font-size:14px}
 #editdialog .record-book-info>#read-fields .overall-rating-row label{font-size:14px}
@@ -1242,7 +1242,10 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 #editdialog .record-book-info>#read-fields .custom-rating-row .custom-rating-name,#editdialog .record-book-info>#read-fields .custom-rating-row .custom-rating-value{font-size:14px}
 #editdialog .record-book-info>#read-fields .custom-rating-row .custom-rating-value{flex-basis:100px;width:100px}
 #editdialog .record-book-info>#read-fields #add-custom-rating{font-size:14px}
-@media(max-width:700px){#home-page{padding-top:14px}}
+@media(max-width:700px){#home-page{padding-top:18px}}
+#editdialog .editor-header-actions .reread-action{display:flex;align-items:center;justify-content:center;margin:0;padding:0}
+#editdialog #editor-reread{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:36px;line-height:1.4;text-align:center;margin:0;padding:8px 13px}
+@media(max-width:520px){#editdialog #editor-reread{min-height:34px;padding:7px 9px}}
 </style></head>
 <body><div class="notebook">
 <header class="app-header">
@@ -2353,7 +2356,7 @@ $('delete').onclick=()=>{
  }else{
   if(!persist(books.filter(b=>b.id!==editing.id)))return;
  }
- editorClosingSaved=true;editing=null;clearTimeout(editorAutosaveTimer);localStorage.removeItem(EDITOR_DRAFT_KEY);$('editdialog').close();render();notify('記録を削除しました。');
+ editorClosingSaved=true;editing=null;clearTimeout(editorAutosaveTimer);localStorage.removeItem(EDITOR_DRAFT_KEY);$('editdialog').close();returnHome();render();notify('記録を削除しました。');
 };
 
 
