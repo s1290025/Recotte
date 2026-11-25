@@ -1296,9 +1296,13 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
  #editdialog .record-book-info{border-bottom:0;padding-bottom:0}
  #editdialog .record-writing{border-top:1px solid #e9e6df}
 }
-</style></head>
+#drive-settings-open{position:absolute;right:22px;top:0;font:inherit;font-size:11px;color:#777;background:none;border:0;padding:3px 6px;cursor:pointer;z-index:8}
+#drive-dialog .drive-actions{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0}
+#drive-dialog input{width:100%;box-sizing:border-box}
+@media(max-width:700px){#drive-settings-open{right:14px}}
+</style><script src="https://accounts.google.com/gsi/client" async defer></script></head>
 <body><div class="notebook">
-<header class="app-header">
+<header class="app-header"><button id="drive-settings-open" type="button" title="Google Drive同期" aria-label="Google Drive同期">Google Drive</button>
  
  <button type="button" id="mobile-menu-toggle" class="mobile-menu-toggle" aria-label="操作メニューを開く" aria-controls="home-actions detail-actions-rail" aria-expanded="false" title="メニュー"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
 </header>
@@ -1397,6 +1401,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
   <div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>閉じる</button><button class="primary">保存する</button></div>
  </form>
 </dialog><div class="message" id="message" role="status"></div>
+<dialog id="drive-dialog"><div class="dialoghead"><h2>Google Drive同期</h2><button type="button" data-close aria-label="閉じる">×</button></div><p class="muted">読書記録をGoogle Driveの非公開アプリ領域に保存します。表紙は画像URLのみ保存します。</p><label for="drive-client-id">Google OAuth クライアントID</label><input class="field" id="drive-client-id" placeholder="…apps.googleusercontent.com" autocomplete="off"><div class="drive-actions"><button type="button" id="drive-connect" class="primary">Googleで接続</button><button type="button" id="drive-sync">同期する</button><button type="button" id="drive-disconnect">接続解除</button></div><p id="drive-status" role="status" class="muted"></p></dialog>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読んだ',paused:'中断'};
@@ -1422,7 +1427,7 @@ const demoBooks=[
 function notify(s){$('message').textContent=s;clearTimeout(notify.timer);notify.timer=setTimeout(()=>$('message').textContent='',5000)}
 function validBook(b){return b&&typeof b.id==='string'&&typeof b.title==='string'&&b.title.trim()&&names[b.status]&&['author','note','date','cover'].every(k=>typeof b[k]==='string')&&(!b.date||/^\d{4}-\d{2}-\d{2}$/.test(b.date))}
 try{const data=JSON.parse(localStorage.getItem(KEY)||'[]');if(!Array.isArray(data)||!data.every(validBook))throw Error();books=data}catch{notify('保存した記録を読み込めませんでした。読み込み機能からバックアップを復元できます。')}
-function persist(next){try{localStorage.setItem(KEY,JSON.stringify(next));books=next;render();return true}catch{notify('保存できませんでした。ブラウザの保存設定や空き容量をご確認ください。');return false}}
+function persist(next){try{writeReadingStorage(KEY,JSON.stringify(next));books=next;render();return true}catch{notify('保存できませんでした。ブラウザの保存設定や空き容量をご確認ください。');return false}}
 function seriesMembers(series){return books.filter(b=>b.seriesId===series.id).sort((a,b)=>(Number(a.volumeNumber)||99999)-(Number(b.volumeNumber)||99999)||String(a.title).localeCompare(String(b.title),'ja'))}
 function seriesStatus(series){const members=seriesMembers(series);return series.status==='done'||members.some(b=>b.status!=='wish')?'done':'wish'}
 function seriesEditorBook(series){
@@ -1437,7 +1442,7 @@ function startVolumeEditor(series){
   seriesId:series.id,volumeNumber:nextNumber,keywords:{elements:[...(series.elements||series.keywords?.elements||[])],moods:[],likes:[]}});
 }
 function seriesCover(series){return series.cover||seriesMembers(series).find(b=>b.cover)?.cover||''}
-function persistSeries(next){try{localStorage.setItem(SERIES_KEY,JSON.stringify(next));seriesRecords=next;render();return true}catch{notify('シリーズを保存できませんでした。');return false}}
+function persistSeries(next){try{writeReadingStorage(SERIES_KEY,JSON.stringify(next));seriesRecords=next;render();return true}catch{notify('シリーズを保存できませんでした。');return false}}
 function shelfSeriesGroups(visible){
  // A linked volume is hidden from the main shelf unless independently displayed.
  // Independently displayed volumes keep ordinary filters, sort order and pinning.
@@ -1635,7 +1640,7 @@ function saveReadingStep(stage,redraw=false){
  try{
   if(next.recordType==='series'){saveInlineSeries(next);if(redraw){filter='done';refreshIndex();render()}return}
   const nextBooks=[...books.filter(book=>book.id!==next.id),next];
-  localStorage.setItem(KEY,JSON.stringify(nextBooks));books=nextBooks;
+  writeReadingStorage(KEY,JSON.stringify(nextBooks));books=nextBooks;
   if(detailBook?.id===next.id)detailBook=next;
   if(redraw){filter='done';refreshIndex();render()}
  }catch{notify('記録を保存できませんでした。')}
@@ -1924,7 +1929,7 @@ $('series-remove').onclick=()=>{
  const series=seriesRecords.find(s=>s.id===editingSeriesId);
  if(!series||!confirm('「'+series.title+'」のシリーズ設定を解除しますか？ 各巻の記録は削除されません。'))return;
  const nextBooks=books.map(b=>b.seriesId===series.id?{...b,seriesId:null,volumeNumber:null}:b);
- try{localStorage.setItem(KEY,JSON.stringify(nextBooks));books=nextBooks}catch{notify('保存できませんでした。');return}
+ try{writeReadingStorage(KEY,JSON.stringify(nextBooks));books=nextBooks}catch{notify('保存できませんでした。');return}
  if(!persistSeries(seriesRecords.filter(s=>s.id!==series.id)))return;
  skipSeriesCloseSave=true;$('series-editor').close();activeSeries=null;seriesReturnId=null;
  $('series-page').hidden=true;$('home-page').hidden=false;$('detail-back').hidden=true;$('detail-home').hidden=true;
@@ -2267,7 +2272,7 @@ function saveInlineSeries(snapshot){
   const rating=snapshot.customRatings?.find(x=>x.name==='総合'||x.name==='総合評価');
   const series={...existing,...snapshot,recordType:'series',elements:snapshot.keywords?.elements||[],
    rating:rating?Number(rating.value):null,displayMode:existing?.displayMode||snapshot.displayMode||'grouped'};
-  localStorage.setItem(SERIES_KEY,JSON.stringify([...seriesRecords.filter(x=>x.id!==series.id),series]));
+  writeReadingStorage(SERIES_KEY,JSON.stringify([...seriesRecords.filter(x=>x.id!==series.id),series]));
   seriesRecords=[...seriesRecords.filter(x=>x.id!==series.id),series];return true;
  }
  if(snapshot.suggestedSeriesName&&!snapshot.seriesId){
@@ -2277,7 +2282,7 @@ function saveInlineSeries(snapshot){
    if(!series){
     series={id:crypto.randomUUID(),title,author:snapshot.author||'',status:snapshot.status,
      cover:snapshot.cover||'',publisher:snapshot.publisher||'',categories:snapshot.categories||[],note:'',rating:null,elements:[],displayMode:'grouped'};
-    localStorage.setItem(SERIES_KEY,JSON.stringify([...seriesRecords,series]));seriesRecords=[...seriesRecords,series];
+    writeReadingStorage(SERIES_KEY,JSON.stringify([...seriesRecords,series]));seriesRecords=[...seriesRecords,series];
    }
    snapshot.seriesId=series.id;
   }
@@ -2379,7 +2384,7 @@ function writeEditorSnapshot(next,redraw=false){
    if(!saveInlineSeries(next))return false;
    if(next.recordType!=='series'){
     const newBooks=[...books.filter(x=>x.id!==next.id),next];
-    localStorage.setItem(KEY,JSON.stringify(newBooks));books=newBooks;
+    writeReadingStorage(KEY,JSON.stringify(newBooks));books=newBooks;
     if(detailBook?.id===next.id)detailBook=next;
    }
    localStorage.removeItem(EDITOR_DRAFT_KEY);
@@ -2435,9 +2440,9 @@ $('delete').onclick=()=>{
   const id=editing.id;
   try{
    const remaining=books.map(b=>b.seriesId===id?{...b,seriesId:null,volumeNumber:null}:b);
-   localStorage.setItem(KEY,JSON.stringify(remaining));books=remaining;
+   writeReadingStorage(KEY,JSON.stringify(remaining));books=remaining;
    const next=seriesRecords.filter(series=>series.id!==id);
-   localStorage.setItem(SERIES_KEY,JSON.stringify(next));seriesRecords=next;
+   writeReadingStorage(SERIES_KEY,JSON.stringify(next));seriesRecords=next;
   }catch{notify('削除できませんでした。');return}
   activeSeries=null;seriesReturnId=null;$('series-page').hidden=true;$('detaildialog').hidden=true;$('home-page').hidden=false;$('detail-back').hidden=true;$('detail-home').hidden=true;
  }else{
@@ -2864,5 +2869,82 @@ $('searchform').onsubmit=async e=>{
 };
 $('export').onclick=()=>{const blob=new Blob([JSON.stringify({version:2,books,series:seriesRecords},null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='recotte-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000)};
 $('import').onclick=()=>$('importfile').click();$('importfile').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>10*1024*1024)throw Error();const data=JSON.parse(await file.text());if(![1,2].includes(data.version)||!Array.isArray(data.books)||!data.books.every(validBook))throw Error();const incoming=new Map(data.books.map(b=>[b.id,b]));const incomingSeries=data.version===2&&Array.isArray(data.series)?data.series.filter(s=>s&&typeof s.id==='string'&&typeof s.title==='string'):[];const collisions=books.some(b=>incoming.has(b.id))||seriesRecords.some(s=>incomingSeries.some(x=>x.id===s.id));if(collisions&&!confirm('同じ記録はバックアップの内容で上書きします。読み込みますか？'))return;const mergedSeries=[...seriesRecords.filter(s=>!incomingSeries.some(x=>x.id===s.id)),...incomingSeries];if(data.version===2&&!persistSeries(mergedSeries))return;if(persist([...books.filter(b=>!incoming.has(b.id)),...incoming.values()]))notify('バックアップを読み込みました。')}catch{notify('読み込めませんでした。Recotte! のバックアップJSONを選んでください。')}finally{e.target.value=''}};
+
+/* Drive appDataFolder: immutable change batches; merge per record, including tombstones. */
+const DRIVE_META='recotte.drive.sync.v1',DRIVE_CLIENT='recotte.drive.client.v1',DRIVE_SCOPE='https://www.googleapis.com/auth/drive.appdata';
+let driveMeta={account:'',records:{},pending:[],initialized:false},driveToken='',driveExpiry=0,driveRunning=null,driveTimer=null,driveApplying=false,driveConnecting=false;
+try{const m=JSON.parse(localStorage.getItem(DRIVE_META)||'null');if(m&&m.records&&Array.isArray(m.pending))driveMeta=m}catch{}
+function driveStatus(message){$('drive-status').textContent=message;$('drive-settings-open').textContent=driveToken?'Drive 同期':'Google Drive'}
+function driveSaveMeta(){localStorage.setItem(DRIVE_META,JSON.stringify(driveMeta))}
+function driveRecordKey(key,id){return (key===KEY?'book:':'series:')+id}
+function driveMerge(a,b){const out={...a};for(const [id,v] of Object.entries(b)){if(!v||!Number.isFinite(v.time)||typeof v.tie!=='string')continue;const p=out[id];if(!p||v.time>p.time||v.time===p.time&&v.tie>p.tie)out[id]=v}return out}
+function driveQueue(changes){if(!Object.keys(changes).length)return;driveMeta.records=driveMerge(driveMeta.records,changes);driveMeta.pending.push({id:crypto.randomUUID(),changes});driveSaveMeta()}
+function writeReadingStorage(key,value){
+ const before=JSON.parse(localStorage.getItem(key)||'[]'),after=JSON.parse(value);
+ localStorage.setItem(key,value);
+ if(driveApplying||!driveMeta.account||!driveMeta.initialized)return;
+ try{
+  const old=new Map(before.map(b=>[b.id,b])),next=new Map(after.map(b=>[b.id,b])),changes={};
+  const stamp=Math.max(Date.now(),...Object.values(driveMeta.records).map(x=>x.time+1));
+  for(const [id,item] of next)if(JSON.stringify(old.get(id))!==JSON.stringify(item))changes[driveRecordKey(key,id)]={item,time:stamp,tie:crypto.randomUUID(),deleted:false};
+  for(const id of old.keys())if(!next.has(id))changes[driveRecordKey(key,id)]={time:stamp,tie:crypto.randomUUID(),deleted:true};
+  driveQueue(changes);scheduleDrive();
+ }catch(e){driveStatus('端末に保存しましたが、同期情報の保存に失敗しました。')}
+}
+function scheduleDrive(){clearTimeout(driveTimer);if(driveToken&&Date.now()<driveExpiry)driveTimer=setTimeout(()=>syncReadingDrive().catch(driveError),800)}
+async function driveRequest(path,options={}){
+ if(!driveToken||Date.now()>=driveExpiry)throw Error('Googleに再接続してください。');
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),15000);
+ try{const res=await fetch('https://www.googleapis.com/'+path,{...options,signal:controller.signal,headers:{Authorization:'Bearer '+driveToken,...options.headers}});if(!res.ok){if(res.status===401){driveToken='';driveExpiry=0}throw Error('Google Driveとの通信に失敗しました（'+res.status+'）。')}return res.status===204?null:await res.json()}finally{clearTimeout(timer)}
+}
+async function driveList(){let token='',files=[];do{const p=new URLSearchParams({spaces:'appDataFolder',q:"trashed = false and name contains 'recotte-event-'",fields:'nextPageToken,files(id,name)',pageSize:'1000'});if(token)p.set('pageToken',token);const data=await driveRequest('drive/v3/files?'+p);files.push(...(data.files||[]));token=data.nextPageToken||''}while(token);return files}
+async function driveUpload(event){
+ const boundary='recotte_'+crypto.randomUUID(),meta={name:'recotte-event-'+event.id+'.json',mimeType:'application/json',parents:['appDataFolder']};
+ const body='--'+boundary+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+JSON.stringify(meta)+'\r\n--'+boundary+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify({version:1,changes:event.changes})+'\r\n--'+boundary+'--';
+ await driveRequest('upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+boundary},body});
+}
+function driveApply(records){
+ const nextBooks=[],nextSeries=[];
+ for(const [id,v] of Object.entries(records)){if(v.deleted||!v.item)continue;if(id==='book:'+v.item.id&&validBook(v.item))nextBooks.push(v.item);else if(id==='series:'+v.item.id&&typeof v.item.title==='string')nextSeries.push(v.item)}
+ driveApplying=true;
+ try{localStorage.setItem(KEY,JSON.stringify(nextBooks));localStorage.setItem(SERIES_KEY,JSON.stringify(nextSeries));books=nextBooks;seriesRecords=nextSeries;render()}finally{driveApplying=false}
+}
+function driveError(e){driveStatus((e.message||'同期に失敗しました。')+' 端末の記録は保持しています。')}
+function syncReadingDrive(){if(driveRunning)return driveRunning;driveRunning=performReadingSync().finally(()=>{driveRunning=null;if(driveMeta.pending.length&&driveToken&&Date.now()<driveExpiry)scheduleDrive()});return driveRunning}
+async function performReadingSync(){
+ if(!driveToken)throw Error('Googleに接続してください。');
+ driveStatus('同期しています…');
+ const files=await driveList();let cloud={};
+ for(let i=0;i<files.length;i+=8){const batch=await Promise.all(files.slice(i,i+8).map(f=>driveRequest('drive/v3/files/'+encodeURIComponent(f.id)+'?alt=media')));for(const data of batch){if(data.version!==1||!data.changes||typeof data.changes!=='object')throw Error('保存済みデータを読み込めませんでした。');cloud=driveMerge(cloud,data.changes)}}
+ if(!driveMeta.initialized){
+  const changes={};for(const [key,items] of [[KEY,books],[SERIES_KEY,seriesRecords]])for(const item of items){const id=driveRecordKey(key,item.id);if(!cloud[id])changes[id]={item,time:Date.now(),tie:crypto.randomUUID(),deleted:false}}
+  driveMeta.records=driveMerge(driveMeta.records,cloud);driveQueue(changes);driveMeta.initialized=true;driveSaveMeta();
+ }
+ driveMeta.records=driveMerge(cloud,driveMeta.records);driveSaveMeta();
+ const existing=new Set(files.map(f=>f.name));
+ for(const event of [...driveMeta.pending]){if(!existing.has('recotte-event-'+event.id+'.json'))await driveUpload(event);driveMeta.pending=driveMeta.pending.filter(e=>e.id!==event.id);driveSaveMeta()}
+ // Never replace a currently edited form with a remote snapshot.
+ if(!$('editdialog').open&&!$('reading-date').open&&!$('reading-elements').open)driveApply(driveMeta.records);
+ driveStatus(driveMeta.pending.length?'未同期の変更があります。':'Google Driveと同期済み');
+}
+$('drive-settings-open').onclick=()=>{$('drive-client-id').value=localStorage.getItem(DRIVE_CLIENT)||'';driveStatus(driveToken?'Google Driveに接続中':driveMeta.account?'Googleに再接続してください。':'未接続（端末内に保存中）');$('drive-dialog').showModal()};
+$('drive-connect').onclick=()=>{
+ if(driveConnecting||driveRunning)return;
+ const id=$('drive-client-id').value.trim();if(!/^[\w-]+\.apps\.googleusercontent\.com$/.test(id)){driveStatus('OAuthクライアントIDを入力してください。');return}
+ if(!window.google?.accounts?.oauth2){driveStatus('Googleログインを読み込み中です。');return}
+ localStorage.setItem(DRIVE_CLIENT,id);driveConnecting=true;
+ const client=google.accounts.oauth2.initTokenClient({client_id:id,scope:DRIVE_SCOPE,error_callback:()=>{driveConnecting=false;driveStatus('Google接続を中断しました。')},callback:async data=>{
+  try{if(data.error||!data.access_token)throw Error('Google接続が許可されませんでした。');driveToken=data.access_token;driveExpiry=Date.now()+Number(data.expires_in||3600)*1000-30000;
+   const info=await driveRequest('drive/v3/about?fields=user(permissionId)');const account=info.user?.permissionId;if(!account)throw Error('Googleアカウントを確認できませんでした。');
+   if(driveMeta.account&&driveMeta.account!==account){driveToken='';driveExpiry=0;throw Error('別のGoogleアカウントです。最初に接続したアカウントを使用してください。')}
+   driveMeta.account=account;driveSaveMeta();await syncReadingDrive();
+  }catch(e){driveError(e)}finally{driveConnecting=false}
+ }});try{client.requestAccessToken({prompt:''})}catch(e){driveConnecting=false;driveError(e)}
+};
+$('drive-sync').onclick=()=>syncReadingDrive().catch(driveError);
+$('drive-disconnect').onclick=()=>{if(driveRunning||driveConnecting){driveStatus('同期処理中です。');return}driveToken='';driveExpiry=0;clearTimeout(driveTimer);driveStatus('接続を解除しました。端末とDriveの記録は保持されます。')};
+window.addEventListener('focus',()=>{if(driveToken&&Date.now()<driveExpiry)syncReadingDrive().catch(driveError)});
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&driveToken&&Date.now()<driveExpiry)syncReadingDrive().catch(driveError)});
+
 render();
 </script></body></html>
