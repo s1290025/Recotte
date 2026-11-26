@@ -1307,6 +1307,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
 .barcode-guide{position:absolute;inset:32% 9%;border:1px solid #fff;border-radius:6px;pointer-events:none}
 .barcode-guide:after{content:"";position:absolute;top:50%;left:5%;right:5%;border-top:1px solid #edb75f}
 #barcode-manual input{flex:1;min-width:0}
+.dev-reset{margin-top:22px;padding-top:14px;border-top:1px solid #e9e6df}.dev-reset summary{cursor:pointer;color:#777;font-size:13px}#dev-reset{color:#a43e3e;border:1px solid #d9b7b7;background:#fff;border-radius:6px;padding:9px 14px}
 </style><script src="https://accounts.google.com/gsi/client" async defer></script></head>
 <body><div class="notebook">
 <header class="app-header"><button id="drive-settings-open" type="button" title="Google Drive同期" aria-label="Google Drive同期">Google Drive</button>
@@ -1408,7 +1409,7 @@ footer{max-width:1000px;margin-left:auto;margin-right:auto}
   <div class="formactions"><button class="danger" id="delete" type="button">削除</button><button type="button" data-close>閉じる</button><button class="primary">保存する</button></div>
  </form>
 </dialog><div class="message" id="message" role="status"></div>
-<dialog id="drive-dialog"><div class="dialoghead"><h2>Google Drive同期</h2><button type="button" data-close aria-label="閉じる">×</button></div><p class="muted">読書記録をGoogle Driveの非公開アプリ領域に保存します。表紙は画像URLのみ保存します。</p><label for="drive-client-id">Google OAuth クライアントID</label><input class="field" id="drive-client-id" placeholder="…apps.googleusercontent.com" autocomplete="off"><div class="drive-actions"><button type="button" id="drive-connect" class="primary">Googleで接続</button><button type="button" id="drive-sync">同期する</button><button type="button" id="drive-disconnect">接続解除</button></div><p id="drive-status" role="status" class="muted"></p></dialog>
+<dialog id="drive-dialog"><div class="dialoghead"><h2>Google Drive同期</h2><button type="button" data-close aria-label="閉じる">×</button></div><p class="muted">読書記録をGoogle Driveの非公開アプリ領域に保存します。表紙は画像URLのみ保存します。</p><label for="drive-client-id">Google OAuth クライアントID</label><input class="field" id="drive-client-id" placeholder="…apps.googleusercontent.com" autocomplete="off"><div class="drive-actions"><button type="button" id="drive-connect" class="primary">Googleで接続</button><button type="button" id="drive-sync">同期する</button><button type="button" id="drive-disconnect">接続解除</button></div><p id="drive-status" role="status" class="muted"></p><details class="dev-reset"><summary>開発用</summary><p class="muted">登録した本・シリーズ・感想・評価をすべて削除します。同期済みの場合はGoogle Driveにも削除が反映されます。APIキーと接続設定は残ります。</p><button id="dev-reset" type="button">読書記録を初期化</button></details></dialog>
 <script>
 'use strict';
 const $=id=>document.getElementById(id),KEY='recotte.books.v1',names={wish:'読みたい',reading:'読書中',done:'読んだ',paused:'中断'};
@@ -2928,6 +2929,7 @@ async function performReadingSync(){
   driveMeta.records=driveMerge(driveMeta.records,cloud);driveQueue(changes);driveMeta.initialized=true;driveSaveMeta();
  }
  driveMeta.records=driveMerge(cloud,driveMeta.records);driveSaveMeta();
+ if(driveMeta.resetRequested){const changes={};const stamp=Math.max(Date.now(),...Object.values(driveMeta.records).map(x=>x.time+1));for(const [id,v] of Object.entries(driveMeta.records))if(!v.deleted)changes[id]={time:stamp,tie:crypto.randomUUID(),deleted:true};driveQueue(changes);driveMeta.resetRequested=false;driveSaveMeta()}
  const existing=new Set(files.map(f=>f.name));
  for(const event of [...driveMeta.pending]){if(!existing.has('recotte-event-'+event.id+'.json'))await driveUpload(event);driveMeta.pending=driveMeta.pending.filter(e=>e.id!==event.id);driveSaveMeta()}
  // Never replace a currently edited form with a remote snapshot.
@@ -2947,6 +2949,19 @@ $('drive-connect').onclick=()=>{
    driveMeta.account=account;driveSaveMeta();await syncReadingDrive();
   }catch(e){driveError(e)}finally{driveConnecting=false}
  }});try{client.requestAccessToken({prompt:''})}catch(e){driveConnecting=false;driveError(e)}
+};
+$('dev-reset').onclick=async()=>{
+ if(driveRunning||driveConnecting){driveStatus('同期処理中です。終了後に初期化してください。');return}
+ if(!confirm('すべての読書記録とシリーズを削除します。Google Driveと同期している場合は他の端末にも反映されます。元に戻せません。初期化しますか？'))return;
+ try{
+  if(driveMeta.account){driveMeta.resetRequested=true;driveSaveMeta()}
+  clearTimeout(readingDraftTimer);clearTimeout(editorAutosaveTimer);
+  writeReadingStorage(KEY,'[]');writeReadingStorage(SERIES_KEY,'[]');books=[];seriesRecords=[];
+  localStorage.removeItem(READING_DRAFT_KEY);localStorage.removeItem(EDITOR_DRAFT_KEY);
+  showDemo=false;returnHome();refreshIndex();render();
+  if(driveMeta.account&&driveToken&&Date.now()<driveExpiry){await syncReadingDrive();driveStatus('読書記録を初期化し、Google Driveにも削除を同期しました。')}
+  else driveStatus(driveMeta.account?'端末を初期化しました。Googleに再接続するとDriveにも削除が反映されます。':'読書記録を初期化しました。');
+ }catch(e){driveError(e)}
 };
 $('drive-sync').onclick=()=>syncReadingDrive().catch(driveError);
 $('drive-disconnect').onclick=()=>{if(driveRunning||driveConnecting){driveStatus('同期処理中です。');return}driveToken='';driveExpiry=0;clearTimeout(driveTimer);driveStatus('接続を解除しました。端末とDriveの記録は保持されます。')};
